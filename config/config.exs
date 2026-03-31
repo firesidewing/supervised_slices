@@ -66,7 +66,13 @@ config :spark,
 config :supervised_slices,
   ecto_repos: [SupervisedSlices.Repo],
   generators: [timestamp_type: :utc_datetime],
-  ash_domains: [SupervisedSlices.Accounts]
+  ash_domains: [
+    SupervisedSlices.Accounts,
+    SupervisedSlices.Orgs,
+    SupervisedSlices.Menu,
+    SupervisedSlices.Cart,
+    SupervisedSlices.Orders
+  ]
 
 # Configure the endpoint
 config :supervised_slices, SupervisedSlicesWeb.Endpoint,

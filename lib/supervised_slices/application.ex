@@ -17,6 +17,7 @@ defmodule SupervisedSlices.Application do
          Application.fetch_env!(:supervised_slices, Oban)
        )},
       {Phoenix.PubSub, name: SupervisedSlices.PubSub},
+      SupervisedSlices.OrgPresence,
       # Start a worker by calling: SupervisedSlices.Worker.start_link(arg)
       # {SupervisedSlices.Worker, arg},
       # Start to serve requests, typically the last entry
