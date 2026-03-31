@@ -14,6 +14,7 @@ defmodule SupervisedSlicesWeb.Router do
     plug :protect_from_forgery
     plug :put_secure_browser_headers
     plug :load_from_session
+    plug SupervisedSlicesWeb.Plugs.GuestSession
   end
 
   pipeline :api do
@@ -36,6 +37,13 @@ defmodule SupervisedSlicesWeb.Router do
       #
       # If an authenticated user must *not* be present:
       # on_mount {SupervisedSlicesWeb.LiveUserAuth, :live_no_user}
+
+      live "/menu/:org_slug", MenuLive.Index, :index
+      live "/menu/:org_slug/item/:id", MenuLive.Index, :show
+
+      live "/kitchen/:org_slug", AdminLive, :orders
+      live "/kitchen/:org_slug/baskets", AdminLive, :baskets
+      live "/kitchen/:org_slug/menu", AdminLive, :menu
     end
   end
 

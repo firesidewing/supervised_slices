@@ -5,7 +5,6 @@ defmodule SupervisedSlices.Orgs.Membership do
     data_layer: AshPostgres.DataLayer,
     authorizers: [Ash.Policy.Authorizer]
 
-
   postgres do
     table "memberships"
     repo SupervisedSlices.Repo
@@ -28,22 +27,22 @@ defmodule SupervisedSlices.Orgs.Membership do
       authorize_if relates_to_actor_via(:user)
 
       authorize_if expr(
-        exists(
-          organization.memberships,
-          user_id == ^actor(:id) and role == :admin
-        )
-      )
+                     exists(
+                       organization.memberships,
+                       user_id == ^actor(:id) and role == :admin
+                     )
+                   )
     end
 
     policy action_type([:create, :update, :destroy]) do
       authorize_if actor_attribute_equals(:superadmin, true)
 
       authorize_if expr(
-        exists(
-          organization.memberships,
-          user_id == ^actor(:id) and role == :admin
-        )
-      )
+                     exists(
+                       organization.memberships,
+                       user_id == ^actor(:id) and role == :admin
+                     )
+                   )
     end
   end
 

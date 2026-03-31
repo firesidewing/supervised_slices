@@ -5,7 +5,6 @@ defmodule SupervisedSlices.Cart.Cart do
     data_layer: AshPostgres.DataLayer,
     authorizers: [Ash.Policy.Authorizer]
 
-
   postgres do
     table "carts"
     repo SupervisedSlices.Repo
@@ -83,6 +82,11 @@ defmodule SupervisedSlices.Cart.Cart do
     end
   end
 
+  multitenancy do
+    strategy :attribute
+    attribute :organization_id
+  end
+
   attributes do
     uuid_primary_key :id
 
@@ -112,10 +116,5 @@ defmodule SupervisedSlices.Cart.Cart do
     end
 
     has_many :cart_items, SupervisedSlices.Cart.CartItem
-  end
-
-  multitenancy do
-    strategy :attribute
-    attribute :organization_id
   end
 end

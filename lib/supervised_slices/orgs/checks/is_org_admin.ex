@@ -4,19 +4,20 @@ defmodule SupervisedSlices.Orgs.Checks.IsOrgAdmin do
   resource's organization. The resource must have a `belongs_to :organization`
   relationship that has a `has_many :memberships` relationship on Organization.
   """
-  use Ash.Policy.FilterCheck
+  use Ash.Policy.SimpleCheck
 
   @impl true
   def describe(_opts), do: "actor is an org admin"
 
   @impl true
-  def filter(_actor, _authorizer, _opts) do
-    {:ok,
-     expr(
-       exists(
-         organization.memberships,
-         user_id == ^actor(:id) and role == :admin
-       )
-     )}
+  def match?(actor, context, _opts) do
+    org_id =
+      case context do
+        %{changeset: cs} -> cs.tenant
+        %{resource: record} -> record.organization_id
+        _ -> nil
+      end
+
+    actor.org_role == :admin and actor.org_id == org_id
   end
 end

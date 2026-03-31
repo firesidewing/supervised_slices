@@ -5,7 +5,6 @@ defmodule SupervisedSlices.Menu.MenuItemModifierGroup do
     data_layer: AshPostgres.DataLayer,
     authorizers: [Ash.Policy.Authorizer]
 
-
   postgres do
     table "menu_item_modifier_groups"
     repo SupervisedSlices.Repo
@@ -31,6 +30,11 @@ defmodule SupervisedSlices.Menu.MenuItemModifierGroup do
     policy action_type([:create, :update, :destroy]) do
       authorize_if SupervisedSlices.Orgs.Checks.IsOrgAdmin
     end
+  end
+
+  multitenancy do
+    strategy :attribute
+    attribute :organization_id
   end
 
   attributes do
@@ -80,10 +84,5 @@ defmodule SupervisedSlices.Menu.MenuItemModifierGroup do
     has_many :modifiers, SupervisedSlices.Menu.MenuItemModifier do
       destination_attribute :modifier_group_id
     end
-  end
-
-  multitenancy do
-    strategy :attribute
-    attribute :organization_id
   end
 end

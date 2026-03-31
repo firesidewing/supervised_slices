@@ -40,6 +40,19 @@ window.addEventListener("phx:page-loading-stop", _info => topbar.hide())
 // connect if there are any LiveViews on the page
 liveSocket.connect()
 
+// View Transitions API – wrap LiveView page navigations in startViewTransition
+// so that shared `view-transition-name` elements animate between pages.
+// Falls back gracefully when the API is not supported (e.g. Firefox < 125).
+if (document.startViewTransition) {
+  window.addEventListener("phx:page-loading-start", () => {
+    document.startViewTransition(() => {
+      return new Promise((resolve) => {
+        window.addEventListener("phx:page-loading-stop", resolve, { once: true })
+      })
+    })
+  })
+}
+
 // expose liveSocket on window for web console debug logs and latency simulation:
 // >> liveSocket.enableDebug()
 // >> liveSocket.enableLatencySim(1000)  // enabled for duration of browser session

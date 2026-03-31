@@ -5,7 +5,6 @@ defmodule SupervisedSlices.Orders.OrderItem do
     data_layer: AshPostgres.DataLayer,
     authorizers: [Ash.Policy.Authorizer]
 
-
   postgres do
     table "order_items"
     repo SupervisedSlices.Repo
@@ -15,7 +14,14 @@ defmodule SupervisedSlices.Orders.OrderItem do
     defaults [:read]
 
     create :create do
-      accept [:order_id, :menu_item_id, :quantity, :item_name, :price_at_time, :modifiers_snapshot]
+      accept [
+        :order_id,
+        :menu_item_id,
+        :quantity,
+        :item_name,
+        :price_at_time,
+        :modifiers_snapshot
+      ]
     end
   end
 
@@ -28,6 +34,11 @@ defmodule SupervisedSlices.Orders.OrderItem do
       authorize_if relates_to_actor_via([:order, :user])
       authorize_if SupervisedSlices.Orgs.Checks.IsOrgAdmin
     end
+  end
+
+  multitenancy do
+    strategy :attribute
+    attribute :organization_id
   end
 
   attributes do
@@ -76,10 +87,5 @@ defmodule SupervisedSlices.Orders.OrderItem do
 
   calculations do
     calculate :line_total, AshMoney.Types.Money, expr(price_at_time * quantity)
-  end
-
-  multitenancy do
-    strategy :attribute
-    attribute :organization_id
   end
 end

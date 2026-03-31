@@ -1,0 +1,156 @@
+<header class="fixed top-0 w-full z-50 bg-[#faf9f6]/80 backdrop-blur-xl flex items-center gap-4 px-4 py-4">
+  <.link
+    navigate={~p"/menu/#{@org.slug}"}
+    class="flex items-center justify-center w-10 h-10 rounded-full hover:bg-surface-container transition-colors text-on-surface-variant active:scale-95"
+    aria-label="Back to menu"
+  >
+    <span class="material-symbols-outlined">arrow_back</span>
+  </.link>
+  <h1
+    class="text-xl font-bold tracking-tight text-[#E31837]"
+    style="font-family: 'Plus Jakarta Sans', sans-serif;"
+  >
+    {@org.name}
+  </h1>
+</header>
+
+<main class="pt-[4.5rem] pb-32 max-w-2xl mx-auto">
+  <div class="relative w-full aspect-[4/3] overflow-hidden bg-surface-container-low">
+    <img
+      src={@selected_item.image_url || "https://placehold.co/600x450/f4f3f1/5d3f3e?text=🍕"}
+      alt={@selected_item.name}
+      class="w-full h-full object-cover"
+      style={"view-transition-name: item-img-#{@selected_item.id};"}
+    />
+  </div>
+
+  <div class="px-5 pt-6 space-y-8">
+    <div>
+      <h2
+        class="text-3xl font-extrabold tracking-tight text-on-surface leading-tight"
+        style="font-family: 'Plus Jakarta Sans', sans-serif;"
+      >
+        {@selected_item.name}
+      </h2>
+      <p class="mt-3 text-on-surface-variant leading-relaxed text-base">
+        {@selected_item.description}
+      </p>
+    </div>
+
+    <%= if not Enum.empty?(@selected_item.modifier_groups) do %>
+      <%= for group <- @selected_item.modifier_groups do %>
+        <div>
+          <h3
+            class="text-xs font-bold uppercase tracking-widest text-on-surface-variant mb-3"
+            style="font-family: 'Be Vietnam Pro', sans-serif;"
+          >
+            {group.name}
+          </h3>
+          <div class="space-y-2">
+            <%= for modifier <- group.modifiers do %>
+              <div class="flex items-center justify-between py-2.5 px-4 rounded-xl bg-surface-container-low">
+                <div>
+                  <span class="text-sm font-semibold text-on-surface">{modifier.name}</span>
+                </div>
+                <div class="flex items-center gap-4">
+                  <span class="text-sm font-bold text-primary">
+                    {item_price(@selected_item.price, modifier.price_delta)}
+                  </span>
+                  <div class="flex items-center bg-white rounded-full p-1 shadow-sm">
+                    <button
+                      phx-click="update_quantity"
+                      phx-value-item_id={@selected_item.id}
+                      phx-value-modifier_id={modifier.id}
+                      phx-value-delta="-1"
+                      class="w-8 h-8 flex items-center justify-center rounded-full hover:bg-surface-container transition-colors"
+                      aria-label={"Remove #{modifier.name}"}
+                    >
+                      <span class="material-symbols-outlined" style="font-size: 18px;">
+                        remove
+                      </span>
+                    </button>
+                    <span class="px-3 text-sm font-bold min-w-[2rem] text-center">
+                      {get_modifier_qty(@cart_items_map, @selected_item.id, modifier.id)}
+                    </span>
+                    <button
+                      phx-click="update_quantity"
+                      phx-value-item_id={@selected_item.id}
+                      phx-value-modifier_id={modifier.id}
+                      phx-value-delta="1"
+                      class="w-8 h-8 flex items-center justify-center rounded-full bg-primary text-white hover:bg-primary-container transition-colors"
+                      aria-label={"Add #{modifier.name}"}
+                    >
+                      <span class="material-symbols-outlined" style="font-size: 18px;">add</span>
+                    </button>
+                  </div>
+                </div>
+              </div>
+            <% end %>
+          </div>
+        </div>
+      <% end %>
+    <% else %>
+      <div>
+        <div class="flex items-center justify-between py-2.5 px-4 rounded-xl bg-surface-container-low">
+          <span class="text-base font-bold text-primary">
+            {format_money(@selected_item.price)}
+          </span>
+          <div class="flex items-center bg-white rounded-full p-1 shadow-sm">
+            <button
+              phx-click="update_quantity"
+              phx-value-item_id={@selected_item.id}
+              phx-value-delta="-1"
+              class="w-8 h-8 flex items-center justify-center rounded-full hover:bg-surface-container transition-colors"
+              aria-label="Remove one"
+            >
+              <span class="material-symbols-outlined" style="font-size: 18px;">remove</span>
+            </button>
+            <span class="px-3 text-sm font-bold min-w-[2rem] text-center">
+              {get_item_qty(@cart_items_map, @selected_item.id)}
+            </span>
+            <button
+              phx-click="update_quantity"
+              phx-value-item_id={@selected_item.id}
+              phx-value-delta="1"
+              class="w-8 h-8 flex items-center justify-center rounded-full bg-primary text-white hover:bg-primary-container transition-colors"
+              aria-label="Add one"
+            >
+              <span class="material-symbols-outlined" style="font-size: 18px;">add</span>
+            </button>
+          </div>
+        </div>
+      </div>
+    <% end %>
+  </div>
+</main>
+
+<nav class="fixed bottom-6 left-0 right-0 flex justify-center items-center px-4 z-50 pointer-events-none">
+  <div class="pointer-events-auto w-[90%] max-w-lg bg-gradient-to-r from-[#b90027] to-[#e31837] rounded-full flex justify-around items-center px-4 py-2 shadow-[0px_12px_32px_rgba(185,0,39,0.25)]">
+    <.link
+      navigate={~p"/menu/#{@org.slug}"}
+      class="flex items-center gap-2 bg-white/20 rounded-full px-5 py-2.5 text-white font-bold hover:scale-[1.02] transition-all active:scale-95"
+    >
+      <span class="material-symbols-outlined">restaurant_menu</span>
+      <span
+        class="text-[10px] uppercase tracking-widest"
+        style="font-family: 'Be Vietnam Pro', sans-serif;"
+      >
+        Explore Menu
+      </span>
+    </.link>
+    <button class="flex items-center gap-1.5 text-white/80 px-5 py-2.5 hover:scale-[1.02] transition-all active:scale-95">
+      <span class="material-symbols-outlined">shopping_cart_checkout</span>
+      <span
+        class="text-[10px] uppercase tracking-widest"
+        style="font-family: 'Be Vietnam Pro', sans-serif;"
+      >
+        View Basket
+      </span>
+      <%= if @cart_count > 0 do %>
+        <span class="ml-1 bg-white text-primary text-[10px] font-black rounded-full w-5 h-5 flex items-center justify-center">
+          {@cart_count}
+        </span>
+      <% end %>
+    </button>
+  </div>
+</nav>

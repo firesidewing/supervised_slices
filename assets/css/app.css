@@ -2,6 +2,115 @@
    https://tailwindcss.com/docs/configuration */
 
 @import "tailwindcss" source(none);
+
+/* ============================================================
+   Design System: The Artisan Editorial / Modern Trattoria Canvas
+   ============================================================ */
+@theme {
+  /* Primary – Tomato Red */
+  --color-primary: #b90027;
+  --color-primary-container: #e31837;
+  --color-primary-fixed: #ffdad8;
+  --color-primary-fixed-dim: #ffb3b1;
+  --color-on-primary: #ffffff;
+  --color-on-primary-container: #fffaf9;
+  --color-on-primary-fixed: #410007;
+  --color-on-primary-fixed-variant: #92001d;
+  --color-inverse-primary: #ffb3b1;
+
+  /* Secondary – Basil Green */
+  --color-secondary: #3a6843;
+  --color-secondary-container: #b9ecbd;
+  --color-secondary-fixed: #bcefc0;
+  --color-secondary-fixed-dim: #a0d3a5;
+  --color-on-secondary: #ffffff;
+  --color-on-secondary-container: #3e6d47;
+  --color-on-secondary-fixed: #00210a;
+  --color-on-secondary-fixed-variant: #22502d;
+
+  /* Tertiary */
+  --color-tertiary: #615b47;
+  --color-tertiary-container: #7a735f;
+  --color-tertiary-fixed: #ece2c9;
+  --color-tertiary-fixed-dim: #cfc6ae;
+  --color-on-tertiary: #ffffff;
+  --color-on-tertiary-container: #fffaf5;
+  --color-on-tertiary-fixed: #201b0c;
+  --color-on-tertiary-fixed-variant: #4c4634;
+
+  /* Surface stack (warm white / flour) – no borders, only tone shifts */
+  --color-background: #faf9f6;
+  --color-surface: #faf9f6;
+  --color-surface-bright: #faf9f6;
+  --color-surface-dim: #dbdad7;
+  --color-surface-variant: #e3e2e0;
+  --color-surface-tint: #bf0029;
+  --color-surface-container-lowest: #ffffff;
+  --color-surface-container-low: #f4f3f1;
+  --color-surface-container: #efeeeb;
+  --color-surface-container-high: #e9e8e5;
+  --color-surface-container-highest: #e3e2e0;
+  --color-on-surface: #1a1c1a;
+  --color-on-surface-variant: #5d3f3e;
+  --color-on-background: #1a1c1a;
+  --color-inverse-surface: #2f312f;
+  --color-inverse-on-surface: #f2f1ee;
+
+  /* Outline / Ghost Border */
+  --color-outline: #916e6d;
+  --color-outline-variant: #e6bdbb;
+
+  /* Error */
+  --color-error: #ba1a1a;
+  --color-error-container: #ffdad6;
+  --color-on-error: #ffffff;
+  --color-on-error-container: #93000a;
+
+  /* Typography */
+  --font-headline: "Plus Jakarta Sans", sans-serif;
+  --font-body: "Be Vietnam Pro", sans-serif;
+  --font-label: "Be Vietnam Pro", sans-serif;
+
+  /* Border radius – organic, hand-tossed feel */
+  --radius: 1rem;
+  --radius-lg: 2rem;
+  --radius-xl: 3rem;
+  --radius-full: 9999px;
+}
+
+/* Material Symbols Outlined icon font */
+.material-symbols-outlined {
+  font-variation-settings: "FILL" 0, "wght" 400, "GRAD" 0, "opsz" 24;
+  user-select: none;
+}
+
+/* Scrollbar hide utility */
+.no-scrollbar::-webkit-scrollbar { display: none; }
+.no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+
+/* ============================================================
+   View Transitions – page slide + shared element image morph
+   ============================================================ */
+@keyframes slide-from-right {
+  from { transform: translateX(30px); opacity: 0; }
+}
+@keyframes slide-to-left {
+  to { transform: translateX(-30px); opacity: 0; }
+}
+
+/* Root page transition (only for navigations, not every update) */
+::view-transition-old(root) {
+  animation: 240ms ease-out slide-to-left;
+}
+::view-transition-new(root) {
+  animation: 240ms ease-out slide-from-right;
+}
+
+/* Shared element (item image) – let browser animate position/size */
+::view-transition-old(item-image),
+::view-transition-new(item-image) {
+  animation: none;
+}
 @source "../../deps/ash_authentication_phoenix";
 @source "../css";
 @source "../js";

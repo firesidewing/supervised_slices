@@ -5,7 +5,6 @@ defmodule SupervisedSlices.Orgs.Organization do
     data_layer: AshPostgres.DataLayer,
     authorizers: [Ash.Policy.Authorizer]
 
-
   postgres do
     table "organizations"
     repo SupervisedSlices.Repo

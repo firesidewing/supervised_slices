@@ -5,7 +5,6 @@ defmodule SupervisedSlices.Cart.CartItem do
     data_layer: AshPostgres.DataLayer,
     authorizers: [Ash.Policy.Authorizer]
 
-
   postgres do
     table "cart_items"
     repo SupervisedSlices.Repo
@@ -34,6 +33,11 @@ defmodule SupervisedSlices.Cart.CartItem do
       authorize_if relates_to_actor_via([:cart, :user])
       authorize_if expr(cart.session_id == ^actor(:session_id))
     end
+  end
+
+  multitenancy do
+    strategy :attribute
+    attribute :organization_id
   end
 
   attributes do
@@ -69,10 +73,5 @@ defmodule SupervisedSlices.Cart.CartItem do
       allow_nil? false
       public? true
     end
-  end
-
-  multitenancy do
-    strategy :attribute
-    attribute :organization_id
   end
 end

@@ -5,7 +5,6 @@ defmodule SupervisedSlices.Orders.Order do
     data_layer: AshPostgres.DataLayer,
     authorizers: [Ash.Policy.Authorizer]
 
-
   postgres do
     table "orders"
     repo SupervisedSlices.Repo
@@ -29,19 +28,19 @@ defmodule SupervisedSlices.Orders.Order do
         end
       end
 
-      after_action fn _changeset, order, _context ->
+      after_action(fn _changeset, order, _context ->
         SupervisedSlices.PubSubNotifier.broadcast_new_order(order)
         {:ok, order}
-      end
+      end)
     end
 
     update :update_status do
       accept [:status]
 
-      after_action fn _changeset, order, _context ->
+      after_action(fn _changeset, order, _context ->
         SupervisedSlices.PubSubNotifier.broadcast_order_status(order)
         {:ok, order}
-      end
+      end)
     end
 
     read :all do
@@ -49,7 +48,7 @@ defmodule SupervisedSlices.Orders.Order do
     end
 
     read :active do
-      filter expr(status not_in [:completed, :cancelled])
+      filter expr(status not_in([:completed, :cancelled]))
       prepare build(sort: [inserted_at: :asc], load: [:order_items])
     end
 
@@ -73,6 +72,11 @@ defmodule SupervisedSlices.Orders.Order do
       authorize_if relates_to_actor_via(:user)
       authorize_if SupervisedSlices.Orgs.Checks.IsOrgAdmin
     end
+  end
+
+  multitenancy do
+    strategy :attribute
+    attribute :organization_id
   end
 
   attributes do
@@ -122,10 +126,5 @@ defmodule SupervisedSlices.Orders.Order do
     end
 
     has_many :order_items, SupervisedSlices.Orders.OrderItem
-  end
-
-  multitenancy do
-    strategy :attribute
-    attribute :organization_id
   end
 end

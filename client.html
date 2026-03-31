@@ -1,0 +1,675 @@
+<!doctype html>
+
+<html lang="en">
+    <head>
+        <meta charset="utf-8" />
+        <meta content="width=device-width, initial-scale=1.0" name="viewport" />
+        <title>The Artisan Trattoria - Pizza Menu</title>
+        <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+        <link
+            href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@700;800&amp;family=Be+Vietnam+Pro:wght@400;500;600;700&amp;display=swap"
+            rel="stylesheet"
+        />
+        <link
+            href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap"
+            rel="stylesheet"
+        />
+        <link
+            href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap"
+            rel="stylesheet"
+        />
+        <script id="tailwind-config">
+            tailwind.config = {
+                darkMode: "class",
+                theme: {
+                    extend: {
+                        colors: {
+                            "primary-fixed": "#ffdad8",
+                            "on-secondary-fixed-variant": "#22502d",
+                            "tertiary-container": "#7a735f",
+                            "inverse-primary": "#ffb3b1",
+                            primary: "#b90027",
+                            "on-background": "#1a1c1a",
+                            "surface-variant": "#e3e2e0",
+                            "surface-bright": "#faf9f6",
+                            "on-primary-container": "#fffaf9",
+                            "on-tertiary-fixed-variant": "#4c4634",
+                            "secondary-fixed-dim": "#a0d3a5",
+                            "on-tertiary": "#ffffff",
+                            "inverse-on-surface": "#f2f1ee",
+                            surface: "#faf9f6",
+                            "surface-container-high": "#e9e8e5",
+                            "surface-container-highest": "#e3e2e0",
+                            "error-container": "#ffdad6",
+                            "surface-tint": "#bf0029",
+                            "on-primary": "#ffffff",
+                            "secondary-container": "#b9ecbd",
+                            outline: "#916e6d",
+                            "tertiary-fixed-dim": "#cfc6ae",
+                            "on-error-container": "#93000a",
+                            background: "#faf9f6",
+                            "primary-container": "#e31837",
+                            "on-surface": "#1a1c1a",
+                            "on-secondary-container": "#3e6d47",
+                            "on-secondary-fixed": "#00210a",
+                            secondary: "#3a6843",
+                            tertiary: "#615b47",
+                            "surface-container-lowest": "#ffffff",
+                            "on-primary-fixed": "#410007",
+                            "surface-container": "#efeeeb",
+                            "surface-dim": "#dbdad7",
+                            "on-surface-variant": "#5d3f3e",
+                            "inverse-surface": "#2f312f",
+                            error: "#ba1a1a",
+                            "on-tertiary-fixed": "#201b0c",
+                            "on-error": "#ffffff",
+                            "outline-variant": "#e6bdbb",
+                            "secondary-fixed": "#bcefc0",
+                            "on-tertiary-container": "#fffaf5",
+                            "on-primary-fixed-variant": "#92001d",
+                            "surface-container-low": "#f4f3f1",
+                            "on-secondary": "#ffffff",
+                            "tertiary-fixed": "#ece2c9",
+                            "primary-fixed-dim": "#ffb3b1",
+                        },
+                        fontFamily: {
+                            headline: ["Plus Jakarta Sans"],
+                            body: ["Be Vietnam Pro"],
+                            label: ["Be Vietnam Pro"],
+                        },
+                        borderRadius: {
+                            DEFAULT: "1rem",
+                            lg: "2rem",
+                            xl: "3rem",
+                            full: "9999px",
+                        },
+                    },
+                },
+            };
+        </script>
+        <style>
+            .material-symbols-outlined {
+                font-variation-settings:
+                    "FILL" 0,
+                    "wght" 400,
+                    "GRAD" 0,
+                    "opsz" 24;
+            }
+            body {
+                font-family: "Be Vietnam Pro", sans-serif;
+                background-color: #faf9f6;
+            }
+            h1,
+            h2,
+            h3 {
+                font-family: "Plus Jakarta Sans", sans-serif;
+            }
+            .no-scrollbar::-webkit-scrollbar {
+                display: none;
+            }
+        </style>
+        <style>
+            body {
+                min-height: max(884px, 100dvh);
+            }
+        </style>
+    </head>
+    <body class="text-on-surface">
+        <!-- TopAppBar -->
+        <header
+            class="fixed top-0 w-full z-50 bg-[#faf9f6] dark:bg-stone-950 backdrop-blur-xl bg-opacity-80 flex justify-between items-center px-6 py-4 w-full"
+        >
+            <div class="flex items-center gap-4">
+                <button
+                    class="text-[#5d3f3e] dark:text-stone-400 hover:scale-105 transition-transform active:scale-95"
+                >
+                    <span class="material-symbols-outlined" data-icon="menu"
+                        >menu</span
+                    >
+                </button>
+                <h1 class="text-xl font-bold tracking-tight text-[#E31837]">
+                    The Artisan Trattoria
+                </h1>
+            </div>
+            <div class="flex items-center gap-4">
+                <button
+                    class="text-[#5d3f3e] dark:text-stone-400 hover:scale-105 transition-transform active:scale-95"
+                >
+                    <span
+                        class="material-symbols-outlined"
+                        data-icon="shopping_bag"
+                        >shopping_bag</span
+                    >
+                </button>
+            </div>
+        </header>
+        <main class="pt-24 pb-32 px-4 max-w-5xl mx-auto">
+            <!-- Category: Red Pizzas -->
+            <section class="mb-10">
+                <div class="flex items-center gap-3 mb-6">
+                    <div class="h-8 w-1 bg-primary rounded-full"></div>
+                    <h2
+                        class="text-2xl font-extrabold tracking-tight text-on-surface"
+                    >
+                        Red Pizzas
+                    </h2>
+                </div>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <!-- Item Card 1 -->
+                    <div
+                        class="bg-surface-container-lowest rounded-xl p-4 transition-all hover:scale-[1.01] flex flex-col gap-4"
+                    >
+                        <div class="flex gap-4">
+                            <div
+                                class="relative w-24 h-24 shrink-0 overflow-hidden rounded-lg"
+                            >
+                                <img
+                                    alt="Margherita Pizza"
+                                    class="w-full h-full object-cover"
+                                    data-alt="Close-up of a classic Margherita pizza with vibrant red tomato sauce, melted mozzarella, and fresh green basil leaves on a rustic background"
+                                    src="https://lh3.googleusercontent.com/aida-public/AB6AXuDJ8h8C5V1DQ4GCzC8faujCGuCb8qW4eNGgHcdyzo7CYHkGh0DcvrgE8I9bbxW1wzM-yzMNpMWItufFf5DxX-2mJq0rDBpDW-0UAVJxT-5u1xNAY2WkakMSLmgLbVigqTNSzcupVe8Rixno7i7DvvECPocOoEultBwgSbHpds2JU5KuYnbu6mQ6T4HpEPdSkkU4SL9FMeHiT0wnaqXVp0fjuc0YLpR9oDbTFtQWhLRRe78eVUduie5gnirlJrmVLzzQvaiulMp0"
+                                />
+                            </div>
+                            <div class="flex-1">
+                                <h3
+                                    class="text-lg font-bold leading-tight mb-1"
+                                >
+                                    Classic Margherita
+                                </h3>
+                                <p
+                                    class="text-sm text-on-surface-variant line-clamp-2"
+                                >
+                                    San Marzano DOP tomatoes, buffalo
+                                    mozzarella, fresh basil, extra virgin olive
+                                    oil.
+                                </p>
+                            </div>
+                        </div>
+                        <div
+                            class="space-y-2 pt-2 border-t border-surface-container-low"
+                        >
+                            <!-- Sizes Selection Row -->
+                            <div
+                                class="flex items-center justify-between py-1 px-2 rounded-lg bg-surface-container-low"
+                            >
+                                <span
+                                    class="text-xs font-bold uppercase tracking-wider text-on-surface-variant"
+                                    >10" Personal</span
+                                >
+                                <div class="flex items-center gap-4">
+                                    <span class="text-sm font-bold text-primary"
+                                        >$14.50</span
+                                    >
+                                    <div
+                                        class="flex items-center bg-white rounded-full p-1 shadow-sm"
+                                    >
+                                        <button
+                                            class="w-7 h-7 flex items-center justify-center rounded-full hover:bg-surface-container transition-colors"
+                                        >
+                                            <span
+                                                class="material-symbols-outlined text-sm"
+                                                data-icon="remove"
+                                                >remove</span
+                                            >
+                                        </button>
+                                        <span class="px-2 text-sm font-bold"
+                                            >0</span
+                                        >
+                                        <button
+                                            class="w-7 h-7 flex items-center justify-center rounded-full bg-primary text-white hover:bg-primary-container transition-colors"
+                                        >
+                                            <span
+                                                class="material-symbols-outlined text-sm"
+                                                data-icon="add"
+                                                >add</span
+                                            >
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                            <div
+                                class="flex items-center justify-between py-1 px-2 rounded-lg bg-surface-container-low"
+                            >
+                                <span
+                                    class="text-xs font-bold uppercase tracking-wider text-on-surface-variant"
+                                    >14" Large</span
+                                >
+                                <div class="flex items-center gap-4">
+                                    <span class="text-sm font-bold text-primary"
+                                        >$19.50</span
+                                    >
+                                    <div
+                                        class="flex items-center bg-white rounded-full p-1 shadow-sm"
+                                    >
+                                        <button
+                                            class="w-7 h-7 flex items-center justify-center rounded-full hover:bg-surface-container transition-colors"
+                                        >
+                                            <span
+                                                class="material-symbols-outlined text-sm"
+                                                data-icon="remove"
+                                                >remove</span
+                                            >
+                                        </button>
+                                        <span class="px-2 text-sm font-bold"
+                                            >0</span
+                                        >
+                                        <button
+                                            class="w-7 h-7 flex items-center justify-center rounded-full bg-primary text-white hover:bg-primary-container transition-colors"
+                                        >
+                                            <span
+                                                class="material-symbols-outlined text-sm"
+                                                data-icon="add"
+                                                >add</span
+                                            >
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <!-- Item Card 2 -->
+                    <div
+                        class="bg-surface-container-lowest rounded-xl p-4 transition-all hover:scale-[1.01] flex flex-col gap-4"
+                    >
+                        <div class="flex gap-4">
+                            <div
+                                class="relative w-24 h-24 shrink-0 overflow-hidden rounded-lg"
+                            >
+                                <img
+                                    alt="Pepperoni Pizza"
+                                    class="w-full h-full object-cover"
+                                    data-alt="Artisan pepperoni pizza with crispy curled meat slices and bubbling cheese on a stone-baked crust with vibrant lighting"
+                                    src="https://lh3.googleusercontent.com/aida-public/AB6AXuBH6omz7v_eLqIPwiGJ9XSejMTnMqXbQ_HEEscNZpQT78eEFEv9GM7IM7wbTywaYj8ekmYz5tvUmeuWQKm9vknS0DbD99-BU_JNPpNHVcfZPkCLckeTHaTBgQNHw7bGeXmGnUZlJtikvk96srwv20ocOD7Y9zhj1nrOgMbAIR7nirwJlMUBjuNhm7r33RsN0M_ZQ1EqYye2LQNXIpY5AzUn331VBHbw3-mZx_U-oDUwzpnxcjxD2C0RILg8YRSQze2n-d94UB9_"
+                                />
+                            </div>
+                            <div class="flex-1">
+                                <h3
+                                    class="text-lg font-bold leading-tight mb-1"
+                                >
+                                    Diavola Pepperoni
+                                </h3>
+                                <p
+                                    class="text-sm text-on-surface-variant line-clamp-2"
+                                >
+                                    Spicy calabrese salami, crushed red pepper,
+                                    mozzarella, and honey drizzle.
+                                </p>
+                            </div>
+                        </div>
+                        <div
+                            class="space-y-2 pt-2 border-t border-surface-container-low"
+                        >
+                            <div
+                                class="flex items-center justify-between py-1 px-2 rounded-lg bg-surface-container-low"
+                            >
+                                <span
+                                    class="text-xs font-bold uppercase tracking-wider text-on-surface-variant"
+                                    >10" Personal</span
+                                >
+                                <div class="flex items-center gap-4">
+                                    <span class="text-sm font-bold text-primary"
+                                        >$16.00</span
+                                    >
+                                    <div
+                                        class="flex items-center bg-white rounded-full p-1 shadow-sm"
+                                    >
+                                        <button
+                                            class="w-7 h-7 flex items-center justify-center rounded-full hover:bg-surface-container transition-colors"
+                                        >
+                                            <span
+                                                class="material-symbols-outlined text-sm"
+                                                data-icon="remove"
+                                                >remove</span
+                                            >
+                                        </button>
+                                        <span class="px-2 text-sm font-bold"
+                                            >0</span
+                                        >
+                                        <button
+                                            class="w-7 h-7 flex items-center justify-center rounded-full bg-primary text-white hover:bg-primary-container transition-colors"
+                                        >
+                                            <span
+                                                class="material-symbols-outlined text-sm"
+                                                data-icon="add"
+                                                >add</span
+                                            >
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                            <div
+                                class="flex items-center justify-between py-1 px-2 rounded-lg bg-surface-container-low"
+                            >
+                                <span
+                                    class="text-xs font-bold uppercase tracking-wider text-on-surface-variant"
+                                    >14" Large</span
+                                >
+                                <div class="flex items-center gap-4">
+                                    <span class="text-sm font-bold text-primary"
+                                        >$22.00</span
+                                    >
+                                    <div
+                                        class="flex items-center bg-white rounded-full p-1 shadow-sm"
+                                    >
+                                        <button
+                                            class="w-7 h-7 flex items-center justify-center rounded-full hover:bg-surface-container transition-colors"
+                                        >
+                                            <span
+                                                class="material-symbols-outlined text-sm"
+                                                data-icon="remove"
+                                                >remove</span
+                                            >
+                                        </button>
+                                        <span class="px-2 text-sm font-bold"
+                                            >1</span
+                                        >
+                                        <button
+                                            class="w-7 h-7 flex items-center justify-center rounded-full bg-primary text-white hover:bg-primary-container transition-colors"
+                                        >
+                                            <span
+                                                class="material-symbols-outlined text-sm"
+                                                data-icon="add"
+                                                >add</span
+                                            >
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+            <!-- Category: White Pizzas -->
+            <section class="mb-10">
+                <div class="flex items-center gap-3 mb-6">
+                    <div class="h-8 w-1 bg-secondary rounded-full"></div>
+                    <h2
+                        class="text-2xl font-extrabold tracking-tight text-on-surface"
+                    >
+                        White Pizzas
+                    </h2>
+                </div>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <!-- Item Card 3 -->
+                    <div
+                        class="bg-surface-container-lowest rounded-xl p-4 transition-all hover:scale-[1.01] flex flex-col gap-4"
+                    >
+                        <div class="flex gap-4">
+                            <div
+                                class="relative w-24 h-24 shrink-0 overflow-hidden rounded-lg"
+                            >
+                                <img
+                                    alt="White Pizza"
+                                    class="w-full h-full object-cover"
+                                    data-alt="A gourmet white pizza with ricotta dollops, roasted garlic, and sprigs of rosemary on a golden bubbly crust"
+                                    src="https://lh3.googleusercontent.com/aida-public/AB6AXuA3y3fCuIsQgEheqilvxXnNDYNl8opFaJ7gHoveiwo095sHO3dX4VEk3dpSVwv-OHY6qhTC3PJCxv88gVRl2nnqUS9UrtK4QGV0XeWjUVJJj105NtTyxgJkAv0kk7NtKKZ-wMPFdYdnFi5pCHS_wVJg1b7kLSL2ikYAy4cGu3dQeypGKlyzOF4e5HLwt-paFPJz2BCOd5ypIaz5zTHWqAUOxGSXqhTAXayNmyyjMhHaB8AEgbbjohC_xsvWl08yEL9wKFzPhlrJ"
+                                />
+                            </div>
+                            <div class="flex-1">
+                                <h3
+                                    class="text-lg font-bold leading-tight mb-1"
+                                >
+                                    Truffle Ricotta
+                                </h3>
+                                <p
+                                    class="text-sm text-on-surface-variant line-clamp-2"
+                                >
+                                    Whipped ricotta, black truffle oil,
+                                    caramelized onions, and aged parmigiano.
+                                </p>
+                            </div>
+                        </div>
+                        <div
+                            class="space-y-2 pt-2 border-t border-surface-container-low"
+                        >
+                            <div
+                                class="flex items-center justify-between py-1 px-2 rounded-lg bg-surface-container-low"
+                            >
+                                <span
+                                    class="text-xs font-bold uppercase tracking-wider text-on-surface-variant"
+                                    >10" Personal</span
+                                >
+                                <div class="flex items-center gap-4">
+                                    <span class="text-sm font-bold text-primary"
+                                        >$18.50</span
+                                    >
+                                    <div
+                                        class="flex items-center bg-white rounded-full p-1 shadow-sm"
+                                    >
+                                        <button
+                                            class="w-7 h-7 flex items-center justify-center rounded-full hover:bg-surface-container transition-colors"
+                                        >
+                                            <span
+                                                class="material-symbols-outlined text-sm"
+                                                data-icon="remove"
+                                                >remove</span
+                                            >
+                                        </button>
+                                        <span class="px-2 text-sm font-bold"
+                                            >0</span
+                                        >
+                                        <button
+                                            class="w-7 h-7 flex items-center justify-center rounded-full bg-primary text-white hover:bg-primary-container transition-colors"
+                                        >
+                                            <span
+                                                class="material-symbols-outlined text-sm"
+                                                data-icon="add"
+                                                >add</span
+                                            >
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                            <div
+                                class="flex items-center justify-between py-1 px-2 rounded-lg bg-surface-container-low"
+                            >
+                                <span
+                                    class="text-xs font-bold uppercase tracking-wider text-on-surface-variant"
+                                    >14" Large</span
+                                >
+                                <div class="flex items-center gap-4">
+                                    <span class="text-sm font-bold text-primary"
+                                        >$25.00</span
+                                    >
+                                    <div
+                                        class="flex items-center bg-white rounded-full p-1 shadow-sm"
+                                    >
+                                        <button
+                                            class="w-7 h-7 flex items-center justify-center rounded-full hover:bg-surface-container transition-colors"
+                                        >
+                                            <span
+                                                class="material-symbols-outlined text-sm"
+                                                data-icon="remove"
+                                                >remove</span
+                                            >
+                                        </button>
+                                        <span class="px-2 text-sm font-bold"
+                                            >0</span
+                                        >
+                                        <button
+                                            class="w-7 h-7 flex items-center justify-center rounded-full bg-primary text-white hover:bg-primary-container transition-colors"
+                                        >
+                                            <span
+                                                class="material-symbols-outlined text-sm"
+                                                data-icon="add"
+                                                >add</span
+                                            >
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <!-- Item Card 4 -->
+                    <div
+                        class="bg-surface-container-lowest rounded-xl p-4 transition-all hover:scale-[1.01] flex flex-col gap-4"
+                    >
+                        <div class="flex gap-4">
+                            <div
+                                class="relative w-24 h-24 shrink-0 overflow-hidden rounded-lg"
+                            >
+                                <img
+                                    alt="Pesto Pizza"
+                                    class="w-full h-full object-cover"
+                                    data-alt="Vibrant green pesto pizza with toasted pine nuts, cherry tomatoes, and fresh mozzarella pearls on a thin artisan crust"
+                                    src="https://lh3.googleusercontent.com/aida-public/AB6AXuAR2nNwRF6iXXopJgYNg-yenWuxsh_zk6ad7O7OhVG293dVlnm7UtH-GPRyEsOdxVyf1tXd9di91mfxlK6oagoLkzaq4VhQ74re3ihOrzSfLJDF3_7FKu1U0oCTAjvLFlA8xrARa2BLiQhJmjLMNSx7TOaXZXnxRresAKC9oRZniFGfAId7APY7PFlS7duYv9UvKDJ1uVVtaXFagmCAP7ARvlas5Q-b7lMKicaO2jPjpdESVf_BcE2trTLA9lsJF5jxM2lAu1oQ"
+                                />
+                            </div>
+                            <div class="flex-1">
+                                <h3
+                                    class="text-lg font-bold leading-tight mb-1"
+                                >
+                                    Genovese Pesto
+                                </h3>
+                                <p
+                                    class="text-sm text-on-surface-variant line-clamp-2"
+                                >
+                                    House-made basil pesto, toasted pine nuts,
+                                    heirloom tomatoes, and pearls.
+                                </p>
+                            </div>
+                        </div>
+                        <div
+                            class="space-y-2 pt-2 border-t border-surface-container-low"
+                        >
+                            <div
+                                class="flex items-center justify-between py-1 px-2 rounded-lg bg-surface-container-low"
+                            >
+                                <span
+                                    class="text-xs font-bold uppercase tracking-wider text-on-surface-variant"
+                                    >10" Personal</span
+                                >
+                                <div class="flex items-center gap-4">
+                                    <span class="text-sm font-bold text-primary"
+                                        >$15.50</span
+                                    >
+                                    <div
+                                        class="flex items-center bg-white rounded-full p-1 shadow-sm"
+                                    >
+                                        <button
+                                            class="w-7 h-7 flex items-center justify-center rounded-full hover:bg-surface-container transition-colors"
+                                        >
+                                            <span
+                                                class="material-symbols-outlined text-sm"
+                                                data-icon="remove"
+                                                >remove</span
+                                            >
+                                        </button>
+                                        <span class="px-2 text-sm font-bold"
+                                            >0</span
+                                        >
+                                        <button
+                                            class="w-7 h-7 flex items-center justify-center rounded-full bg-primary text-white hover:bg-primary-container transition-colors"
+                                        >
+                                            <span
+                                                class="material-symbols-outlined text-sm"
+                                                data-icon="add"
+                                                >add</span
+                                            >
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                            <div
+                                class="flex items-center justify-between py-1 px-2 rounded-lg bg-surface-container-low"
+                            >
+                                <span
+                                    class="text-xs font-bold uppercase tracking-wider text-on-surface-variant"
+                                    >14" Large</span
+                                >
+                                <div class="flex items-center gap-4">
+                                    <span class="text-sm font-bold text-primary"
+                                        >$21.50</span
+                                    >
+                                    <div
+                                        class="flex items-center bg-white rounded-full p-1 shadow-sm"
+                                    >
+                                        <button
+                                            class="w-7 h-7 flex items-center justify-center rounded-full hover:bg-surface-container transition-colors"
+                                        >
+                                            <span
+                                                class="material-symbols-outlined text-sm"
+                                                data-icon="remove"
+                                                >remove</span
+                                            >
+                                        </button>
+                                        <span class="px-2 text-sm font-bold"
+                                            >0</span
+                                        >
+                                        <button
+                                            class="w-7 h-7 flex items-center justify-center rounded-full bg-primary text-white hover:bg-primary-container transition-colors"
+                                        >
+                                            <span
+                                                class="material-symbols-outlined text-sm"
+                                                data-icon="add"
+                                                >add</span
+                                            >
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+        </main>
+        <!-- BottomNavBar -->
+        <nav
+            class="fixed bottom-6 left-0 right-0 flex justify-center items-center px-4 z-50"
+        >
+            <div
+                class="w-[90%] max-w-lg bg-gradient-to-r from-[#b90027] to-[#e31837] rounded-full flex justify-around items-center px-4 py-2 shadow-[0px_12px_32px_rgba(185,0,39,0.25)]"
+            >
+                <button
+                    class="flex items-center gap-2 bg-white/20 rounded-full px-6 py-3 text-white font-bold hover:scale-[1.02] transition-all active:scale-95"
+                >
+                    <span
+                        class="material-symbols-outlined"
+                        data-icon="restaurant_menu"
+                        >restaurant_menu</span
+                    >
+                    <span
+                        class="text-[10px] uppercase tracking-widest font-body"
+                        >Explore Menu</span
+                    >
+                </button>
+                <button
+                    class="flex items-center gap-2 text-white/80 px-6 py-3 hover:scale-[1.02] transition-all active:scale-95"
+                >
+                    <span
+                        class="material-symbols-outlined"
+                        data-icon="shopping_cart_checkout"
+                        >shopping_cart_checkout</span
+                    >
+                    <span
+                        class="text-[10px] uppercase tracking-widest font-body"
+                        >View Basket</span
+                    >
+                    <span
+                        class="ml-1 bg-white text-primary text-[10px] font-black rounded-full w-5 h-5 flex items-center justify-center"
+                        >1</span
+                    >
+                </button>
+            </div>
+        </nav>
+        <!-- Ingredient Decor (Absolute Positioned) -->
+        <div
+            class="fixed top-[15%] right-[-20px] opacity-10 pointer-events-none transform rotate-45 select-none hidden lg:block"
+        >
+            <span
+                class="material-symbols-outlined text-[120px]"
+                data-icon="potted_plant"
+                >potted_plant</span
+            >
+        </div>
+        <div
+            class="fixed bottom-[10%] left-[-20px] opacity-10 pointer-events-none transform -rotate-12 select-none hidden lg:block"
+        >
+            <span
+                class="material-symbols-outlined text-[150px]"
+                data-icon="cooking"
+                >cooking</span
+            >
+        </div>
+    </body>
+</html>

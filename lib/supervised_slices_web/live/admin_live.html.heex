@@ -1,0 +1,691 @@
+<aside class="h-screen w-72 fixed left-0 top-0 bg-[#faf9f6] border-r border-stone-100 flex flex-col py-8 gap-2 z-40">
+  <div class="px-6 pb-4">
+    <div
+      class="text-xl font-black text-[#b90027] italic"
+      style="font-family: 'Plus Jakarta Sans', sans-serif;"
+    >
+      Kitchen Command
+    </div>
+    <div
+      class="text-xs text-on-surface-variant mt-0.5"
+      style="font-family: 'Be Vietnam Pro', sans-serif;"
+    >
+      {@org.name}
+    </div>
+  </div>
+
+  <nav class="flex flex-col gap-1 px-4">
+    <.link
+      navigate={~p"/kitchen/#{@org.slug}"}
+      class={[
+        "flex items-center gap-4 px-6 py-4 rounded-2xl font-medium transition-all duration-200",
+        if(@live_action == :orders,
+          do: "bg-white text-[#b90027] shadow-sm",
+          else: "text-on-surface-variant hover:bg-surface-container-low hover:translate-x-0.5"
+        )
+      ]}
+      style="font-family: 'Plus Jakarta Sans', sans-serif;"
+    >
+      <span class="material-symbols-outlined">pending_actions</span>
+      <span>Live Orders</span>
+    </.link>
+
+    <.link
+      navigate={~p"/kitchen/#{@org.slug}/baskets"}
+      class={[
+        "flex items-center gap-4 px-6 py-4 rounded-2xl font-medium transition-all duration-200",
+        if(@live_action == :baskets,
+          do: "bg-white text-[#b90027] shadow-sm",
+          else: "text-on-surface-variant hover:bg-surface-container-low hover:translate-x-0.5"
+        )
+      ]}
+      style="font-family: 'Plus Jakarta Sans', sans-serif;"
+    >
+      <span class="material-symbols-outlined">shopping_cart_checkout</span>
+      <span>Basket Monitor</span>
+    </.link>
+
+    <.link
+      navigate={~p"/kitchen/#{@org.slug}/menu"}
+      class={[
+        "flex items-center gap-4 px-6 py-4 rounded-2xl font-medium transition-all duration-200",
+        if(@live_action == :menu,
+          do: "bg-white text-[#b90027] shadow-sm",
+          else: "text-on-surface-variant hover:bg-surface-container-low hover:translate-x-0.5"
+        )
+      ]}
+      style="font-family: 'Plus Jakarta Sans', sans-serif;"
+    >
+      <span class="material-symbols-outlined">edit_note</span>
+      <span>Menu Editor</span>
+    </.link>
+  </nav>
+
+  <div class="mt-auto px-6">
+    <div class="rounded-xl bg-surface-container p-4 space-y-3">
+      <p
+        class="text-[10px] uppercase tracking-widest font-bold text-on-surface-variant"
+        style="font-family: 'Be Vietnam Pro', sans-serif;"
+      >
+        Status
+      </p>
+      <div class="flex items-center gap-2">
+        <span class="w-2 h-2 rounded-full bg-secondary animate-pulse"></span>
+        <span
+          class="text-sm font-semibold text-secondary"
+          style="font-family: 'Be Vietnam Pro', sans-serif;"
+        >
+          Kitchen Online
+        </span>
+      </div>
+      <div class="flex items-center gap-2 text-on-surface-variant text-xs">
+        <span class="material-symbols-outlined" style="font-size: 14px;">person</span>
+        <span>{@visitor_count} browsing now</span>
+      </div>
+    </div>
+  </div>
+</aside>
+
+<main class="ml-72 min-h-screen bg-[#faf9f6]">
+  <header class="bg-[#faf9f6]/90 backdrop-blur-sm sticky top-0 z-30 flex justify-between items-center px-10 py-5 border-b border-stone-100">
+    <div class="flex items-center gap-4">
+      <h1
+        class="text-2xl font-black text-[#b90027] italic"
+        style="font-family: 'Plus Jakarta Sans', sans-serif;"
+      >
+        {case @live_action do
+          :orders -> "Live Orders"
+          :baskets -> "Basket Monitor"
+          :menu -> "Menu Editor"
+        end}
+      </h1>
+    </div>
+    <div class="flex items-center gap-6">
+      <div class="flex items-center gap-2 text-sm text-on-surface-variant">
+        <span class="material-symbols-outlined" style="font-size: 18px;">visibility</span>
+        <span class="font-semibold">{@visitor_count}</span>
+        <span>on menu</span>
+      </div>
+    </div>
+  </header>
+
+  <%= if @live_action == :orders do %>
+    <section class="p-8 space-y-8">
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <div class="bg-surface-container-low rounded-xl p-8 flex flex-col justify-center">
+          <span
+            class="text-xs uppercase tracking-widest font-bold text-on-surface-variant mb-2"
+            style="font-family: 'Be Vietnam Pro', sans-serif;"
+          >
+            Active Tickets
+          </span>
+          <span
+            class="text-4xl font-black text-on-surface"
+            style="font-family: 'Plus Jakarta Sans', sans-serif;"
+            id="active-tickets-count"
+          >
+            &mdash;
+          </span>
+        </div>
+        <div class="bg-secondary-container/30 rounded-xl p-8 flex flex-col justify-center">
+          <span
+            class="text-xs uppercase tracking-widest font-bold text-secondary mb-2"
+            style="font-family: 'Be Vietnam Pro', sans-serif;"
+          >
+            Customers Browsing
+          </span>
+          <span
+            class="text-4xl font-black text-secondary"
+            style="font-family: 'Plus Jakarta Sans', sans-serif;"
+          >
+            {@visitor_count}
+          </span>
+        </div>
+        <div class="bg-primary-container rounded-xl p-8 flex flex-col justify-center">
+          <span
+            class="text-xs uppercase tracking-widest font-bold text-on-primary-container/70 mb-2"
+            style="font-family: 'Be Vietnam Pro', sans-serif;"
+          >
+            Active Baskets
+          </span>
+          <span
+            class="text-4xl font-black text-on-primary-container italic"
+            style="font-family: 'Plus Jakarta Sans', sans-serif;"
+          >
+            {length(@active_carts)}
+          </span>
+        </div>
+      </div>
+
+      <div class="space-y-3">
+        <div class="flex items-center justify-between px-2 pb-1">
+          <h2
+            class="text-xl font-bold text-on-surface"
+            style="font-family: 'Plus Jakarta Sans', sans-serif;"
+          >
+            Live Queue
+          </h2>
+          <span class="text-sm text-on-surface-variant">Oldest first</span>
+        </div>
+
+        <div id="orders" phx-update="stream" class="space-y-3">
+          <%= for {dom_id, order} <- @streams.orders do %>
+            <div
+              id={dom_id}
+              class="bg-surface-container-lowest rounded-xl p-6 flex flex-col lg:flex-row lg:items-center justify-between gap-6 hover:scale-[1.005] transition-transform duration-200"
+            >
+              <div class="flex items-start gap-5 min-w-0">
+                <div class="bg-surface-container-low w-16 h-16 shrink-0 rounded-xl flex items-center justify-center">
+                  <span
+                    class="text-lg font-black text-on-surface"
+                    style="font-family: 'Plus Jakarta Sans', sans-serif;"
+                  >
+                    #{order_number(order)}
+                  </span>
+                </div>
+                <div class="min-w-0">
+                  <h3
+                    class="text-base font-bold text-on-surface truncate"
+                    style="font-family: 'Plus Jakarta Sans', sans-serif;"
+                  >
+                    {order.customer_name}
+                  </h3>
+                  <p class="text-sm text-on-surface-variant">{time_ago(order.inserted_at)}</p>
+                  <%= if order.notes && order.notes != "" do %>
+                    <p class="text-xs text-on-surface-variant mt-1 italic">"{order.notes}"</p>
+                  <% end %>
+                </div>
+              </div>
+
+              <div class="flex-1 px-2 min-w-0">
+                <div class="flex flex-wrap gap-2">
+                  <%= for item <- (order.order_items || []) do %>
+                    <span
+                      class="bg-surface-container px-3 py-1 rounded-full text-xs font-bold text-on-surface uppercase tracking-wider"
+                      style="font-family: 'Be Vietnam Pro', sans-serif;"
+                    >
+                      {item.quantity}x {item.item_name}
+                    </span>
+                  <% end %>
+                </div>
+                <div class="mt-2 text-sm font-bold text-primary">
+                  {format_money(order.total_price)}
+                </div>
+              </div>
+
+              <div class="flex items-center gap-4 shrink-0">
+                <div class={[
+                  "flex items-center gap-2 px-4 py-2 rounded-full text-xs font-bold uppercase tracking-widest",
+                  status_badge_class(order.status)
+                ]}>
+                  <%= if order.status == :pending do %>
+                    <span class="w-1.5 h-1.5 rounded-full bg-primary animate-pulse"></span>
+                  <% end %>
+                  {status_label(order.status)}
+                </div>
+
+                <%= if next_status_label(order.status) do %>
+                  <button
+                    phx-click="advance_order"
+                    phx-value-id={order.id}
+                    class={[
+                      "px-6 py-2.5 rounded-xl font-bold transition-all active:scale-95 duration-150",
+                      if(order.status == :ready,
+                        do: "bg-primary text-white hover:opacity-90 shadow-lg shadow-primary/20",
+                        else:
+                          "bg-surface-container-highest text-on-surface hover:bg-surface-container-high"
+                      )
+                    ]}
+                    style="font-family: 'Plus Jakarta Sans', sans-serif;"
+                  >
+                    {next_status_label(order.status)}
+                  </button>
+                <% end %>
+
+                <%= if order.status not in [:completed, :cancelled] do %>
+                  <button
+                    phx-click="cancel_order"
+                    phx-value-id={order.id}
+                    class="w-9 h-9 flex items-center justify-center rounded-full text-on-surface-variant hover:bg-error-container hover:text-error transition-colors"
+                    title="Cancel order"
+                  >
+                    <span class="material-symbols-outlined" style="font-size: 18px;">close</span>
+                  </button>
+                <% end %>
+              </div>
+            </div>
+          <% end %>
+        </div>
+
+        <div
+          id="orders-empty"
+          class="hidden only:flex flex-col items-center py-20 text-on-surface-variant"
+        >
+          <span class="material-symbols-outlined text-6xl opacity-30">receipt_long</span>
+          <p class="mt-4 text-lg font-medium">No active orders</p>
+          <p class="text-sm opacity-60 mt-1">New orders will appear here in real-time</p>
+        </div>
+      </div>
+    </section>
+  <% end %>
+
+  <%= if @live_action == :baskets do %>
+    <section class="p-8 space-y-8">
+      <div class="flex items-center justify-between">
+        <div>
+          <h2
+            class="text-xl font-bold text-on-surface"
+            style="font-family: 'Plus Jakarta Sans', sans-serif;"
+          >
+            Active Baskets
+          </h2>
+          <p class="text-sm text-on-surface-variant mt-1">
+            Real-time view of what customers have in their carts
+          </p>
+        </div>
+        <div class="bg-primary-fixed text-on-primary-fixed-variant px-5 py-2 rounded-full text-sm font-bold">
+          {length(@active_carts)} active
+        </div>
+      </div>
+
+      <%= if Enum.empty?(@active_carts) do %>
+        <div class="flex flex-col items-center py-20 text-on-surface-variant">
+          <span class="material-symbols-outlined text-6xl opacity-30">shopping_cart</span>
+          <p class="mt-4 text-lg font-medium">No active baskets</p>
+          <p class="text-sm opacity-60 mt-1">Customer carts will appear here in real-time</p>
+        </div>
+      <% else %>
+        <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
+          <%= for cart <- @active_carts do %>
+            <div class="bg-surface-container-lowest rounded-xl p-5 space-y-4">
+              <div class="flex items-center justify-between">
+                <div class="flex items-center gap-2">
+                  <span
+                    class="material-symbols-outlined text-on-surface-variant"
+                    style="font-size: 18px;"
+                  >
+                    shopping_bag
+                  </span>
+                  <span
+                    class="text-xs font-bold text-on-surface-variant uppercase tracking-wider"
+                    style="font-family: 'Be Vietnam Pro', sans-serif;"
+                  >
+                    Session …{String.slice(cart.session_id || "anon", -6, 6)}
+                  </span>
+                </div>
+                <span class="text-xs text-on-surface-variant">{time_ago(cart.inserted_at)}</span>
+              </div>
+
+              <div class="space-y-2">
+                <%= for cart_item <- (cart.cart_items || []) do %>
+                  <div class="flex items-center justify-between py-1.5 px-3 rounded-lg bg-surface-container-low">
+                    <span class="text-sm font-medium text-on-surface truncate">
+                      {(cart_item.menu_item && cart_item.menu_item.name) || "Item"}
+                    </span>
+                    <span class="text-xs font-bold text-primary ml-2 shrink-0">
+                      ×{cart_item.quantity}
+                    </span>
+                  </div>
+                <% end %>
+
+                <%= if Enum.empty?(cart.cart_items || []) do %>
+                  <p class="text-xs text-on-surface-variant italic px-1">Empty cart</p>
+                <% end %>
+              </div>
+
+              <div class="pt-1 border-t border-surface-container-low flex justify-between text-xs text-on-surface-variant">
+                <span>{length(cart.cart_items || [])} line items</span>
+                <span class="font-bold text-on-surface">
+                  {(cart.cart_items || []) |> Enum.reduce(0, &(&1.quantity + &2))} total items
+                </span>
+              </div>
+            </div>
+          <% end %>
+        </div>
+      <% end %>
+    </section>
+  <% end %>
+
+  <%= if @live_action == :menu do %>
+    <section class="p-8 space-y-8">
+      <div class="flex items-center justify-between">
+        <div>
+          <h2
+            class="text-xl font-bold text-on-surface"
+            style="font-family: 'Plus Jakarta Sans', sans-serif;"
+          >
+            Menu Editor
+          </h2>
+          <p class="text-sm text-on-surface-variant mt-1">
+            Edit items, toggle availability, manage categories
+          </p>
+        </div>
+      </div>
+
+      <%= if Enum.empty?(@categories) do %>
+        <div class="flex flex-col items-center py-20 text-on-surface-variant">
+          <span class="material-symbols-outlined text-6xl opacity-30">restaurant_menu</span>
+          <p class="mt-4 text-lg font-medium">No categories yet</p>
+        </div>
+      <% end %>
+
+      <%= for category <- @categories do %>
+        <div class="space-y-3">
+          <%= if @editing_item_id == "cat:#{category.id}" do %>
+            <form phx-submit="save_category" class="flex items-center gap-3 px-2">
+              <input type="hidden" name="category[id]" value={category.id} />
+              <input
+                type="text"
+                name="category[name]"
+                value={category.name}
+                class="flex-1 text-lg font-extrabold bg-white border-0 rounded-lg px-4 py-2 focus:ring-2 focus:ring-primary outline-none"
+                style="font-family: 'Plus Jakarta Sans', sans-serif;"
+                autofocus
+              />
+              <input
+                type="number"
+                name="category[sort_order]"
+                value={category.sort_order}
+                class="w-20 bg-white border-0 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-primary outline-none"
+                placeholder="Order"
+              />
+              <button
+                type="submit"
+                class="bg-primary text-white px-4 py-2 rounded-lg text-sm font-bold hover:opacity-90"
+              >
+                Save
+              </button>
+              <button
+                type="button"
+                phx-click="cancel_edit"
+                class="text-on-surface-variant hover:text-on-surface px-3 py-2"
+              >
+                <span class="material-symbols-outlined" style="font-size: 18px;">close</span>
+              </button>
+            </form>
+          <% else %>
+            <div class="flex items-center gap-3 px-2 group">
+              <div class="h-7 w-1 rounded-full bg-primary shrink-0"></div>
+              <h3
+                class="text-xl font-extrabold text-on-surface flex-1"
+                style="font-family: 'Plus Jakarta Sans', sans-serif;"
+              >
+                {category.name}
+              </h3>
+              <button
+                phx-click="edit_category"
+                phx-value-id={category.id}
+                class="opacity-0 group-hover:opacity-100 text-on-surface-variant hover:text-on-surface transition-all p-1 rounded-lg"
+                title="Edit category"
+              >
+                <span class="material-symbols-outlined" style="font-size: 18px;">edit</span>
+              </button>
+            </div>
+          <% end %>
+
+          <div class="space-y-2 pl-4">
+            <%= for item <- category.menu_items do %>
+              <%= if @editing_item_id == item.id do %>
+                <form
+                  phx-submit="save_item"
+                  class="bg-surface-container-lowest rounded-xl p-5 space-y-4"
+                >
+                  <input type="hidden" name="item[id]" value={item.id} />
+                  <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                      <label
+                        class="block text-xs font-bold text-on-surface-variant uppercase tracking-wider mb-1"
+                        style="font-family: 'Be Vietnam Pro', sans-serif;"
+                      >
+                        Name
+                      </label>
+                      <input
+                        type="text"
+                        name="item[name]"
+                        value={item.name}
+                        autofocus
+                        class="w-full bg-surface-container-low border-0 rounded-lg px-4 py-2.5 text-sm focus:ring-2 focus:ring-primary outline-none"
+                      />
+                    </div>
+                    <div>
+                      <label
+                        class="block text-xs font-bold text-on-surface-variant uppercase tracking-wider mb-1"
+                        style="font-family: 'Be Vietnam Pro', sans-serif;"
+                      >
+                        Price (USD)
+                      </label>
+                      <input
+                        type="text"
+                        name="item[price]"
+                        value={money_amount(item.price)}
+                        inputmode="decimal"
+                        class="w-full bg-surface-container-low border-0 rounded-lg px-4 py-2.5 text-sm focus:ring-2 focus:ring-primary outline-none"
+                      />
+                    </div>
+                    <div class="md:col-span-2">
+                      <label
+                        class="block text-xs font-bold text-on-surface-variant uppercase tracking-wider mb-1"
+                        style="font-family: 'Be Vietnam Pro', sans-serif;"
+                      >
+                        Description
+                      </label>
+                      <textarea
+                        name="item[description]"
+                        rows="2"
+                        class="w-full bg-surface-container-low border-0 rounded-lg px-4 py-2.5 text-sm focus:ring-2 focus:ring-primary outline-none resize-none"
+                      >{item.description}</textarea>
+                    </div>
+                    <div>
+                      <label
+                        class="block text-xs font-bold text-on-surface-variant uppercase tracking-wider mb-1"
+                        style="font-family: 'Be Vietnam Pro', sans-serif;"
+                      >
+                        Image URL
+                      </label>
+                      <input
+                        type="text"
+                        name="item[image_url]"
+                        value={item.image_url || ""}
+                        class="w-full bg-surface-container-low border-0 rounded-lg px-4 py-2.5 text-sm focus:ring-2 focus:ring-primary outline-none"
+                      />
+                    </div>
+                    <div>
+                      <label
+                        class="block text-xs font-bold text-on-surface-variant uppercase tracking-wider mb-1"
+                        style="font-family: 'Be Vietnam Pro', sans-serif;"
+                      >
+                        Sort Order
+                      </label>
+                      <input
+                        type="number"
+                        name="item[sort_order]"
+                        value={item.sort_order}
+                        class="w-full bg-surface-container-low border-0 rounded-lg px-4 py-2.5 text-sm focus:ring-2 focus:ring-primary outline-none"
+                      />
+                    </div>
+                  </div>
+                  <div class="flex items-center gap-3 pt-2">
+                    <button
+                      type="submit"
+                      class="bg-primary text-white px-6 py-2.5 rounded-xl font-bold hover:opacity-90 transition-opacity"
+                    >
+                      Save Changes
+                    </button>
+                    <button
+                      type="button"
+                      phx-click="cancel_edit"
+                      class="text-on-surface-variant hover:text-on-surface font-medium px-4 py-2.5"
+                    >
+                      Cancel
+                    </button>
+                  </div>
+                </form>
+              <% else %>
+                <div class="bg-surface-container-lowest rounded-xl p-4 flex items-center gap-4 group hover:shadow-sm transition-shadow">
+                  <div class="w-14 h-14 rounded-lg overflow-hidden shrink-0 bg-surface-container-low">
+                    <%= if item.image_url do %>
+                      <img
+                        src={item.image_url}
+                        alt={item.name}
+                        class="w-full h-full object-cover"
+                      />
+                    <% else %>
+                      <div class="w-full h-full flex items-center justify-center text-on-surface-variant">
+                        <span class="material-symbols-outlined" style="font-size: 20px;">
+                          image
+                        </span>
+                      </div>
+                    <% end %>
+                  </div>
+
+                  <div class="flex-1 min-w-0">
+                    <div class="flex items-center gap-2">
+                      <span
+                        class="font-bold text-on-surface text-sm truncate"
+                        style="font-family: 'Plus Jakarta Sans', sans-serif;"
+                      >
+                        {item.name}
+                      </span>
+                      <%= if not item.available do %>
+                        <span class="bg-error-container text-error text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full shrink-0">
+                          Off
+                        </span>
+                      <% end %>
+                    </div>
+                    <p class="text-xs text-on-surface-variant line-clamp-1">{item.description}</p>
+                  </div>
+
+                  <span class="text-sm font-bold text-primary shrink-0">
+                    {format_money(item.price)}
+                  </span>
+
+                  <div class="flex items-center gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                    <button
+                      phx-click="toggle_available"
+                      phx-value-id={item.id}
+                      class={[
+                        "px-3 py-1.5 rounded-lg text-xs font-bold transition-colors",
+                        if(item.available,
+                          do:
+                            "bg-secondary-container/50 text-secondary hover:bg-secondary-container",
+                          else:
+                            "bg-surface-container text-on-surface-variant hover:bg-surface-container-high"
+                        )
+                      ]}
+                      title={if(item.available, do: "Disable item", else: "Enable item")}
+                    >
+                      {if item.available, do: "Available", else: "Disabled"}
+                    </button>
+                    <button
+                      phx-click="edit_item"
+                      phx-value-id={item.id}
+                      class="p-2 rounded-lg text-on-surface-variant hover:bg-surface-container hover:text-on-surface transition-colors"
+                      title="Edit item"
+                    >
+                      <span class="material-symbols-outlined" style="font-size: 16px;">edit</span>
+                    </button>
+                  </div>
+                </div>
+              <% end %>
+            <% end %>
+
+            <%= if @adding_to_category_id == category.id do %>
+              <form
+                phx-submit="create_item"
+                class="bg-white rounded-xl border-2 border-primary/20 p-5 space-y-4"
+              >
+                <input type="hidden" name="item[category_id]" value={category.id} />
+                <h4
+                  class="text-sm font-bold text-on-surface"
+                  style="font-family: 'Plus Jakarta Sans', sans-serif;"
+                >
+                  New Item
+                </h4>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                    <label class="block text-xs font-bold text-on-surface-variant uppercase tracking-wider mb-1">
+                      Name
+                    </label>
+                    <input
+                      type="text"
+                      name="item[name]"
+                      required
+                      autofocus
+                      placeholder="e.g. Classic Margherita"
+                      class="w-full bg-surface-container-low border-0 rounded-lg px-4 py-2.5 text-sm focus:ring-2 focus:ring-primary outline-none"
+                    />
+                  </div>
+                  <div>
+                    <label class="block text-xs font-bold text-on-surface-variant uppercase tracking-wider mb-1">
+                      Price (USD)
+                    </label>
+                    <input
+                      type="text"
+                      name="item[price]"
+                      required
+                      placeholder="14.50"
+                      inputmode="decimal"
+                      class="w-full bg-surface-container-low border-0 rounded-lg px-4 py-2.5 text-sm focus:ring-2 focus:ring-primary outline-none"
+                    />
+                  </div>
+                  <div class="md:col-span-2">
+                    <label class="block text-xs font-bold text-on-surface-variant uppercase tracking-wider mb-1">
+                      Description
+                    </label>
+                    <textarea
+                      name="item[description]"
+                      rows="2"
+                      placeholder="Describe the dish…"
+                      class="w-full bg-surface-container-low border-0 rounded-lg px-4 py-2.5 text-sm focus:ring-2 focus:ring-primary outline-none resize-none"
+                    ></textarea>
+                  </div>
+                  <div class="md:col-span-2">
+                    <label class="block text-xs font-bold text-on-surface-variant uppercase tracking-wider mb-1">
+                      Image URL
+                    </label>
+                    <input
+                      type="text"
+                      name="item[image_url]"
+                      placeholder="https://…"
+                      class="w-full bg-surface-container-low border-0 rounded-lg px-4 py-2.5 text-sm focus:ring-2 focus:ring-primary outline-none"
+                    />
+                  </div>
+                </div>
+                <div class="flex items-center gap-3">
+                  <button
+                    type="submit"
+                    class="bg-primary text-white px-6 py-2.5 rounded-xl font-bold hover:opacity-90 transition-opacity"
+                  >
+                    Add Item
+                  </button>
+                  <button
+                    type="button"
+                    phx-click="cancel_edit"
+                    class="text-on-surface-variant hover:text-on-surface font-medium px-4 py-2.5"
+                  >
+                    Cancel
+                  </button>
+                </div>
+              </form>
+            <% else %>
+              <button
+                phx-click="add_item"
+                phx-value-category_id={category.id}
+                class="w-full flex items-center gap-3 px-4 py-3 rounded-xl text-on-surface-variant hover:bg-surface-container-low hover:text-on-surface transition-colors text-sm font-medium group"
+              >
+                <span class="material-symbols-outlined text-primary" style="font-size: 18px;">
+                  add_circle
+                </span>
+                <span>Add item to {category.name}</span>
+              </button>
+            <% end %>
+          </div>
+        </div>
+      <% end %>
+    </section>
+  <% end %>
+</main>
+
+<div class="fixed bottom-20 right-10 opacity-[0.07] pointer-events-none rotate-12 hidden lg:block">
+  <span class="material-symbols-outlined text-secondary" style="font-size: 160px;">eco</span>
+</div>
