@@ -16,6 +16,8 @@ defmodule SupervisedSlicesWeb.MenuLive.Index do
   # ---------------------------------------------------------------------------
 
   def mount(%{"org_slug" => slug}, session, socket) do
+    dbg(socket.assigns)
+
     org =
       Organization
       |> Ash.Query.for_read(:by_slug, %{slug: slug})
