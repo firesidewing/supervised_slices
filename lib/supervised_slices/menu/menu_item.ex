@@ -65,7 +65,6 @@ defmodule SupervisedSlices.Menu.MenuItem do
     end
 
     attribute :price, AshMoney.Types.Money do
-      allow_nil? false
       public? true
     end
 
@@ -101,5 +100,6 @@ defmodule SupervisedSlices.Menu.MenuItem do
     end
 
     has_many :modifier_groups, SupervisedSlices.Menu.MenuItemModifierGroup
+    has_many :sizes, SupervisedSlices.Menu.MenuItemSize
   end
 end

@@ -14,11 +14,11 @@ defmodule SupervisedSlices.Cart.CartItem do
     defaults [:read, :destroy]
 
     create :add_to_cart do
-      accept [:cart_id, :menu_item_id, :quantity, :selected_modifier_ids]
+      accept [:cart_id, :menu_item_id, :quantity, :selected_modifier_ids, :selected_size_id]
     end
 
     update :update_quantity do
-      accept [:quantity, :selected_modifier_ids]
+      accept [:quantity, :selected_modifier_ids, :selected_size_id]
     end
   end
 
@@ -29,7 +29,11 @@ defmodule SupervisedSlices.Cart.CartItem do
       authorize_if SupervisedSlices.Orgs.Checks.IsOrgAdmin
     end
 
-    policy action_type([:create, :update, :destroy]) do
+    policy action_type(:create) do
+      authorize_if SupervisedSlices.Cart.Checks.OwnsCart
+    end
+
+    policy action_type([:update, :destroy]) do
       authorize_if relates_to_actor_via([:cart, :user])
       authorize_if expr(cart.session_id == ^actor(:session_id))
     end
@@ -71,6 +75,11 @@ defmodule SupervisedSlices.Cart.CartItem do
 
     belongs_to :menu_item, SupervisedSlices.Menu.MenuItem do
       allow_nil? false
+      public? true
+    end
+
+    belongs_to :selected_size, SupervisedSlices.Menu.MenuItemSize do
+      source_attribute :selected_size_id
       public? true
     end
   end

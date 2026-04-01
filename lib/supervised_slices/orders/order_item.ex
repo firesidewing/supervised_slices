@@ -20,7 +20,8 @@ defmodule SupervisedSlices.Orders.OrderItem do
         :quantity,
         :item_name,
         :price_at_time,
-        :modifiers_snapshot
+        :modifiers_snapshot,
+        :size_snapshot
       ]
     end
   end
@@ -62,6 +63,10 @@ defmodule SupervisedSlices.Orders.OrderItem do
 
     attribute :modifiers_snapshot, {:array, :map} do
       default []
+      public? true
+    end
+
+    attribute :size_snapshot, :map do
       public? true
     end
 

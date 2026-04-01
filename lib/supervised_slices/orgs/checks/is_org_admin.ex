@@ -1,8 +1,8 @@
 defmodule SupervisedSlices.Orgs.Checks.IsOrgAdmin do
   @moduledoc """
   Reusable policy check that passes when the actor is an admin member of the
-  resource's organization. The resource must have a `belongs_to :organization`
-  relationship that has a `has_many :memberships` relationship on Organization.
+  resource's organization. The resource must use attribute-based multitenancy
+  with `organization_id` as the tenant attribute.
   """
   use Ash.Policy.SimpleCheck
 
@@ -10,14 +10,26 @@ defmodule SupervisedSlices.Orgs.Checks.IsOrgAdmin do
   def describe(_opts), do: "actor is an org admin"
 
   @impl true
-  def match?(actor, context, _opts) do
-    org_id =
-      case context do
-        %{changeset: cs} -> cs.tenant
-        %{resource: record} -> record.organization_id
-        _ -> nil
-      end
+  def match?(nil, _context, _opts), do: false
 
-    actor.org_role == :admin and actor.org_id == org_id
+  @impl true
+  def match?(%SupervisedSlices.Accounts.GuestSession{} = _actor, _context, _opts), do: false
+
+  def match?(actor, context, _opts) do
+    org_id = context.subject.tenant
+
+    if is_nil(org_id) or is_nil(actor.id) do
+      false
+    else
+      require Ash.Query
+
+      SupervisedSlices.Orgs.Membership
+      |> Ash.Query.filter(user_id == ^actor.id and organization_id == ^org_id and role == :admin)
+      |> Ash.read_one(authorize?: false)
+      |> case do
+        {:ok, %SupervisedSlices.Orgs.Membership{}} -> true
+        _ -> false
+      end
+    end
   end
 end

@@ -61,26 +61,11 @@
     </.link>
   </nav>
 
-  <div class="mt-auto px-6">
-    <div class="rounded-xl bg-surface-container p-4 space-y-3">
-      <p
-        class="text-[10px] uppercase tracking-widest font-bold text-on-surface-variant"
-        style="font-family: 'Be Vietnam Pro', sans-serif;"
-      >
-        Status
-      </p>
+  <div class="mt-auto px-4">
+    <div class="rounded-xl bg-surface-container p-2 space-y-3">
       <div class="flex items-center gap-2">
-        <span class="w-2 h-2 rounded-full bg-secondary animate-pulse"></span>
-        <span
-          class="text-sm font-semibold text-secondary"
-          style="font-family: 'Be Vietnam Pro', sans-serif;"
-        >
-          Kitchen Online
-        </span>
-      </div>
-      <div class="flex items-center gap-2 text-on-surface-variant text-xs">
-        <span class="material-symbols-outlined" style="font-size: 14px;">person</span>
-        <span>{@visitor_count} browsing now</span>
+        <span class="material-symbols-outlined">person</span>
+        <span class="text-sm">{@visitor_count} browsing now</span>
       </div>
     </div>
   </div>
@@ -360,12 +345,57 @@
             Edit items, toggle availability, manage categories
           </p>
         </div>
+        <button
+          phx-click="add_category"
+          class="flex items-center gap-2 bg-primary text-white px-5 py-2.5 rounded-xl font-bold text-sm hover:opacity-90 transition-opacity"
+          style="font-family: 'Plus Jakarta Sans', sans-serif;"
+        >
+          <span class="material-symbols-outlined" style="font-size: 18px;">add</span> New Category
+        </button>
       </div>
+
+      <%= if @creating_category do %>
+        <form
+          phx-submit="create_category"
+          class="bg-white rounded-xl border-2 border-primary/20 p-5 flex items-center gap-3"
+        >
+          <input
+            type="text"
+            name="category[name]"
+            required
+            autofocus
+            placeholder="Category name…"
+            class="flex-1 text-base font-bold bg-surface-container-low border-0 rounded-lg px-4 py-2.5 focus:ring-2 focus:ring-primary outline-none"
+            style="font-family: 'Plus Jakarta Sans', sans-serif;"
+          />
+          <input
+            type="number"
+            name="category[sort_order]"
+            placeholder="Sort order"
+            value="0"
+            class="w-28 bg-surface-container-low border-0 rounded-lg px-3 py-2.5 text-sm focus:ring-2 focus:ring-primary outline-none"
+          />
+          <button
+            type="submit"
+            class="bg-primary text-white px-5 py-2.5 rounded-xl text-sm font-bold hover:opacity-90"
+          >
+            Add
+          </button>
+          <button
+            type="button"
+            phx-click="cancel_add_category"
+            class="text-on-surface-variant hover:text-on-surface px-3 py-2.5"
+          >
+            <span class="material-symbols-outlined" style="font-size: 18px;">close</span>
+          </button>
+        </form>
+      <% end %>
 
       <%= if Enum.empty?(@categories) do %>
         <div class="flex flex-col items-center py-20 text-on-surface-variant">
           <span class="material-symbols-outlined text-6xl opacity-30">restaurant_menu</span>
           <p class="mt-4 text-lg font-medium">No categories yet</p>
+          <p class="text-sm opacity-60 mt-1">Add a category above to get started</p>
         </div>
       <% end %>
 
@@ -426,100 +456,371 @@
           <div class="space-y-2 pl-4">
             <%= for item <- category.menu_items do %>
               <%= if @editing_item_id == item.id do %>
-                <form
-                  phx-submit="save_item"
-                  class="bg-surface-container-lowest rounded-xl p-5 space-y-4"
-                >
-                  <input type="hidden" name="item[id]" value={item.id} />
-                  <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div>
-                      <label
-                        class="block text-xs font-bold text-on-surface-variant uppercase tracking-wider mb-1"
-                        style="font-family: 'Be Vietnam Pro', sans-serif;"
-                      >
-                        Name
-                      </label>
-                      <input
-                        type="text"
-                        name="item[name]"
-                        value={item.name}
-                        autofocus
-                        class="w-full bg-surface-container-low border-0 rounded-lg px-4 py-2.5 text-sm focus:ring-2 focus:ring-primary outline-none"
-                      />
+                <div class="bg-surface-container-lowest rounded-xl p-5 space-y-5">
+                  <form phx-submit="save_item" class="space-y-4">
+                    <input type="hidden" name="item[id]" value={item.id} />
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <div>
+                        <label
+                          class="block text-xs font-bold text-on-surface-variant uppercase tracking-wider mb-1"
+                          style="font-family: 'Be Vietnam Pro', sans-serif;"
+                        >
+                          Name
+                        </label>
+                        <input
+                          type="text"
+                          name="item[name]"
+                          value={item.name}
+                          autofocus
+                          class="w-full bg-surface-container-low border-0 rounded-lg px-4 py-2.5 text-sm focus:ring-2 focus:ring-primary outline-none"
+                        />
+                      </div>
+                      <div>
+                        <label
+                          class="block text-xs font-bold text-on-surface-variant uppercase tracking-wider mb-1"
+                          style="font-family: 'Be Vietnam Pro', sans-serif;"
+                        >
+                          Base Price (USD) — leave blank if using sizes
+                        </label>
+                        <input
+                          type="text"
+                          name="item[price]"
+                          value={money_amount(item.price)}
+                          inputmode="decimal"
+                          placeholder="e.g. 14.50"
+                          class="w-full bg-surface-container-low border-0 rounded-lg px-4 py-2.5 text-sm focus:ring-2 focus:ring-primary outline-none"
+                        />
+                      </div>
+                      <div class="md:col-span-2">
+                        <label
+                          class="block text-xs font-bold text-on-surface-variant uppercase tracking-wider mb-1"
+                          style="font-family: 'Be Vietnam Pro', sans-serif;"
+                        >
+                          Description
+                        </label>
+                        <textarea
+                          name="item[description]"
+                          rows="2"
+                          class="w-full bg-surface-container-low border-0 rounded-lg px-4 py-2.5 text-sm focus:ring-2 focus:ring-primary outline-none resize-none"
+                        >{item.description}</textarea>
+                      </div>
+                      <div>
+                        <label
+                          class="block text-xs font-bold text-on-surface-variant uppercase tracking-wider mb-1"
+                          style="font-family: 'Be Vietnam Pro', sans-serif;"
+                        >
+                          Image URL
+                        </label>
+                        <input
+                          type="text"
+                          name="item[image_url]"
+                          value={item.image_url || ""}
+                          class="w-full bg-surface-container-low border-0 rounded-lg px-4 py-2.5 text-sm focus:ring-2 focus:ring-primary outline-none"
+                        />
+                      </div>
+                      <div>
+                        <label
+                          class="block text-xs font-bold text-on-surface-variant uppercase tracking-wider mb-1"
+                          style="font-family: 'Be Vietnam Pro', sans-serif;"
+                        >
+                          Sort Order
+                        </label>
+                        <input
+                          type="number"
+                          name="item[sort_order]"
+                          value={item.sort_order}
+                          class="w-full bg-surface-container-low border-0 rounded-lg px-4 py-2.5 text-sm focus:ring-2 focus:ring-primary outline-none"
+                        />
+                      </div>
                     </div>
-                    <div>
-                      <label
-                        class="block text-xs font-bold text-on-surface-variant uppercase tracking-wider mb-1"
-                        style="font-family: 'Be Vietnam Pro', sans-serif;"
+                    <div class="flex items-center gap-3 pt-2">
+                      <button
+                        type="submit"
+                        class="bg-primary text-white px-6 py-2.5 rounded-xl font-bold hover:opacity-90 transition-opacity"
                       >
-                        Price (USD)
-                      </label>
-                      <input
-                        type="text"
-                        name="item[price]"
-                        value={money_amount(item.price)}
-                        inputmode="decimal"
-                        class="w-full bg-surface-container-low border-0 rounded-lg px-4 py-2.5 text-sm focus:ring-2 focus:ring-primary outline-none"
-                      />
-                    </div>
-                    <div class="md:col-span-2">
-                      <label
-                        class="block text-xs font-bold text-on-surface-variant uppercase tracking-wider mb-1"
-                        style="font-family: 'Be Vietnam Pro', sans-serif;"
+                        Save Changes
+                      </button>
+                      <button
+                        type="button"
+                        phx-click="cancel_edit"
+                        class="text-on-surface-variant hover:text-on-surface font-medium px-4 py-2.5"
                       >
-                        Description
-                      </label>
-                      <textarea
-                        name="item[description]"
-                        rows="2"
-                        class="w-full bg-surface-container-low border-0 rounded-lg px-4 py-2.5 text-sm focus:ring-2 focus:ring-primary outline-none resize-none"
-                      >{item.description}</textarea>
+                        Cancel
+                      </button>
                     </div>
-                    <div>
-                      <label
-                        class="block text-xs font-bold text-on-surface-variant uppercase tracking-wider mb-1"
-                        style="font-family: 'Be Vietnam Pro', sans-serif;"
-                      >
-                        Image URL
-                      </label>
-                      <input
-                        type="text"
-                        name="item[image_url]"
-                        value={item.image_url || ""}
-                        class="w-full bg-surface-container-low border-0 rounded-lg px-4 py-2.5 text-sm focus:ring-2 focus:ring-primary outline-none"
-                      />
-                    </div>
-                    <div>
-                      <label
-                        class="block text-xs font-bold text-on-surface-variant uppercase tracking-wider mb-1"
-                        style="font-family: 'Be Vietnam Pro', sans-serif;"
-                      >
-                        Sort Order
-                      </label>
-                      <input
-                        type="number"
-                        name="item[sort_order]"
-                        value={item.sort_order}
-                        class="w-full bg-surface-container-low border-0 rounded-lg px-4 py-2.5 text-sm focus:ring-2 focus:ring-primary outline-none"
-                      />
-                    </div>
-                  </div>
-                  <div class="flex items-center gap-3 pt-2">
-                    <button
-                      type="submit"
-                      class="bg-primary text-white px-6 py-2.5 rounded-xl font-bold hover:opacity-90 transition-opacity"
+                  </form>
+
+                  <div class="border-t border-surface-container-low pt-4 space-y-3">
+                    <p
+                      class="text-xs font-bold text-on-surface-variant uppercase tracking-wider"
+                      style="font-family: 'Be Vietnam Pro', sans-serif;"
                     >
-                      Save Changes
-                    </button>
-                    <button
-                      type="button"
-                      phx-click="cancel_edit"
-                      class="text-on-surface-variant hover:text-on-surface font-medium px-4 py-2.5"
-                    >
-                      Cancel
-                    </button>
+                      Sizes
+                    </p>
+
+                    <%= if Enum.empty?(item.sizes || []) do %>
+                      <p class="text-xs text-on-surface-variant italic">
+                        No sizes — item uses base price above.
+                      </p>
+                    <% else %>
+                      <div class="space-y-1">
+                        <%= for size <- item.sizes do %>
+                          <div class="flex items-center gap-3 px-3 py-2 bg-surface-container-low rounded-lg">
+                            <span
+                              class="flex-1 text-sm font-medium text-on-surface"
+                              style="font-family: 'Plus Jakarta Sans', sans-serif;"
+                            >
+                              {size.name}
+                            </span>
+                            <span class="text-sm font-bold text-primary">
+                              {format_money(size.price)}
+                            </span>
+                            <button
+                              phx-click="delete_size"
+                              phx-value-id={size.id}
+                              type="button"
+                              class="text-on-surface-variant hover:text-error transition-colors p-1"
+                              title="Remove size"
+                            >
+                              <span class="material-symbols-outlined" style="font-size: 16px;">
+                                delete
+                              </span>
+                            </button>
+                          </div>
+                        <% end %>
+                      </div>
+                    <% end %>
+
+                    <%= if @adding_size_to_item_id == item.id do %>
+                      <form phx-submit="create_size" class="flex items-center gap-2">
+                        <input type="hidden" name="size[menu_item_id]" value={item.id} />
+                        <input
+                          type="text"
+                          name="size[name]"
+                          required
+                          autofocus
+                          placeholder="e.g. Large"
+                          class="flex-1 bg-surface-container-low border-0 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-primary outline-none"
+                        />
+                        <input
+                          type="text"
+                          name="size[price]"
+                          required
+                          placeholder="18.00"
+                          inputmode="decimal"
+                          class="w-28 bg-surface-container-low border-0 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-primary outline-none"
+                        />
+                        <button
+                          type="submit"
+                          class="bg-primary text-white px-3 py-2 rounded-lg text-sm font-bold hover:opacity-90"
+                        >
+                          Add
+                        </button>
+                        <button
+                          type="button"
+                          phx-click="cancel_add_size"
+                          class="text-on-surface-variant hover:text-on-surface p-2"
+                        >
+                          <span class="material-symbols-outlined" style="font-size: 16px;">
+                            close
+                          </span>
+                        </button>
+                      </form>
+                    <% else %>
+                      <button
+                        phx-click="add_size"
+                        phx-value-item_id={item.id}
+                        type="button"
+                        class="flex items-center gap-2 text-sm text-on-surface-variant hover:text-on-surface transition-colors"
+                      >
+                        <span
+                          class="material-symbols-outlined text-primary"
+                          style="font-size: 16px;"
+                        >
+                          add_circle
+                        </span>
+                        Add size
+                      </button>
+                    <% end %>
                   </div>
-                </form>
+
+                  <div class="border-t border-surface-container-low pt-4 space-y-4">
+                    <p
+                      class="text-xs font-bold text-on-surface-variant uppercase tracking-wider"
+                      style="font-family: 'Be Vietnam Pro', sans-serif;"
+                    >
+                      Modifier Groups
+                    </p>
+
+                    <%= for group <- (item.modifier_groups || []) do %>
+                      <div class="space-y-2">
+                        <div class="flex items-center gap-2">
+                          <span
+                            class="flex-1 text-sm font-bold text-on-surface"
+                            style="font-family: 'Plus Jakarta Sans', sans-serif;"
+                          >
+                            {group.name}
+                          </span>
+                          <%= if group.required do %>
+                            <span class="text-[10px] font-bold uppercase tracking-wider bg-primary-fixed text-on-primary-fixed-variant px-2 py-0.5 rounded-full">
+                              Required
+                            </span>
+                          <% end %>
+                          <button
+                            phx-click="delete_modifier_group"
+                            phx-value-id={group.id}
+                            type="button"
+                            class="text-on-surface-variant hover:text-error transition-colors p-1"
+                            title="Delete group"
+                          >
+                            <span class="material-symbols-outlined" style="font-size: 16px;">
+                              delete
+                            </span>
+                          </button>
+                        </div>
+
+                        <div class="pl-4 space-y-1">
+                          <%= for modifier <- (group.modifiers || []) do %>
+                            <div class="flex items-center gap-3 px-3 py-1.5 bg-surface-container-low/60 rounded-lg">
+                              <span class="flex-1 text-sm text-on-surface">{modifier.name}</span>
+                              <span class="text-xs text-on-surface-variant">
+                                {if modifier.price_delta,
+                                  do: "+#{format_money(modifier.price_delta)}",
+                                  else: "Free"}
+                              </span>
+                              <button
+                                phx-click="delete_modifier"
+                                phx-value-id={modifier.id}
+                                type="button"
+                                class="text-on-surface-variant hover:text-error transition-colors p-1"
+                                title="Remove option"
+                              >
+                                <span class="material-symbols-outlined" style="font-size: 14px;">
+                                  close
+                                </span>
+                              </button>
+                            </div>
+                          <% end %>
+
+                          <%= if @adding_modifier_to_group_id == group.id do %>
+                            <form
+                              phx-submit="create_modifier"
+                              class="flex items-center gap-2 mt-1"
+                            >
+                              <input
+                                type="hidden"
+                                name="modifier[modifier_group_id]"
+                                value={group.id}
+                              />
+                              <input
+                                type="text"
+                                name="modifier[name]"
+                                required
+                                autofocus
+                                placeholder="Option name"
+                                class="flex-1 bg-white border-0 rounded-lg px-3 py-1.5 text-sm focus:ring-2 focus:ring-primary outline-none"
+                              />
+                              <input
+                                type="text"
+                                name="modifier[price_delta]"
+                                placeholder="+0.00"
+                                inputmode="decimal"
+                                class="w-24 bg-white border-0 rounded-lg px-3 py-1.5 text-sm focus:ring-2 focus:ring-primary outline-none"
+                              />
+                              <button
+                                type="submit"
+                                class="bg-primary text-white px-3 py-1.5 rounded-lg text-sm font-bold hover:opacity-90"
+                              >
+                                Add
+                              </button>
+                              <button
+                                type="button"
+                                phx-click="cancel_add_modifier"
+                                class="text-on-surface-variant hover:text-on-surface p-1.5"
+                              >
+                                <span class="material-symbols-outlined" style="font-size: 14px;">
+                                  close
+                                </span>
+                              </button>
+                            </form>
+                          <% else %>
+                            <button
+                              phx-click="add_modifier"
+                              phx-value-group_id={group.id}
+                              type="button"
+                              class="flex items-center gap-2 text-xs text-on-surface-variant hover:text-on-surface transition-colors py-1"
+                            >
+                              <span
+                                class="material-symbols-outlined text-primary"
+                                style="font-size: 14px;"
+                              >
+                                add_circle
+                              </span>
+                              Add option
+                            </button>
+                          <% end %>
+                        </div>
+                      </div>
+                    <% end %>
+
+                    <%= if @adding_modifier_group_to_item_id == item.id do %>
+                      <form
+                        phx-submit="create_modifier_group"
+                        class="bg-surface-container-low rounded-lg p-3 space-y-3"
+                      >
+                        <input type="hidden" name="group[menu_item_id]" value={item.id} />
+                        <div class="flex items-center gap-3">
+                          <input
+                            type="text"
+                            name="group[name]"
+                            required
+                            autofocus
+                            placeholder="e.g. Choose toppings"
+                            class="flex-1 bg-white border-0 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-primary outline-none"
+                          />
+                          <label class="flex items-center gap-2 text-sm text-on-surface-variant whitespace-nowrap cursor-pointer">
+                            <input
+                              type="checkbox"
+                              name="group[required]"
+                              value="true"
+                              class="rounded"
+                            /> Required
+                          </label>
+                        </div>
+                        <div class="flex items-center gap-2">
+                          <button
+                            type="submit"
+                            class="bg-primary text-white px-4 py-2 rounded-lg text-sm font-bold hover:opacity-90"
+                          >
+                            Add Group
+                          </button>
+                          <button
+                            type="button"
+                            phx-click="cancel_add_modifier_group"
+                            class="text-on-surface-variant hover:text-on-surface text-sm px-3 py-2"
+                          >
+                            Cancel
+                          </button>
+                        </div>
+                      </form>
+                    <% else %>
+                      <button
+                        phx-click="add_modifier_group"
+                        phx-value-item_id={item.id}
+                        type="button"
+                        class="flex items-center gap-2 text-sm text-on-surface-variant hover:text-on-surface transition-colors"
+                      >
+                        <span
+                          class="material-symbols-outlined text-primary"
+                          style="font-size: 16px;"
+                        >
+                          add_circle
+                        </span>
+                        Add modifier group
+                      </button>
+                    <% end %>
+                  </div>
+                </div>
               <% else %>
                 <div class="bg-surface-container-lowest rounded-xl p-4 flex items-center gap-4 group hover:shadow-sm transition-shadow">
                   <div class="w-14 h-14 rounded-lg overflow-hidden shrink-0 bg-surface-container-low">
@@ -551,12 +852,26 @@
                           Off
                         </span>
                       <% end %>
+                      <%= if not Enum.empty?(item.sizes || []) do %>
+                        <span class="bg-surface-container text-on-surface-variant text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full shrink-0">
+                          {length(item.sizes)} sizes
+                        </span>
+                      <% end %>
+                      <%= if not Enum.empty?(item.modifier_groups || []) do %>
+                        <span class="bg-surface-container text-on-surface-variant text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full shrink-0">
+                          {length(item.modifier_groups)} mod groups
+                        </span>
+                      <% end %>
                     </div>
                     <p class="text-xs text-on-surface-variant line-clamp-1">{item.description}</p>
                   </div>
 
                   <span class="text-sm font-bold text-primary shrink-0">
-                    {format_money(item.price)}
+                    <%= if item.price do %>
+                      {format_money(item.price)}
+                    <% else %>
+                      —
+                    <% end %>
                   </span>
 
                   <div class="flex items-center gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
@@ -617,12 +932,11 @@
                   </div>
                   <div>
                     <label class="block text-xs font-bold text-on-surface-variant uppercase tracking-wider mb-1">
-                      Price (USD)
+                      Base Price (USD) — leave blank if using sizes
                     </label>
                     <input
                       type="text"
                       name="item[price]"
-                      required
                       placeholder="14.50"
                       inputmode="decimal"
                       class="w-full bg-surface-container-low border-0 rounded-lg px-4 py-2.5 text-sm focus:ring-2 focus:ring-primary outline-none"

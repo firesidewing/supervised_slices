@@ -12,5 +12,6 @@ defmodule SupervisedSlices.Menu do
     resource SupervisedSlices.Menu.MenuItem
     resource SupervisedSlices.Menu.MenuItemModifierGroup
     resource SupervisedSlices.Menu.MenuItemModifier
+    resource SupervisedSlices.Menu.MenuItemSize
   end
 end
