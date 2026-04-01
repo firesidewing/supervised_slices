@@ -15,6 +15,17 @@ defmodule SupervisedSlices.Cart.Cart do
     end
   end
 
+  code_interface do
+    define :create, action: :create
+    define :checkout, action: :checkout
+    define :abandon, action: :abandon
+    define :claim, action: :claim
+    define :get, action: :read, get_by: :id
+    define :active_for_session, action: :active_for_session, args: [:session_id]
+    define :active_for_user, action: :active_for_user, args: [:user_id]
+    define :active_for_org, action: :active_for_org
+  end
+
   actions do
     defaults [:read]
 

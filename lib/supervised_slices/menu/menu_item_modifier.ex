@@ -10,6 +10,12 @@ defmodule SupervisedSlices.Menu.MenuItemModifier do
     repo SupervisedSlices.Repo
   end
 
+  code_interface do
+    define :get, action: :read, get_by: :id
+    define :create, action: :create
+    define :destroy, action: :destroy
+  end
+
   actions do
     defaults [:read, :destroy]
 

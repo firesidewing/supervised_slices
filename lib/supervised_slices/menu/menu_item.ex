@@ -14,6 +14,12 @@ defmodule SupervisedSlices.Menu.MenuItem do
     end
   end
 
+  code_interface do
+    define :get, action: :read, get_by: :id
+    define :create, action: :create
+    define :update, action: :update
+  end
+
   actions do
     defaults [:read, :destroy]
 

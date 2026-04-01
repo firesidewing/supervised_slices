@@ -15,6 +15,14 @@ defmodule SupervisedSlices.Orders.Order do
     end
   end
 
+  code_interface do
+    define :get, action: :read, get_by: :id
+    define :place_order, action: :place_order
+    define :update_status, action: :update_status
+    define :active, action: :active
+    define :all, action: :all
+  end
+
   actions do
     defaults [:read]
 

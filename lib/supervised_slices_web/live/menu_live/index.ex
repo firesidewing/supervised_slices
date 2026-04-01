@@ -3,51 +3,37 @@ defmodule SupervisedSlicesWeb.MenuLive.Index do
 
   on_mount {SupervisedSlicesWeb.LiveUserAuth, :live_user_optional}
 
-  alias SupervisedSlices.Accounts.GuestSession
-  alias SupervisedSlices.Cart.Cart
-  alias SupervisedSlices.Cart.CartItem
+  alias SupervisedSlices.Accounts.{GuestSession, User}
+  alias SupervisedSlices.Cart.{Cart, CartItem}
   alias SupervisedSlices.Menu.Category
+  alias SupervisedSlices.Orders.{Order, OrderItem}
   alias SupervisedSlices.OrgPresence
   alias SupervisedSlices.PubSubNotifier
-  alias SupervisedSlices.Orgs.Organization
 
   # ---------------------------------------------------------------------------
   # Mount
   # ---------------------------------------------------------------------------
 
-  def mount(%{"org_slug" => slug}, session, socket) do
-    dbg(socket.assigns)
-
-    org =
-      Organization
-      |> Ash.Query.for_read(:by_slug, %{slug: slug})
-      |> Ash.read_one!(authorize?: false)
+  def mount(_params, _session, socket) do
+    %{org: org, ash_scope: scope} = socket.assigns
 
     categories =
-      Category
-      |> Ash.Query.for_read(:active)
-      |> Ash.Query.load(menu_items: [modifier_groups: [:modifiers]])
-      |> Ash.read!(tenant: org.id, authorize?: false)
+      Category.active!(scope: scope, authorize?: false,
+        load: [menu_items: [modifier_groups: [:modifiers]]])
 
-    session_id = session["guest_session_id"]
-    actor = build_actor(socket.assigns.current_user, session_id)
-
-    cart = load_cart(org, actor, session_id)
+    cart = load_cart(scope)
     {cart_items_map, cart_count} = build_cart_state(cart)
 
     if connected?(socket) do
-      OrgPresence.track_visitor(self(), org.id, session_id || "anon", %{})
+      OrgPresence.track_visitor(self(), org.id, scope.guest_session_id || "anon", %{})
     end
 
     {:ok,
      socket
-     |> assign(:org, org)
      |> assign(:categories, categories)
      |> assign(:cart, cart)
      |> assign(:cart_items_map, cart_items_map)
      |> assign(:cart_count, cart_count)
-     |> assign(:session_id, session_id)
-     |> assign(:actor, actor)
      |> assign(:show_basket, false)
      |> assign(:checkout_step, :review)
      |> assign(:page_title, org.name)}
@@ -74,17 +60,15 @@ defmodule SupervisedSlicesWeb.MenuLive.Index do
   end
 
   def handle_event("place_order", params, socket) do
-    %{org: org, actor: actor, cart: cart} = socket.assigns
+    %{ash_scope: scope, cart: cart} = socket.assigns
 
     order =
-      SupervisedSlices.Orders.Order
-      |> Ash.Changeset.for_create(:place_order, %{
+      Order.place_order!(%{
         customer_name: params["customer_name"],
         customer_phone: params["customer_phone"],
         notes: params["notes"],
         total_price: order_total(cart)
-      })
-      |> Ash.create!(tenant: org.id, actor: actor)
+      }, scope: scope)
 
     Enum.each(cart.cart_items, fn item ->
       modifier = order_find_modifier(item)
@@ -95,23 +79,19 @@ defmodule SupervisedSlicesWeb.MenuLive.Index do
           do: [%{"name" => modifier.name, "price" => Money.to_string!(price)}],
           else: []
 
-      SupervisedSlices.Orders.OrderItem
-      |> Ash.Changeset.for_create(:create, %{
+      OrderItem.create!(%{
         order_id: order.id,
         menu_item_id: item.menu_item_id,
         quantity: item.quantity,
         item_name: item.menu_item.name,
         price_at_time: price,
         modifiers_snapshot: modifiers_snapshot
-      })
-      |> Ash.create!(tenant: org.id, actor: actor)
+      }, scope: scope)
     end)
 
-    cart
-    |> Ash.Changeset.for_update(:checkout, %{})
-    |> Ash.update!(tenant: org.id, actor: actor)
+    Cart.checkout!(cart, scope: scope)
 
-    SupervisedSlices.PubSubNotifier.broadcast_new_order(order)
+    PubSubNotifier.broadcast_new_order(order)
 
     {:noreply,
      socket
@@ -165,34 +145,27 @@ defmodule SupervisedSlicesWeb.MenuLive.Index do
   # ---------------------------------------------------------------------------
 
   defp do_add_item(socket, item_id, modifier_id) do
-    %{org: org, actor: actor, cart: cart} = socket.assigns
+    %{ash_scope: scope, cart: cart} = socket.assigns
 
-    cart =
-      cart ||
-        Cart
-        |> Ash.Changeset.for_create(:create, %{}, scope: socket.assigns.ash_scope)
-        |> Ash.create!(tenant: org.id, actor: actor)
+    cart = cart || Cart.create!(scope: scope)
 
     modifier_ids = if modifier_id, do: [modifier_id], else: []
 
-    CartItem
-    |> Ash.Changeset.for_create(:add_to_cart, %{
+    CartItem.add_to_cart!(%{
       cart_id: cart.id,
       menu_item_id: item_id,
       quantity: 1,
       selected_modifier_ids: modifier_ids
-    })
-    |> Ash.create!(tenant: org.id, actor: actor)
+    }, scope: scope)
 
     refresh_cart(socket, cart)
   end
 
   defp do_update_quantity(socket, cart_item_id, key, new_qty) do
-    %{org: org, actor: actor, cart_items_map: map} = socket.assigns
+    %{ash_scope: scope, cart_items_map: map} = socket.assigns
 
-    Ash.get!(CartItem, cart_item_id, tenant: org.id, actor: actor)
-    |> Ash.Changeset.for_update(:update_quantity, %{quantity: new_qty})
-    |> Ash.update!(tenant: org.id, actor: actor)
+    cart_item = CartItem.get!(cart_item_id, scope: scope)
+    CartItem.update_quantity!(cart_item, %{quantity: new_qty}, scope: scope)
 
     new_map = Map.update!(map, key, &%{&1 | quantity: new_qty})
     cart_count = count_cart_items(new_map)
@@ -200,10 +173,10 @@ defmodule SupervisedSlicesWeb.MenuLive.Index do
   end
 
   defp do_remove_item(socket, cart_item_id, key) do
-    %{org: org, actor: actor, cart_items_map: map} = socket.assigns
+    %{ash_scope: scope, cart_items_map: map} = socket.assigns
 
-    Ash.get!(CartItem, cart_item_id, tenant: org.id, actor: actor)
-    |> Ash.destroy!(tenant: org.id, actor: actor)
+    CartItem.get!(cart_item_id, scope: scope)
+    |> CartItem.destroy!(scope: scope)
 
     new_map = Map.delete(map, key)
     cart_count = count_cart_items(new_map)
@@ -211,14 +184,11 @@ defmodule SupervisedSlicesWeb.MenuLive.Index do
   end
 
   defp refresh_cart(socket, cart) do
-    %{org: org, actor: actor} = socket.assigns
+    %{ash_scope: scope} = socket.assigns
 
     loaded_cart =
-      Ash.get!(Cart, cart.id, tenant: org.id, actor: actor)
-      |> Ash.load!([cart_items: [menu_item: [modifier_groups: [:modifiers]]]],
-        tenant: org.id,
-        actor: actor
-      )
+      Cart.get!(cart.id, scope: scope,
+        load: [cart_items: [menu_item: [modifier_groups: [:modifiers]]]])
 
     PubSubNotifier.broadcast_cart_update(loaded_cart)
 
@@ -235,30 +205,24 @@ defmodule SupervisedSlicesWeb.MenuLive.Index do
   # Private helpers
   # ---------------------------------------------------------------------------
 
-  defp build_actor(nil, session_id), do: %GuestSession{id: session_id}
-  defp build_actor(user, _session_id), do: user
+  defp load_cart(scope) do
+    cart_load = [cart_items: [menu_item: [modifier_groups: [:modifiers]]]]
 
-  defp load_cart(org, %SupervisedSlices.Accounts.User{id: user_id} = actor, _session_id) do
-    Cart
-    |> Ash.Query.for_read(:active_for_user, %{user_id: user_id})
-    |> Ash.Query.load(cart_items: [menu_item: [modifier_groups: [:modifiers]]])
-    |> Ash.read_one(tenant: org.id, actor: actor)
-    |> case do
-      {:ok, cart} -> cart
-      _ -> nil
-    end
-  end
+    case scope.current_user do
+      %User{id: user_id} ->
+        case Cart.active_for_user(user_id, scope: scope, load: cart_load) do
+          {:ok, cart} -> cart
+          _ -> nil
+        end
 
-  defp load_cart(_org, _actor, nil), do: nil
+      %GuestSession{id: session_id} ->
+        case Cart.active_for_session(session_id, scope: scope, load: cart_load) do
+          {:ok, cart} -> cart
+          _ -> nil
+        end
 
-  defp load_cart(org, actor, session_id) do
-    Cart
-    |> Ash.Query.for_read(:active_for_session, %{session_id: session_id})
-    |> Ash.Query.load(cart_items: [menu_item: [modifier_groups: [:modifiers]]])
-    |> Ash.read_one(tenant: org.id, actor: actor)
-    |> case do
-      {:ok, cart} -> cart
-      _ -> nil
+      _ ->
+        nil
     end
   end
 

@@ -14,25 +14,19 @@ defmodule SupervisedSlicesWeb.AdminLive do
   }
 
   alias SupervisedSlices.Orders.Order
-  alias SupervisedSlices.Orgs.Organization
   alias SupervisedSlices.{OrgPresence, PubSubNotifier}
 
   # ---------------------------------------------------------------------------
   # Mount
   # ---------------------------------------------------------------------------
 
-  def mount(%{"org_slug" => slug}, _session, socket) do
-    org =
-      Organization
-      |> Ash.Query.for_read(:by_slug, %{slug: slug})
-      |> Ash.read_one!(authorize?: false)
+  def mount(_params, _session, socket) do
+    %{org: org, ash_scope: scope} = socket.assigns
 
-    user = socket.assigns.current_user
-
-    orders = load_active_orders(org, user)
-    active_carts = load_active_carts(org, user)
+    orders = load_active_orders(scope)
+    active_carts = load_active_carts(scope)
     visitor_count = org.id |> OrgPresence.list_visitors() |> map_size()
-    categories = load_categories(org, user)
+    categories = load_categories(scope)
 
     if connected?(socket) do
       PubSubNotifier.subscribe_to_org_orders(org.id)
@@ -42,8 +36,6 @@ defmodule SupervisedSlicesWeb.AdminLive do
 
     {:ok,
      socket
-     |> assign(:org, org)
-     |> assign(:current_user, user)
      |> assign(:visitor_count, visitor_count)
      |> assign(:active_carts, active_carts)
      |> assign(:categories, categories)
@@ -66,8 +58,7 @@ defmodule SupervisedSlicesWeb.AdminLive do
   # ---------------------------------------------------------------------------
 
   def handle_info({:new_order, order}, socket) do
-    %{org: org, current_user: user} = socket.assigns
-    loaded = reload_order(order, org, user)
+    loaded = reload_order(order, socket.assigns.ash_scope)
     {:noreply, stream_insert(socket, :orders, loaded, at: 0)}
   end
 
@@ -75,8 +66,7 @@ defmodule SupervisedSlicesWeb.AdminLive do
     if order.status in [:completed, :cancelled] do
       {:noreply, stream_delete(socket, :orders, order)}
     else
-      %{org: org, current_user: user} = socket.assigns
-      loaded = reload_order(order, org, user)
+      loaded = reload_order(order, socket.assigns.ash_scope)
       {:noreply, stream_insert(socket, :orders, loaded)}
     end
   end
@@ -86,16 +76,12 @@ defmodule SupervisedSlicesWeb.AdminLive do
   # ---------------------------------------------------------------------------
 
   def handle_info({:cart_updated, cart}, socket) do
-    %{org: org, current_user: user} = socket.assigns
+    %{ash_scope: scope} = socket.assigns
 
     full_cart =
       case cart.status do
-        :active ->
-          Ash.get!(Cart, cart.id, tenant: org.id, actor: user)
-          |> Ash.load!([cart_items: [:menu_item]], tenant: org.id, actor: user)
-
-        _ ->
-          cart
+        :active -> Cart.get!(cart.id, scope: scope, load: [cart_items: [:menu_item]])
+        _ -> cart
       end
 
     {:noreply,
@@ -116,28 +102,17 @@ defmodule SupervisedSlicesWeb.AdminLive do
   # ---------------------------------------------------------------------------
 
   def handle_event("advance_order", %{"id" => order_id}, socket) do
-    %{org: org, current_user: user} = socket.assigns
-
-    order = Ash.get!(Order, order_id, tenant: org.id, actor: user)
-    next = next_status(order.status)
-
-    order
-    |> Ash.Changeset.for_update(:update_status, %{status: next})
-    |> Ash.update!(tenant: org.id, actor: user)
-
+    %{ash_scope: scope} = socket.assigns
+    order = Order.get!(order_id, scope: scope)
+    Order.update_status!(order, %{status: next_status(order.status)}, scope: scope)
     # PubSub will trigger handle_info({:order_updated, ...}) to update the stream
     {:noreply, socket}
   end
 
   def handle_event("cancel_order", %{"id" => order_id}, socket) do
-    %{org: org, current_user: user} = socket.assigns
-
-    order = Ash.get!(Order, order_id, tenant: org.id, actor: user)
-
-    order
-    |> Ash.Changeset.for_update(:update_status, %{status: :cancelled})
-    |> Ash.update!(tenant: org.id, actor: user)
-
+    %{ash_scope: scope} = socket.assigns
+    order = Order.get!(order_id, scope: scope)
+    Order.update_status!(order, %{status: :cancelled}, scope: scope)
     {:noreply, socket}
   end
 
@@ -165,68 +140,44 @@ defmodule SupervisedSlicesWeb.AdminLive do
   end
 
   def handle_event("save_item", %{"item" => params}, socket) do
-    %{org: org, current_user: user} = socket.assigns
-    item_id = params["id"]
-
-    item = Ash.get!(MenuItem, item_id, tenant: org.id, actor: user)
-
-    price =
-      case Decimal.parse(params["price"] || "") do
-        {d, ""} -> Money.new!(:CAD, d)
-        _ -> nil
-      end
+    %{ash_scope: scope} = socket.assigns
 
     attrs = %{
       name: params["name"],
       description: params["description"],
-      price: price,
+      price: parse_money(params["price"]),
       image_url: params["image_url"],
       sort_order: String.to_integer(params["sort_order"] || "0")
     }
 
-    item
-    |> Ash.Changeset.for_update(:update, attrs)
-    |> Ash.update!(tenant: org.id, actor: user)
+    MenuItem.get!(params["id"], scope: scope)
+    |> MenuItem.update!(attrs, scope: scope)
 
-    categories = load_categories(org, user)
+    categories = load_categories(scope)
     {:noreply, assign(socket, categories: categories, editing_item_id: nil)}
   end
 
   def handle_event("toggle_available", %{"id" => id}, socket) do
-    %{org: org, current_user: user} = socket.assigns
-
-    item = Ash.get!(MenuItem, id, tenant: org.id, actor: user)
-
-    item
-    |> Ash.Changeset.for_update(:update, %{available: !item.available})
-    |> Ash.update!(tenant: org.id, actor: user)
-
-    categories = load_categories(org, user)
+    %{ash_scope: scope} = socket.assigns
+    item = MenuItem.get!(id, scope: scope)
+    MenuItem.update!(item, %{available: !item.available}, scope: scope)
+    categories = load_categories(scope)
     {:noreply, assign(socket, :categories, categories)}
   end
 
   def handle_event("create_item", %{"item" => params}, socket) do
-    %{org: org, current_user: user} = socket.assigns
-    category_id = params["category_id"]
+    %{ash_scope: scope} = socket.assigns
 
-    price =
-      case Decimal.parse(params["price"] || "") do
-        {d, ""} -> Money.new!(:CAD, d)
-        _ -> nil
-      end
-
-    MenuItem
-    |> Ash.Changeset.for_create(:create, %{
+    MenuItem.create!(%{
       name: params["name"],
       description: params["description"],
-      price: price,
+      price: parse_money(params["price"]),
       image_url: params["image_url"],
       sort_order: String.to_integer(params["sort_order"] || "0"),
-      category_id: category_id
-    })
-    |> Ash.create!(tenant: org.id, actor: user)
+      category_id: params["category_id"]
+    }, scope: scope)
 
-    categories = load_categories(org, user)
+    categories = load_categories(scope)
     {:noreply, assign(socket, categories: categories, adding_to_category_id: nil)}
   end
 
@@ -248,33 +199,27 @@ defmodule SupervisedSlicesWeb.AdminLive do
   end
 
   def handle_event("create_category", %{"category" => params}, socket) do
-    %{org: org, current_user: user} = socket.assigns
+    %{ash_scope: scope} = socket.assigns
 
-    Category
-    |> Ash.Changeset.for_create(:create, %{
+    Category.create!(%{
       name: params["name"],
       sort_order: String.to_integer(params["sort_order"] || "0")
-    })
-    |> Ash.create!(tenant: org.id, actor: user)
+    }, scope: scope)
 
-    categories = load_categories(org, user)
+    categories = load_categories(scope)
     {:noreply, assign(socket, categories: categories, creating_category: false)}
   end
 
   def handle_event("save_category", %{"category" => params}, socket) do
-    %{org: org, current_user: user} = socket.assigns
-    cat_id = params["id"]
+    %{ash_scope: scope} = socket.assigns
 
-    cat = Ash.get!(Category, cat_id, tenant: org.id, actor: user)
-
-    cat
-    |> Ash.Changeset.for_update(:update, %{
+    Category.get!(params["id"], scope: scope)
+    |> Category.update!(%{
       name: params["name"],
       sort_order: String.to_integer(params["sort_order"] || "0")
-    })
-    |> Ash.update!(tenant: org.id, actor: user)
+    }, scope: scope)
 
-    categories = load_categories(org, user)
+    categories = load_categories(scope)
     {:noreply, assign(socket, categories: categories, editing_item_id: nil)}
   end
 
@@ -296,28 +241,22 @@ defmodule SupervisedSlicesWeb.AdminLive do
   end
 
   def handle_event("create_size", %{"size" => params}, socket) do
-    %{org: org, current_user: user} = socket.assigns
-    price = Money.new!(:CAD, Decimal.new(params["price"] || "0"))
+    %{ash_scope: scope} = socket.assigns
 
-    MenuItemSize
-    |> Ash.Changeset.for_create(:create, %{
+    MenuItemSize.create!(%{
       name: params["name"],
-      price: price,
+      price: Money.new!(:CAD, Decimal.new(params["price"] || "0")),
       menu_item_id: params["menu_item_id"]
-    })
-    |> Ash.create!(tenant: org.id, actor: user)
+    }, scope: scope)
 
-    categories = load_categories(org, user)
+    categories = load_categories(scope)
     {:noreply, assign(socket, categories: categories, adding_size_to_item_id: nil)}
   end
 
   def handle_event("delete_size", %{"id" => id}, socket) do
-    %{org: org, current_user: user} = socket.assigns
-
-    Ash.get!(MenuItemSize, id, tenant: org.id, actor: user)
-    |> Ash.destroy!(tenant: org.id, actor: user)
-
-    categories = load_categories(org, user)
+    %{ash_scope: scope} = socket.assigns
+    MenuItemSize.get!(id, scope: scope) |> MenuItemSize.destroy!(scope: scope)
+    categories = load_categories(scope)
     {:noreply, assign(socket, :categories, categories)}
   end
 
@@ -339,31 +278,26 @@ defmodule SupervisedSlicesWeb.AdminLive do
   end
 
   def handle_event("create_modifier_group", %{"group" => params}, socket) do
-    %{org: org, current_user: user} = socket.assigns
+    %{ash_scope: scope} = socket.assigns
 
-    MenuItemModifierGroup
-    |> Ash.Changeset.for_create(:create, %{
+    MenuItemModifierGroup.create!(%{
       name: params["name"],
       required: Map.get(params, "required") == "true",
       menu_item_id: params["menu_item_id"]
-    })
-    |> Ash.create!(tenant: org.id, actor: user)
+    }, scope: scope)
 
-    categories = load_categories(org, user)
+    categories = load_categories(scope)
     {:noreply, assign(socket, categories: categories, adding_modifier_group_to_item_id: nil)}
   end
 
   def handle_event("delete_modifier_group", %{"id" => id}, socket) do
-    %{org: org, current_user: user} = socket.assigns
+    %{ash_scope: scope} = socket.assigns
 
-    group =
-      Ash.get!(MenuItemModifierGroup, id, tenant: org.id, actor: user)
-      |> Ash.load!(:modifiers, tenant: org.id, actor: user)
+    group = MenuItemModifierGroup.get!(id, scope: scope, load: :modifiers)
+    Enum.each(group.modifiers, &MenuItemModifier.destroy!(&1, scope: scope))
+    MenuItemModifierGroup.destroy!(group, scope: scope)
 
-    Enum.each(group.modifiers, &Ash.destroy!(&1, tenant: org.id, actor: user))
-    Ash.destroy!(group, tenant: org.id, actor: user)
-
-    categories = load_categories(org, user)
+    categories = load_categories(scope)
     {:noreply, assign(socket, :categories, categories)}
   end
 
@@ -385,33 +319,22 @@ defmodule SupervisedSlicesWeb.AdminLive do
   end
 
   def handle_event("create_modifier", %{"modifier" => params}, socket) do
-    %{org: org, current_user: user} = socket.assigns
+    %{ash_scope: scope} = socket.assigns
 
-    price_delta =
-      case Decimal.parse(params["price_delta"] || "") do
-        {d, ""} -> Money.new!(:CAD, d)
-        _ -> nil
-      end
-
-    MenuItemModifier
-    |> Ash.Changeset.for_create(:create, %{
+    MenuItemModifier.create!(%{
       name: params["name"],
-      price_delta: price_delta,
+      price_delta: parse_money(params["price_delta"]),
       modifier_group_id: params["modifier_group_id"]
-    })
-    |> Ash.create!(tenant: org.id, actor: user)
+    }, scope: scope)
 
-    categories = load_categories(org, user)
+    categories = load_categories(scope)
     {:noreply, assign(socket, categories: categories, adding_modifier_to_group_id: nil)}
   end
 
   def handle_event("delete_modifier", %{"id" => id}, socket) do
-    %{org: org, current_user: user} = socket.assigns
-
-    Ash.get!(MenuItemModifier, id, tenant: org.id, actor: user)
-    |> Ash.destroy!(tenant: org.id, actor: user)
-
-    categories = load_categories(org, user)
+    %{ash_scope: scope} = socket.assigns
+    MenuItemModifier.get!(id, scope: scope) |> MenuItemModifier.destroy!(scope: scope)
+    categories = load_categories(scope)
     {:noreply, assign(socket, :categories, categories)}
   end
 
@@ -419,36 +342,38 @@ defmodule SupervisedSlicesWeb.AdminLive do
   # Private helpers
   # ---------------------------------------------------------------------------
 
-  defp load_active_orders(org, user) do
-    Order
-    |> Ash.Query.for_read(:active)
-    |> Ash.read!(tenant: org.id, actor: user, authorize?: false)
+  defp load_active_orders(scope) do
+    Order.active!(scope: scope, authorize?: false)
   rescue
     _ -> []
   end
 
-  defp load_active_carts(org, user) do
-    Cart
-    |> Ash.Query.for_read(:active_for_org)
-    |> Ash.read!(tenant: org.id, actor: user)
+  defp load_active_carts(scope) do
+    Cart.active_for_org!(scope: scope)
   rescue
     _ -> []
   end
 
-  defp load_categories(org, user) do
-    Category
-    |> Ash.Query.for_read(:active)
-    |> Ash.Query.load(menu_items: [modifier_groups: [:modifiers], sizes: []])
-    |> Ash.read!(tenant: org.id, actor: user)
+  defp load_categories(scope) do
+    Category.active!(scope: scope, load: [menu_items: [modifier_groups: [:modifiers], sizes: []]])
   rescue
     _ -> []
   end
 
-  defp reload_order(order, org, user) do
-    Ash.get!(Order, order.id, tenant: org.id, actor: user, authorize?: false)
-    |> Ash.load!(:order_items, tenant: org.id, actor: user, authorize?: false)
+  defp reload_order(order, scope) do
+    Order.get!(order.id, scope: scope, load: :order_items, authorize?: false)
   rescue
     _ -> Map.put(order, :order_items, [])
+  end
+
+  defp parse_money(nil), do: nil
+  defp parse_money(""), do: nil
+
+  defp parse_money(str) do
+    case Decimal.parse(str) do
+      {d, ""} -> Money.new!(:CAD, d)
+      _ -> nil
+    end
   end
 
   defp update_carts(carts, cart) do

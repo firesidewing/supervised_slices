@@ -10,6 +10,13 @@ defmodule SupervisedSlices.Menu.Category do
     repo SupervisedSlices.Repo
   end
 
+  code_interface do
+    define :get, action: :read, get_by: :id
+    define :create, action: :create
+    define :update, action: :update
+    define :active, action: :active
+  end
+
   actions do
     defaults [:read, :destroy]
 

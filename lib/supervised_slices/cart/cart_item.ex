@@ -10,6 +10,13 @@ defmodule SupervisedSlices.Cart.CartItem do
     repo SupervisedSlices.Repo
   end
 
+  code_interface do
+    define :get, action: :read, get_by: :id
+    define :add_to_cart, action: :add_to_cart
+    define :update_quantity, action: :update_quantity
+    define :destroy, action: :destroy
+  end
+
   actions do
     defaults [:read, :destroy]
 

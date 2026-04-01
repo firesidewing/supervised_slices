@@ -10,6 +10,10 @@ defmodule SupervisedSlices.Orders.OrderItem do
     repo SupervisedSlices.Repo
   end
 
+  code_interface do
+    define :create, action: :create
+  end
+
   actions do
     defaults [:read]
 

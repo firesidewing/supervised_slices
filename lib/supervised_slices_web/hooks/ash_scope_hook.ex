@@ -1,8 +1,13 @@
 defmodule SupervisedSlicesWeb.AshScopeHook do
   import Phoenix.Component, only: [assign: 3]
 
+  alias SupervisedSlices.Accounts.GuestSession
+
   def on_mount(:default, params, session, socket) do
-    actor = socket.assigns[:current_user]
+    current_user = socket.assigns[:current_user]
+    guest_session_id = session["guest_session_id"]
+
+    actor = current_user || (guest_session_id && %GuestSession{id: guest_session_id})
 
     org =
       socket.assigns[:org] ||
@@ -11,7 +16,7 @@ defmodule SupervisedSlicesWeb.AshScopeHook do
     scope = %SupervisedSlices.Scope{
       current_user: actor,
       current_tenant: org && org.id,
-      guest_session_id: session["guest_session_id"]
+      guest_session_id: guest_session_id
     }
 
     {:cont,
@@ -23,7 +28,7 @@ defmodule SupervisedSlicesWeb.AshScopeHook do
   defp load_org_from_params(%{"org_slug" => slug}) do
     SupervisedSlices.Orgs.Organization
     |> Ash.Query.for_read(:by_slug, %{slug: slug})
-    |> Ash.read_one!()
+    |> Ash.read_one!(authorize?: false)
   end
 
   defp load_org_from_params(_), do: nil
