@@ -18,8 +18,11 @@ defmodule SupervisedSlicesWeb.MenuLive.Index do
     %{org: org, ash_scope: scope} = socket.assigns
 
     categories =
-      Category.active!(scope: scope, authorize?: false,
-        load: [menu_items: [modifier_groups: [:modifiers]]])
+      Category.active!(
+        scope: scope,
+        authorize?: false,
+        load: [menu_items: [modifier_groups: [:modifiers]]]
+      )
 
     cart = load_cart(scope)
     {cart_items_map, cart_count} = build_cart_state(cart)
@@ -62,13 +65,18 @@ defmodule SupervisedSlicesWeb.MenuLive.Index do
   def handle_event("place_order", params, socket) do
     %{ash_scope: scope, cart: cart} = socket.assigns
 
+    dbg(params)
+
     order =
-      Order.place_order!(%{
-        customer_name: params["customer_name"],
-        customer_phone: params["customer_phone"],
-        notes: params["notes"],
-        total_price: order_total(cart)
-      }, scope: scope)
+      Order.place_order!(
+        %{
+          customer_name: params["customer_name"],
+          customer_phone: params["customer_phone"],
+          notes: params["notes"],
+          total_price: order_total(cart)
+        },
+        scope: scope
+      )
 
     Enum.each(cart.cart_items, fn item ->
       modifier = order_find_modifier(item)
@@ -79,14 +87,17 @@ defmodule SupervisedSlicesWeb.MenuLive.Index do
           do: [%{"name" => modifier.name, "price" => Money.to_string!(price)}],
           else: []
 
-      OrderItem.create!(%{
-        order_id: order.id,
-        menu_item_id: item.menu_item_id,
-        quantity: item.quantity,
-        item_name: item.menu_item.name,
-        price_at_time: price,
-        modifiers_snapshot: modifiers_snapshot
-      }, scope: scope)
+      OrderItem.create!(
+        %{
+          order_id: order.id,
+          menu_item_id: item.menu_item_id,
+          quantity: item.quantity,
+          item_name: item.menu_item.name,
+          price_at_time: price,
+          modifiers_snapshot: modifiers_snapshot
+        },
+        scope: scope
+      )
     end)
 
     Cart.checkout!(cart, scope: scope)
@@ -151,12 +162,15 @@ defmodule SupervisedSlicesWeb.MenuLive.Index do
 
     modifier_ids = if modifier_id, do: [modifier_id], else: []
 
-    CartItem.add_to_cart!(%{
-      cart_id: cart.id,
-      menu_item_id: item_id,
-      quantity: 1,
-      selected_modifier_ids: modifier_ids
-    }, scope: scope)
+    CartItem.add_to_cart!(
+      %{
+        cart_id: cart.id,
+        menu_item_id: item_id,
+        quantity: 1,
+        selected_modifier_ids: modifier_ids
+      },
+      scope: scope
+    )
 
     refresh_cart(socket, cart)
   end
@@ -187,8 +201,10 @@ defmodule SupervisedSlicesWeb.MenuLive.Index do
     %{ash_scope: scope} = socket.assigns
 
     loaded_cart =
-      Cart.get!(cart.id, scope: scope,
-        load: [cart_items: [menu_item: [modifier_groups: [:modifiers]]]])
+      Cart.get!(cart.id,
+        scope: scope,
+        load: [cart_items: [menu_item: [modifier_groups: [:modifiers]]]]
+      )
 
     PubSubNotifier.broadcast_cart_update(loaded_cart)
 

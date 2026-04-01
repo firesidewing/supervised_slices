@@ -63,7 +63,7 @@ defmodule SupervisedSlices.Orders.Order do
     end
 
     read :active do
-      filter expr(status not_in([:completed, :cancelled]))
+      filter expr(status not in [:completed, :cancelled])
       prepare build(sort: [inserted_at: :asc], load: [:order_items])
     end
 

@@ -23,7 +23,7 @@ defmodule SupervisedSlicesWeb.AdminLive do
   def mount(_params, _session, socket) do
     %{org: org, ash_scope: scope} = socket.assigns
 
-    orders = load_active_orders(scope)
+    orders = load_active_orders(scope) |> dbg
     active_carts = load_active_carts(scope)
     visitor_count = org.id |> OrgPresence.list_visitors() |> map_size()
     categories = load_categories(scope)
@@ -168,14 +168,17 @@ defmodule SupervisedSlicesWeb.AdminLive do
   def handle_event("create_item", %{"item" => params}, socket) do
     %{ash_scope: scope} = socket.assigns
 
-    MenuItem.create!(%{
-      name: params["name"],
-      description: params["description"],
-      price: parse_money(params["price"]),
-      image_url: params["image_url"],
-      sort_order: String.to_integer(params["sort_order"] || "0"),
-      category_id: params["category_id"]
-    }, scope: scope)
+    MenuItem.create!(
+      %{
+        name: params["name"],
+        description: params["description"],
+        price: parse_money(params["price"]),
+        image_url: params["image_url"],
+        sort_order: String.to_integer(params["sort_order"] || "0"),
+        category_id: params["category_id"]
+      },
+      scope: scope
+    )
 
     categories = load_categories(scope)
     {:noreply, assign(socket, categories: categories, adding_to_category_id: nil)}
@@ -201,10 +204,13 @@ defmodule SupervisedSlicesWeb.AdminLive do
   def handle_event("create_category", %{"category" => params}, socket) do
     %{ash_scope: scope} = socket.assigns
 
-    Category.create!(%{
-      name: params["name"],
-      sort_order: String.to_integer(params["sort_order"] || "0")
-    }, scope: scope)
+    Category.create!(
+      %{
+        name: params["name"],
+        sort_order: String.to_integer(params["sort_order"] || "0")
+      },
+      scope: scope
+    )
 
     categories = load_categories(scope)
     {:noreply, assign(socket, categories: categories, creating_category: false)}
@@ -214,10 +220,13 @@ defmodule SupervisedSlicesWeb.AdminLive do
     %{ash_scope: scope} = socket.assigns
 
     Category.get!(params["id"], scope: scope)
-    |> Category.update!(%{
-      name: params["name"],
-      sort_order: String.to_integer(params["sort_order"] || "0")
-    }, scope: scope)
+    |> Category.update!(
+      %{
+        name: params["name"],
+        sort_order: String.to_integer(params["sort_order"] || "0")
+      },
+      scope: scope
+    )
 
     categories = load_categories(scope)
     {:noreply, assign(socket, categories: categories, editing_item_id: nil)}
@@ -243,11 +252,14 @@ defmodule SupervisedSlicesWeb.AdminLive do
   def handle_event("create_size", %{"size" => params}, socket) do
     %{ash_scope: scope} = socket.assigns
 
-    MenuItemSize.create!(%{
-      name: params["name"],
-      price: Money.new!(:CAD, Decimal.new(params["price"] || "0")),
-      menu_item_id: params["menu_item_id"]
-    }, scope: scope)
+    MenuItemSize.create!(
+      %{
+        name: params["name"],
+        price: Money.new!(:CAD, Decimal.new(params["price"] || "0")),
+        menu_item_id: params["menu_item_id"]
+      },
+      scope: scope
+    )
 
     categories = load_categories(scope)
     {:noreply, assign(socket, categories: categories, adding_size_to_item_id: nil)}
@@ -280,11 +292,14 @@ defmodule SupervisedSlicesWeb.AdminLive do
   def handle_event("create_modifier_group", %{"group" => params}, socket) do
     %{ash_scope: scope} = socket.assigns
 
-    MenuItemModifierGroup.create!(%{
-      name: params["name"],
-      required: Map.get(params, "required") == "true",
-      menu_item_id: params["menu_item_id"]
-    }, scope: scope)
+    MenuItemModifierGroup.create!(
+      %{
+        name: params["name"],
+        required: Map.get(params, "required") == "true",
+        menu_item_id: params["menu_item_id"]
+      },
+      scope: scope
+    )
 
     categories = load_categories(scope)
     {:noreply, assign(socket, categories: categories, adding_modifier_group_to_item_id: nil)}
@@ -321,11 +336,14 @@ defmodule SupervisedSlicesWeb.AdminLive do
   def handle_event("create_modifier", %{"modifier" => params}, socket) do
     %{ash_scope: scope} = socket.assigns
 
-    MenuItemModifier.create!(%{
-      name: params["name"],
-      price_delta: parse_money(params["price_delta"]),
-      modifier_group_id: params["modifier_group_id"]
-    }, scope: scope)
+    MenuItemModifier.create!(
+      %{
+        name: params["name"],
+        price_delta: parse_money(params["price_delta"]),
+        modifier_group_id: params["modifier_group_id"]
+      },
+      scope: scope
+    )
 
     categories = load_categories(scope)
     {:noreply, assign(socket, categories: categories, adding_modifier_to_group_id: nil)}
@@ -344,26 +362,18 @@ defmodule SupervisedSlicesWeb.AdminLive do
 
   defp load_active_orders(scope) do
     Order.active!(scope: scope, authorize?: false)
-  rescue
-    _ -> []
   end
 
   defp load_active_carts(scope) do
     Cart.active_for_org!(scope: scope)
-  rescue
-    _ -> []
   end
 
   defp load_categories(scope) do
     Category.active!(scope: scope, load: [menu_items: [modifier_groups: [:modifiers], sizes: []]])
-  rescue
-    _ -> []
   end
 
   defp reload_order(order, scope) do
     Order.get!(order.id, scope: scope, load: :order_items, authorize?: false)
-  rescue
-    _ -> Map.put(order, :order_items, [])
   end
 
   defp parse_money(nil), do: nil
