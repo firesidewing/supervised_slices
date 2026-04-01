@@ -25,7 +25,7 @@ defmodule SupervisedSlices.Cart.CartItem do
   policies do
     policy action_type(:read) do
       authorize_if relates_to_actor_via([:cart, :user])
-      authorize_if expr(cart.session_id == ^actor(:session_id))
+      authorize_if expr(cart.session_id == ^actor(:id))
       authorize_if SupervisedSlices.Orgs.Checks.IsOrgAdmin
     end
 
@@ -35,7 +35,7 @@ defmodule SupervisedSlices.Cart.CartItem do
 
     policy action_type([:update, :destroy]) do
       authorize_if relates_to_actor_via([:cart, :user])
-      authorize_if expr(cart.session_id == ^actor(:session_id))
+      authorize_if expr(cart.session_id == ^actor(:id))
     end
   end
 

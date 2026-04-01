@@ -162,7 +162,7 @@
         Explore Menu
       </span>
     </button>
-    <button class="flex items-center gap-1.5 text-white/80 px-5 py-2.5 hover:scale-[1.02] transition-all active:scale-95">
+    <button phx-click="toggle_basket" class="flex items-center gap-1.5 text-white/80 px-5 py-2.5 hover:scale-[1.02] transition-all active:scale-95">
       <span class="material-symbols-outlined">shopping_cart_checkout</span>
       <span
         class="text-[10px] uppercase tracking-widest"
@@ -178,6 +178,8 @@
     </button>
   </div>
 </nav>
+
+<.basket_drawer cart={@cart} show={@show_basket} checkout_step={@checkout_step} />
 
 <div class="fixed top-[15%] right-[-20px] opacity-10 pointer-events-none transform rotate-45 select-none hidden lg:block text-on-surface">
   <span class="material-symbols-outlined" style="font-size: 120px;">potted_plant</span>

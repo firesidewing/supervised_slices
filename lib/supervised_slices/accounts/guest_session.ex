@@ -5,8 +5,7 @@ defmodule SupervisedSlices.Accounts.GuestSession do
   org's storefront. The `session_id` is a UUID generated and stored in the
   LiveView/browser session cookie.
 
-  Policies on Cart and CartItem check `actor(:session_id)` to authorize
-  guest access without requiring a user account.
+  Policies check `actor(:id)` uniformly for both guests and users.
   """
-  defstruct [:session_id]
+  defstruct [:id]
 end

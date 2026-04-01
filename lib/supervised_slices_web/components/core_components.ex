@@ -495,4 +495,231 @@ defmodule SupervisedSlicesWeb.CoreComponents do
   def translate_errors(errors, field) when is_list(errors) do
     for {^field, {msg, opts}} <- errors, do: translate_error({msg, opts})
   end
+
+  attr :cart, :any, required: true
+  attr :show, :boolean, required: true
+  attr :checkout_step, :atom, required: true
+
+  def basket_drawer(assigns) do
+    ~H"""
+    <div class={[
+      "fixed inset-0 z-50 transition-all duration-300",
+      if(@show, do: "visible", else: "invisible pointer-events-none")
+    ]}>
+      <div
+        class={[
+          "absolute inset-0 bg-black/40 transition-opacity duration-300",
+          if(@show, do: "opacity-100", else: "opacity-0")
+        ]}
+        phx-click="toggle_basket"
+      />
+      <div class={[
+        "absolute bottom-0 left-0 right-0 bg-[#faf9f6] rounded-t-3xl max-h-[80vh] flex flex-col transition-transform duration-300 ease-out",
+        if(@show, do: "translate-y-0", else: "translate-y-full")
+      ]}>
+        <div class="flex items-center justify-between px-6 py-5 border-b border-surface-container-low shrink-0">
+          <div class="flex items-center gap-2">
+            <button
+              :if={@checkout_step == :confirm}
+              phx-click="start_checkout"
+              phx-value-step="review"
+              class="w-9 h-9 flex items-center justify-center rounded-full hover:bg-surface-container transition-colors"
+            >
+              <span class="material-symbols-outlined">arrow_back</span>
+            </button>
+            <h2
+              class="text-xl font-extrabold tracking-tight text-on-surface"
+              style="font-family: 'Plus Jakarta Sans', sans-serif;"
+            >
+              {if @checkout_step == :confirm, do: "Your Details", else: "Your Basket"}
+            </h2>
+          </div>
+          <button
+            phx-click="toggle_basket"
+            class="w-9 h-9 flex items-center justify-center rounded-full hover:bg-surface-container transition-colors"
+          >
+            <span class="material-symbols-outlined">close</span>
+          </button>
+        </div>
+
+        <%= if @checkout_step == :review do %>
+          <div class="overflow-y-auto flex-1 px-6 py-4">
+            <%= if is_nil(@cart) or Enum.empty?(@cart.cart_items) do %>
+              <div class="text-center py-16 text-on-surface-variant">
+                <span class="material-symbols-outlined opacity-30" style="font-size: 56px;">
+                  shopping_cart
+                </span>
+                <p class="mt-3 font-medium">Your basket is empty</p>
+              </div>
+            <% else %>
+              <div class="space-y-1">
+                <%= for item <- @cart.cart_items do %>
+                  <% modifier = basket_find_modifier(item) %>
+                  <div class="flex items-center justify-between py-3 border-b border-surface-container-low last:border-0">
+                    <div class="flex-1 min-w-0 mr-4">
+                      <p class="font-semibold text-on-surface text-sm">{item.menu_item.name}</p>
+                      <p :if={modifier} class="text-xs text-on-surface-variant mt-0.5">
+                        {modifier.name}
+                      </p>
+                    </div>
+                    <div class="flex items-center gap-3 shrink-0">
+                      <span class="text-sm font-bold text-primary">
+                        {basket_item_price(item, modifier)}
+                      </span>
+                      <span class="text-xs text-on-surface-variant bg-surface-container px-2 py-0.5 rounded-full font-medium">
+                        ×{item.quantity}
+                      </span>
+                    </div>
+                  </div>
+                <% end %>
+              </div>
+            <% end %>
+          </div>
+
+          <%= if not is_nil(@cart) and not Enum.empty?(@cart.cart_items) do %>
+            <div class="px-6 pb-8 pt-4 border-t border-surface-container-low shrink-0 space-y-4">
+              <div class="flex justify-between items-center">
+                <span class="font-bold text-on-surface">Total</span>
+                <span class="text-lg font-extrabold text-primary">{basket_total(@cart)}</span>
+              </div>
+              <button
+                phx-click="start_checkout"
+                class="w-full bg-gradient-to-r from-[#b90027] to-[#e31837] text-white font-bold py-4 rounded-full text-sm uppercase tracking-widest hover:scale-[1.01] transition-all active:scale-95 shadow-[0px_8px_24px_rgba(185,0,39,0.25)]"
+              >
+                Place Order
+              </button>
+            </div>
+          <% end %>
+        <% else %>
+          <.form
+            for={%{}}
+            phx-submit="place_order"
+            class="overflow-y-auto flex-1 flex flex-col"
+          >
+            <div class="flex-1 px-6 py-4 space-y-4">
+              <div>
+                <label
+                  class="block text-xs font-bold uppercase tracking-widest text-on-surface-variant mb-1.5"
+                  style="font-family: 'Be Vietnam Pro', sans-serif;"
+                >
+                  Your Name <span class="text-primary">*</span>
+                </label>
+                <input
+                  type="text"
+                  name="customer_name"
+                  required
+                  placeholder="e.g. Alex Smith"
+                  class="w-full px-4 py-3 rounded-xl bg-surface-container-low border-0 text-on-surface placeholder-on-surface-variant/50 text-sm font-medium focus:outline-none focus:ring-2 focus:ring-primary/40"
+                />
+              </div>
+              <div>
+                <label
+                  class="block text-xs font-bold uppercase tracking-widest text-on-surface-variant mb-1.5"
+                  style="font-family: 'Be Vietnam Pro', sans-serif;"
+                >
+                  Phone <span class="text-on-surface-variant/50 normal-case font-normal">(optional)</span>
+                </label>
+                <input
+                  type="tel"
+                  name="customer_phone"
+                  placeholder="e.g. 555-1234"
+                  class="w-full px-4 py-3 rounded-xl bg-surface-container-low border-0 text-on-surface placeholder-on-surface-variant/50 text-sm font-medium focus:outline-none focus:ring-2 focus:ring-primary/40"
+                />
+              </div>
+              <div>
+                <label
+                  class="block text-xs font-bold uppercase tracking-widest text-on-surface-variant mb-1.5"
+                  style="font-family: 'Be Vietnam Pro', sans-serif;"
+                >
+                  Notes <span class="text-on-surface-variant/50 normal-case font-normal">(optional)</span>
+                </label>
+                <textarea
+                  name="notes"
+                  rows="2"
+                  placeholder="Allergies, special requests…"
+                  class="w-full px-4 py-3 rounded-xl bg-surface-container-low border-0 text-on-surface placeholder-on-surface-variant/50 text-sm font-medium focus:outline-none focus:ring-2 focus:ring-primary/40 resize-none"
+                />
+              </div>
+            </div>
+            <div class="px-6 pb-8 pt-4 border-t border-surface-container-low shrink-0 space-y-2">
+              <div class="flex justify-between items-center mb-2">
+                <span class="font-bold text-on-surface">Total</span>
+                <span class="text-lg font-extrabold text-primary">{basket_total(@cart)}</span>
+              </div>
+              <button
+                type="submit"
+                class="w-full bg-gradient-to-r from-[#b90027] to-[#e31837] text-white font-bold py-4 rounded-full text-sm uppercase tracking-widest hover:scale-[1.01] transition-all active:scale-95 shadow-[0px_8px_24px_rgba(185,0,39,0.25)]"
+              >
+                Confirm Order
+              </button>
+            </div>
+          </.form>
+        <% end %>
+      </div>
+    </div>
+    """
+  end
+
+  defp basket_find_modifier(cart_item) do
+    modifier_id = List.first(cart_item.selected_modifier_ids)
+
+    if modifier_id do
+      Enum.find_value(cart_item.menu_item.modifier_groups || [], fn group ->
+        Enum.find(group.modifiers || [], &(&1.id == modifier_id))
+      end)
+    end
+  end
+
+  defp basket_item_price(cart_item, modifier) do
+    base = cart_item.menu_item.price
+
+    price =
+      if modifier && modifier.price_delta do
+        case Money.add(base, modifier.price_delta) do
+          {:ok, total} -> total
+          _ -> base
+        end
+      else
+        base
+      end
+
+    Money.to_string!(price)
+  rescue
+    _ -> ""
+  end
+
+  defp basket_total(cart) do
+    cart.cart_items
+    |> Enum.reduce(nil, fn item, acc ->
+      modifier = basket_find_modifier(item)
+      base = item.menu_item.price
+
+      item_price =
+        if modifier && modifier.price_delta do
+          case Money.add(base, modifier.price_delta) do
+            {:ok, p} -> p
+            _ -> base
+          end
+        else
+          base
+        end
+
+      line_total = Money.mult!(item_price, item.quantity)
+
+      if is_nil(acc) do
+        line_total
+      else
+        case Money.add(acc, line_total) do
+          {:ok, sum} -> sum
+          _ -> acc
+        end
+      end
+    end)
+    |> case do
+      nil -> ""
+      total -> Money.to_string!(total)
+    end
+  rescue
+    _ -> ""
+  end
 end

@@ -22,16 +22,23 @@ defmodule SupervisedSlices.Orders.Order do
       accept [:customer_name, :customer_phone, :customer_email, :notes, :total_price]
 
       change fn changeset, context ->
+        changeset =
+          case context.actor do
+            %SupervisedSlices.Accounts.User{id: user_id} ->
+              Ash.Changeset.force_change_attribute(changeset, :user_id, user_id)
+
+            _ ->
+              changeset
+          end
+
         case context.actor do
-          %{id: user_id} -> Ash.Changeset.force_change_attribute(changeset, :user_id, user_id)
-          _ -> changeset
+          %SupervisedSlices.Accounts.GuestSession{id: id} ->
+            Ash.Changeset.force_change_attribute(changeset, :session_id, id)
+
+          _ ->
+            changeset
         end
       end
-
-      after_action(fn _changeset, order, _context ->
-        SupervisedSlices.PubSubNotifier.broadcast_new_order(order)
-        {:ok, order}
-      end)
     end
 
     update :update_status do
@@ -70,6 +77,7 @@ defmodule SupervisedSlices.Orders.Order do
 
     policy action_type(:read) do
       authorize_if relates_to_actor_via(:user)
+      authorize_if expr(session_id == ^actor(:id))
       authorize_if SupervisedSlices.Orgs.Checks.IsOrgAdmin
     end
   end
@@ -108,6 +116,10 @@ defmodule SupervisedSlices.Orders.Order do
     end
 
     attribute :notes, :string do
+      public? true
+    end
+
+    attribute :session_id, :string do
       public? true
     end
 

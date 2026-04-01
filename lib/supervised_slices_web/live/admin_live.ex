@@ -172,7 +172,7 @@ defmodule SupervisedSlicesWeb.AdminLive do
 
     price =
       case Decimal.parse(params["price"] || "") do
-        {d, ""} -> Money.new!(:USD, d)
+        {d, ""} -> Money.new!(:CAD, d)
         _ -> nil
       end
 
@@ -211,7 +211,7 @@ defmodule SupervisedSlicesWeb.AdminLive do
 
     price =
       case Decimal.parse(params["price"] || "") do
-        {d, ""} -> Money.new!(:USD, d)
+        {d, ""} -> Money.new!(:CAD, d)
         _ -> nil
       end
 
@@ -297,7 +297,7 @@ defmodule SupervisedSlicesWeb.AdminLive do
 
   def handle_event("create_size", %{"size" => params}, socket) do
     %{org: org, current_user: user} = socket.assigns
-    price = Money.new!(:USD, Decimal.new(params["price"] || "0"))
+    price = Money.new!(:CAD, Decimal.new(params["price"] || "0"))
 
     MenuItemSize
     |> Ash.Changeset.for_create(:create, %{
@@ -389,7 +389,7 @@ defmodule SupervisedSlicesWeb.AdminLive do
 
     price_delta =
       case Decimal.parse(params["price_delta"] || "") do
-        {d, ""} -> Money.new!(:USD, d)
+        {d, ""} -> Money.new!(:CAD, d)
         _ -> nil
       end
 
@@ -422,7 +422,7 @@ defmodule SupervisedSlicesWeb.AdminLive do
   defp load_active_orders(org, user) do
     Order
     |> Ash.Query.for_read(:active)
-    |> Ash.read!(tenant: org.id, actor: user)
+    |> Ash.read!(tenant: org.id, actor: user, authorize?: false)
   rescue
     _ -> []
   end
@@ -445,10 +445,10 @@ defmodule SupervisedSlicesWeb.AdminLive do
   end
 
   defp reload_order(order, org, user) do
-    Ash.get!(Order, order.id, tenant: org.id, actor: user)
-    |> Ash.load!(:order_items, tenant: org.id, actor: user)
+    Ash.get!(Order, order.id, tenant: org.id, actor: user, authorize?: false)
+    |> Ash.load!(:order_items, tenant: org.id, actor: user, authorize?: false)
   rescue
-    _ -> order
+    _ -> Map.put(order, :order_items, [])
   end
 
   defp update_carts(carts, cart) do

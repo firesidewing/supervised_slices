@@ -39,7 +39,7 @@ defmodule SupervisedSlicesWeb.Router do
       # on_mount {SupervisedSlicesWeb.LiveUserAuth, :live_no_user}
 
       live "/menu/:org_slug", MenuLive.Index, :index
-      live "/menu/:org_slug/item/:id", MenuLive.Index, :show
+      live "/menu/:org_slug/item/:id", MenuLive.Show, :show
 
       live "/kitchen/:org_slug", AdminLive, :orders
       live "/kitchen/:org_slug/baskets", AdminLive, :baskets

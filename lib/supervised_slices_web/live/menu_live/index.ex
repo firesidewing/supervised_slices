@@ -7,7 +7,6 @@ defmodule SupervisedSlicesWeb.MenuLive.Index do
   alias SupervisedSlices.Cart.Cart
   alias SupervisedSlices.Cart.CartItem
   alias SupervisedSlices.Menu.Category
-  alias SupervisedSlices.Menu.MenuItem
   alias SupervisedSlices.OrgPresence
   alias SupervisedSlices.PubSubNotifier
   alias SupervisedSlices.Orgs.Organization
@@ -47,32 +46,82 @@ defmodule SupervisedSlicesWeb.MenuLive.Index do
      |> assign(:cart_count, cart_count)
      |> assign(:session_id, session_id)
      |> assign(:actor, actor)
-     |> assign(:selected_item, nil)
+     |> assign(:show_basket, false)
+     |> assign(:checkout_step, :review)
      |> assign(:page_title, org.name)}
   end
 
   # ---------------------------------------------------------------------------
-  # handle_params – switch between :index and :show live actions
+  # handle_params
   # ---------------------------------------------------------------------------
 
-  def handle_params(%{"id" => id}, _uri, socket) do
-    item =
-      Ash.get!(MenuItem, id, tenant: socket.assigns.org.id, authorize?: false)
-      |> Ash.load!([modifier_groups: [:modifiers]],
-        tenant: socket.assigns.org.id,
-        authorize?: false
-      )
-
-    {:noreply, assign(socket, :selected_item, item)}
-  end
-
   def handle_params(_params, _uri, socket) do
-    {:noreply, assign(socket, :selected_item, nil)}
+    {:noreply, socket}
   end
 
   # ---------------------------------------------------------------------------
   # Cart events
   # ---------------------------------------------------------------------------
+
+  def handle_event("toggle_basket", _params, socket) do
+    {:noreply, assign(socket, show_basket: !socket.assigns.show_basket, checkout_step: :review)}
+  end
+
+  def handle_event("start_checkout", _params, socket) do
+    {:noreply, assign(socket, :checkout_step, :confirm)}
+  end
+
+  def handle_event("place_order", params, socket) do
+    %{org: org, actor: actor, cart: cart} = socket.assigns
+
+    order =
+      SupervisedSlices.Orders.Order
+      |> Ash.Changeset.for_create(:place_order, %{
+        customer_name: params["customer_name"],
+        customer_phone: params["customer_phone"],
+        notes: params["notes"],
+        total_price: order_total(cart)
+      })
+      |> Ash.create!(tenant: org.id, actor: actor)
+
+    Enum.each(cart.cart_items, fn item ->
+      modifier = order_find_modifier(item)
+      price = order_item_price(item, modifier)
+
+      modifiers_snapshot =
+        if modifier,
+          do: [%{"name" => modifier.name, "price" => Money.to_string!(price)}],
+          else: []
+
+      SupervisedSlices.Orders.OrderItem
+      |> Ash.Changeset.for_create(:create, %{
+        order_id: order.id,
+        menu_item_id: item.menu_item_id,
+        quantity: item.quantity,
+        item_name: item.menu_item.name,
+        price_at_time: price,
+        modifiers_snapshot: modifiers_snapshot
+      })
+      |> Ash.create!(tenant: org.id, actor: actor)
+    end)
+
+    cart
+    |> Ash.Changeset.for_update(:checkout, %{})
+    |> Ash.update!(tenant: org.id, actor: actor)
+
+    SupervisedSlices.PubSubNotifier.broadcast_new_order(order)
+
+    {:noreply,
+     socket
+     |> assign(
+       cart: nil,
+       cart_items_map: %{},
+       cart_count: 0,
+       show_basket: false,
+       checkout_step: :review
+     )
+     |> put_flash(:info, "Order placed! We'll have it ready soon.")}
+  end
 
   def handle_event(
         "update_quantity",
@@ -114,12 +163,12 @@ defmodule SupervisedSlicesWeb.MenuLive.Index do
   # ---------------------------------------------------------------------------
 
   defp do_add_item(socket, item_id, modifier_id) do
-    %{org: org, actor: actor, session_id: session_id, cart: cart} = socket.assigns
+    %{org: org, actor: actor, cart: cart} = socket.assigns
 
     cart =
       cart ||
         Cart
-        |> Ash.Changeset.for_create(:create, %{session_id: session_id})
+        |> Ash.Changeset.for_create(:create)
         |> Ash.create!(tenant: org.id, actor: actor)
 
     modifier_ids = if modifier_id, do: [modifier_id], else: []
@@ -164,7 +213,10 @@ defmodule SupervisedSlicesWeb.MenuLive.Index do
 
     loaded_cart =
       Ash.get!(Cart, cart.id, tenant: org.id, actor: actor)
-      |> Ash.load!(:cart_items, tenant: org.id, actor: actor)
+      |> Ash.load!([cart_items: [menu_item: [modifier_groups: [:modifiers]]]],
+        tenant: org.id,
+        actor: actor
+      )
 
     PubSubNotifier.broadcast_cart_update(loaded_cart)
 
@@ -181,15 +233,26 @@ defmodule SupervisedSlicesWeb.MenuLive.Index do
   # Private helpers
   # ---------------------------------------------------------------------------
 
-  defp build_actor(nil, session_id), do: %GuestSession{session_id: session_id}
+  defp build_actor(nil, session_id), do: %GuestSession{id: session_id}
   defp build_actor(user, _session_id), do: user
+
+  defp load_cart(org, %SupervisedSlices.Accounts.User{id: user_id} = actor, _session_id) do
+    Cart
+    |> Ash.Query.for_read(:active_for_user, %{user_id: user_id})
+    |> Ash.Query.load(cart_items: [menu_item: [modifier_groups: [:modifiers]]])
+    |> Ash.read_one(tenant: org.id, actor: actor)
+    |> case do
+      {:ok, cart} -> cart
+      _ -> nil
+    end
+  end
 
   defp load_cart(_org, _actor, nil), do: nil
 
   defp load_cart(org, actor, session_id) do
     Cart
     |> Ash.Query.for_read(:active_for_session, %{session_id: session_id})
-    |> Ash.Query.load(:cart_items)
+    |> Ash.Query.load(cart_items: [menu_item: [modifier_groups: [:modifiers]]])
     |> Ash.read_one(tenant: org.id, actor: actor)
     |> case do
       {:ok, cart} -> cart
@@ -222,6 +285,37 @@ defmodule SupervisedSlicesWeb.MenuLive.Index do
 
   defp cart_key(item_id, nil), do: {item_id, nil}
   defp cart_key(item_id, modifier_id), do: {item_id, modifier_id}
+
+  defp order_find_modifier(cart_item) do
+    modifier_id = List.first(cart_item.selected_modifier_ids)
+
+    if modifier_id do
+      Enum.find_value(cart_item.menu_item.modifier_groups || [], fn group ->
+        Enum.find(group.modifiers || [], &(&1.id == modifier_id))
+      end)
+    end
+  end
+
+  defp order_item_price(cart_item, modifier) do
+    base = cart_item.menu_item.price
+
+    if modifier && modifier.price_delta do
+      case Money.add(base, modifier.price_delta) do
+        {:ok, p} -> p
+        _ -> base
+      end
+    else
+      base
+    end
+  end
+
+  defp order_total(cart) do
+    Enum.reduce(cart.cart_items, nil, fn item, acc ->
+      modifier = order_find_modifier(item)
+      line = Money.mult!(order_item_price(item, modifier), item.quantity)
+      if is_nil(acc), do: line, else: elem(Money.add(acc, line), 1)
+    end)
+  end
 
   # ---------------------------------------------------------------------------
   # Template helpers (used in HEEx templates)

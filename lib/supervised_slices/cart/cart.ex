@@ -19,15 +19,31 @@ defmodule SupervisedSlices.Cart.Cart do
     defaults [:read]
 
     create :create do
-      accept [:session_id]
+      accept []
 
       change fn changeset, context ->
-        case context.actor do
-          %{id: user_id} -> Ash.Changeset.force_change_attribute(changeset, :user_id, user_id)
-          _ -> changeset
-        end
+        dbg(context)
+
+        changeset
+        |> maybe_set_user(context)
+        |> set_session_from_tenant(context)
       end
     end
+
+    defp maybe_set_user(changeset, %{actor: %SupervisedSlices.Accounts.User{id: user_id}}) do
+      Ash.Changeset.force_change_attribute(changeset, :session_id, user_id) |> dbg
+    end
+
+    defp maybe_set_user(changeset, _), do: changeset
+
+    defp set_session_from_tenant(changeset, %{
+           actor: %SupervisedSlices.Accounts.GuestSession{id: session_id}
+         })
+         when not is_nil(session_id) do
+      Ash.Changeset.force_change_attribute(changeset, :session_id, session_id) |> dbg
+    end
+
+    defp set_session_from_tenant(changeset, _), do: changeset
 
     update :checkout do
       accept []
@@ -72,13 +88,13 @@ defmodule SupervisedSlices.Cart.Cart do
 
     policy action_type(:read) do
       authorize_if relates_to_actor_via(:user)
-      authorize_if expr(session_id == ^actor(:session_id))
+      authorize_if expr(session_id == ^actor(:id))
       authorize_if SupervisedSlices.Orgs.Checks.IsOrgAdmin
     end
 
     policy action_type(:update) do
       authorize_if relates_to_actor_via(:user)
-      authorize_if expr(session_id == ^actor(:session_id))
+      authorize_if expr(session_id == ^actor(:id))
     end
   end
 

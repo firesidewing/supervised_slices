@@ -33,6 +33,7 @@ defmodule SupervisedSlices.Orders.OrderItem do
 
     policy action_type(:read) do
       authorize_if relates_to_actor_via([:order, :user])
+      authorize_if expr(order.session_id == ^actor(:id))
       authorize_if SupervisedSlices.Orgs.Checks.IsOrgAdmin
     end
   end
