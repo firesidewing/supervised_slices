@@ -170,7 +170,7 @@ defmodule SupervisedSlicesWeb.MenuLive.Index do
     cart =
       cart ||
         Cart
-        |> Ash.Changeset.for_create(:create)
+        |> Ash.Changeset.for_create(:create, %{}, scope: socket.assigns.ash_scope)
         |> Ash.create!(tenant: org.id, actor: actor)
 
     modifier_ids = if modifier_id, do: [modifier_id], else: []
