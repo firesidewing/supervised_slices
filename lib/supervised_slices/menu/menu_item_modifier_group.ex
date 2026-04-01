@@ -12,6 +12,7 @@ defmodule SupervisedSlices.Menu.MenuItemModifierGroup do
 
   code_interface do
     define :get, action: :read, get_by: :id
+    define :list, action: :read
     define :create, action: :create
     define :destroy, action: :destroy
   end
@@ -20,7 +21,7 @@ defmodule SupervisedSlices.Menu.MenuItemModifierGroup do
     defaults [:read, :destroy]
 
     create :create do
-      accept [:name, :required, :min_selections, :max_selections, :sort_order, :menu_item_id]
+      accept [:name, :required, :min_selections, :max_selections, :sort_order]
     end
 
     update :update do
@@ -78,11 +79,6 @@ defmodule SupervisedSlices.Menu.MenuItemModifierGroup do
 
   relationships do
     belongs_to :organization, SupervisedSlices.Orgs.Organization do
-      allow_nil? false
-      public? true
-    end
-
-    belongs_to :menu_item, SupervisedSlices.Menu.MenuItem do
       allow_nil? false
       public? true
     end

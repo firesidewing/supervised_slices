@@ -61,81 +61,124 @@
               </div>
             </.link>
 
-            <%= if Enum.empty?(item.modifier_groups) do %>
-              <div class="flex items-center justify-between py-1.5 px-3 rounded-lg bg-surface-container-low">
-                <span class="text-sm font-bold text-primary">
-                  {format_money(item.price)}
-                </span>
-                <div class="flex items-center bg-white rounded-full p-1 shadow-sm">
-                  <button
-                    phx-click="update_quantity"
-                    phx-value-item_id={item.id}
-                    phx-value-delta="-1"
-                    class="w-7 h-7 flex items-center justify-center rounded-full hover:bg-surface-container transition-colors"
-                    aria-label="Remove one"
-                  >
-                    <span class="material-symbols-outlined" style="font-size: 18px;">remove</span>
-                  </button>
-                  <span class="px-2.5 text-sm font-bold min-w-[1.5rem] text-center">
-                    {get_item_qty(@cart_items_map, item.id)}
-                  </span>
-                  <button
-                    phx-click="update_quantity"
-                    phx-value-item_id={item.id}
-                    phx-value-delta="1"
-                    class="w-7 h-7 flex items-center justify-center rounded-full bg-primary text-white hover:bg-primary-container transition-colors"
-                    aria-label="Add one"
-                  >
-                    <span class="material-symbols-outlined" style="font-size: 18px;">add</span>
-                  </button>
-                </div>
-              </div>
-            <% else %>
-              <div class="space-y-1.5 pt-2 border-t border-surface-container-low">
-                <%= for group <- item.modifier_groups do %>
-                  <%= for modifier <- group.modifiers do %>
+            <%= cond do %>
+              <% item.size_group && not Enum.empty?(item.size_group.sizes || []) -> %>
+                <div class="space-y-1.5 pt-2 border-t border-surface-container-low">
+                  <%= for size <- Enum.sort_by(item.size_group.sizes, & &1.sort_order) do %>
                     <div class="flex items-center justify-between py-1.5 px-3 rounded-lg bg-surface-container-low">
                       <span class="text-xs font-bold uppercase tracking-wider text-on-surface-variant">
-                        {modifier.name}
+                        {size.name}
                       </span>
                       <div class="flex items-center gap-3">
                         <span class="text-sm font-bold text-primary">
-                          {item_price(item.price, modifier.price_delta)}
+                          {format_money(size.price)}
                         </span>
                         <div class="flex items-center bg-white rounded-full p-1 shadow-sm">
                           <button
                             phx-click="update_quantity"
                             phx-value-item_id={item.id}
-                            phx-value-modifier_id={modifier.id}
+                            phx-value-size_id={size.id}
                             phx-value-delta="-1"
                             class="w-7 h-7 flex items-center justify-center rounded-full hover:bg-surface-container transition-colors"
-                            aria-label={"Remove #{modifier.name}"}
+                            aria-label={"Remove #{size.name}"}
                           >
-                            <span class="material-symbols-outlined" style="font-size: 18px;">
-                              remove
-                            </span>
+                            <span class="material-symbols-outlined" style="font-size: 18px;">remove</span>
                           </button>
                           <span class="px-2.5 text-sm font-bold min-w-[1.5rem] text-center">
-                            {get_modifier_qty(@cart_items_map, item.id, modifier.id)}
+                            {get_size_qty(@cart_items_map, item.id, size.id)}
                           </span>
                           <button
                             phx-click="update_quantity"
                             phx-value-item_id={item.id}
-                            phx-value-modifier_id={modifier.id}
+                            phx-value-size_id={size.id}
                             phx-value-delta="1"
                             class="w-7 h-7 flex items-center justify-center rounded-full bg-primary text-white hover:bg-primary-container transition-colors"
-                            aria-label={"Add #{modifier.name}"}
+                            aria-label={"Add #{size.name}"}
                           >
-                            <span class="material-symbols-outlined" style="font-size: 18px;">
-                              add
-                            </span>
+                            <span class="material-symbols-outlined" style="font-size: 18px;">add</span>
                           </button>
                         </div>
                       </div>
                     </div>
                   <% end %>
-                <% end %>
-              </div>
+                </div>
+
+              <% not Enum.empty?(item.modifier_groups) -> %>
+                <div class="space-y-1.5 pt-2 border-t border-surface-container-low">
+                  <%= for group <- item.modifier_groups do %>
+                    <%= for modifier <- group.modifiers do %>
+                      <div class="flex items-center justify-between py-1.5 px-3 rounded-lg bg-surface-container-low">
+                        <span class="text-xs font-bold uppercase tracking-wider text-on-surface-variant">
+                          {modifier.name}
+                        </span>
+                        <div class="flex items-center gap-3">
+                          <span class="text-sm font-bold text-primary">
+                            {item_price(item.price, modifier.price_delta)}
+                          </span>
+                          <div class="flex items-center bg-white rounded-full p-1 shadow-sm">
+                            <button
+                              phx-click="update_quantity"
+                              phx-value-item_id={item.id}
+                              phx-value-modifier_id={modifier.id}
+                              phx-value-delta="-1"
+                              class="w-7 h-7 flex items-center justify-center rounded-full hover:bg-surface-container transition-colors"
+                              aria-label={"Remove #{modifier.name}"}
+                            >
+                              <span class="material-symbols-outlined" style="font-size: 18px;">
+                                remove
+                              </span>
+                            </button>
+                            <span class="px-2.5 text-sm font-bold min-w-[1.5rem] text-center">
+                              {get_modifier_qty(@cart_items_map, item.id, modifier.id)}
+                            </span>
+                            <button
+                              phx-click="update_quantity"
+                              phx-value-item_id={item.id}
+                              phx-value-modifier_id={modifier.id}
+                              phx-value-delta="1"
+                              class="w-7 h-7 flex items-center justify-center rounded-full bg-primary text-white hover:bg-primary-container transition-colors"
+                              aria-label={"Add #{modifier.name}"}
+                            >
+                              <span class="material-symbols-outlined" style="font-size: 18px;">
+                                add
+                              </span>
+                            </button>
+                          </div>
+                        </div>
+                      </div>
+                    <% end %>
+                  <% end %>
+                </div>
+
+              <% true -> %>
+                <div class="flex items-center justify-between py-1.5 px-3 rounded-lg bg-surface-container-low">
+                  <span class="text-sm font-bold text-primary">
+                    {format_money(item.price)}
+                  </span>
+                  <div class="flex items-center bg-white rounded-full p-1 shadow-sm">
+                    <button
+                      phx-click="update_quantity"
+                      phx-value-item_id={item.id}
+                      phx-value-delta="-1"
+                      class="w-7 h-7 flex items-center justify-center rounded-full hover:bg-surface-container transition-colors"
+                      aria-label="Remove one"
+                    >
+                      <span class="material-symbols-outlined" style="font-size: 18px;">remove</span>
+                    </button>
+                    <span class="px-2.5 text-sm font-bold min-w-[1.5rem] text-center">
+                      {get_item_qty(@cart_items_map, item.id)}
+                    </span>
+                    <button
+                      phx-click="update_quantity"
+                      phx-value-item_id={item.id}
+                      phx-value-delta="1"
+                      class="w-7 h-7 flex items-center justify-center rounded-full bg-primary text-white hover:bg-primary-container transition-colors"
+                      aria-label="Add one"
+                    >
+                      <span class="material-symbols-outlined" style="font-size: 18px;">add</span>
+                    </button>
+                  </div>
+                </div>
             <% end %>
           </div>
         <% end %>

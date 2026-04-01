@@ -20,7 +20,7 @@ defmodule SupervisedSlices.Menu.MenuItemSize do
     defaults [:read, :destroy]
 
     create :create do
-      accept [:name, :price, :sort_order, :menu_item_id]
+      accept [:name, :price, :sort_order, :size_group_id]
     end
 
     update :update do
@@ -78,7 +78,7 @@ defmodule SupervisedSlices.Menu.MenuItemSize do
       public? true
     end
 
-    belongs_to :menu_item, SupervisedSlices.Menu.MenuItem do
+    belongs_to :size_group, SupervisedSlices.Menu.SizeGroup do
       allow_nil? false
       public? true
     end

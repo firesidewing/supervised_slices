@@ -35,8 +35,11 @@ defmodule SupervisedSlicesWeb.MenuLive.Show do
 
   def handle_params(%{"id" => id}, _uri, socket) do
     item =
-      MenuItem.get!(id, scope: socket.assigns.ash_scope, authorize?: false,
-        load: [modifier_groups: [:modifiers]])
+      MenuItem.get!(id,
+        scope: socket.assigns.ash_scope,
+        authorize?: false,
+        load: [modifier_groups: [:modifiers], size_group: [:sizes]]
+      )
 
     {:noreply,
      socket
@@ -76,13 +79,20 @@ defmodule SupervisedSlicesWeb.MenuLive.Show do
           do: [%{"name" => modifier.name, "price" => Money.to_string!(price)}],
           else: []
 
+      size_snapshot =
+        case item.selected_size do
+          %{name: name, price: p} -> %{"name" => name, "price" => Money.to_string!(p)}
+          _ -> nil
+        end
+
       OrderItem.create!(%{
         order_id: order.id,
         menu_item_id: item.menu_item_id,
         quantity: item.quantity,
         item_name: item.menu_item.name,
         price_at_time: price,
-        modifiers_snapshot: modifiers_snapshot
+        modifiers_snapshot: modifiers_snapshot,
+        size_snapshot: size_snapshot
       }, scope: scope)
     end)
 
@@ -108,13 +118,14 @@ defmodule SupervisedSlicesWeb.MenuLive.Show do
         socket
       ) do
     modifier_id = Map.get(params, "modifier_id")
+    size_id = Map.get(params, "size_id")
     delta = String.to_integer(delta_str)
-    key = cart_key(item_id, modifier_id)
+    key = cart_key(item_id, size_id, modifier_id)
 
     socket =
       case {Map.get(socket.assigns.cart_items_map, key), delta} do
         {nil, 1} ->
-          do_add_item(socket, item_id, modifier_id)
+          do_add_item(socket, item_id, size_id, modifier_id)
 
         {%{cart_item_id: cid, quantity: qty}, 1} ->
           do_update_quantity(socket, cid, key, qty + 1)
@@ -136,7 +147,7 @@ defmodule SupervisedSlicesWeb.MenuLive.Show do
   # Cart helpers
   # ---------------------------------------------------------------------------
 
-  defp do_add_item(socket, item_id, modifier_id) do
+  defp do_add_item(socket, item_id, size_id, modifier_id) do
     %{ash_scope: scope, cart: cart} = socket.assigns
 
     cart = cart || Cart.create!(scope: scope)
@@ -147,7 +158,8 @@ defmodule SupervisedSlicesWeb.MenuLive.Show do
       cart_id: cart.id,
       menu_item_id: item_id,
       quantity: 1,
-      selected_modifier_ids: modifier_ids
+      selected_modifier_ids: modifier_ids,
+      selected_size_id: size_id
     }, scope: scope)
 
     refresh_cart(socket, cart)
@@ -180,7 +192,7 @@ defmodule SupervisedSlicesWeb.MenuLive.Show do
 
     loaded_cart =
       Cart.get!(cart.id, scope: scope,
-        load: [cart_items: [menu_item: [modifier_groups: [:modifiers]]]])
+        load: [cart_items: [:selected_size, menu_item: [modifier_groups: [:modifiers]]]])
 
     PubSubNotifier.broadcast_cart_update(loaded_cart)
 
@@ -198,7 +210,7 @@ defmodule SupervisedSlicesWeb.MenuLive.Show do
   # ---------------------------------------------------------------------------
 
   defp load_cart(scope) do
-    cart_load = [cart_items: [menu_item: [modifier_groups: [:modifiers]]]]
+    cart_load = [cart_items: [:selected_size, menu_item: [modifier_groups: [:modifiers]]]]
 
     case scope.current_user do
       %User{id: user_id} ->
@@ -226,7 +238,14 @@ defmodule SupervisedSlicesWeb.MenuLive.Show do
     map =
       Enum.reduce(items, %{}, fn item, acc ->
         modifier_id = List.first(item.selected_modifier_ids)
-        key = cart_key(to_string(item.menu_item_id), if(modifier_id, do: to_string(modifier_id)))
+        size_id = item.selected_size_id
+
+        key =
+          cart_key(
+            to_string(item.menu_item_id),
+            if(size_id, do: to_string(size_id)),
+            if(modifier_id, do: to_string(modifier_id))
+          )
 
         Map.put(acc, key, %{
           cart_item_id: item.id,
@@ -241,8 +260,7 @@ defmodule SupervisedSlicesWeb.MenuLive.Show do
     Enum.reduce(map, 0, fn {_k, %{quantity: q}}, acc -> acc + q end)
   end
 
-  defp cart_key(item_id, nil), do: {item_id, nil}
-  defp cart_key(item_id, modifier_id), do: {item_id, modifier_id}
+  defp cart_key(item_id, size_id, modifier_id), do: {item_id, size_id, modifier_id}
 
   defp order_find_modifier(cart_item) do
     modifier_id = List.first(cart_item.selected_modifier_ids)
@@ -255,7 +273,11 @@ defmodule SupervisedSlicesWeb.MenuLive.Show do
   end
 
   defp order_item_price(cart_item, modifier) do
-    base = cart_item.menu_item.price
+    base =
+      case cart_item.selected_size do
+        %{price: size_price} -> size_price
+        _ -> cart_item.menu_item.price
+      end
 
     if modifier && modifier.price_delta do
       case Money.add(base, modifier.price_delta) do
@@ -294,13 +316,18 @@ defmodule SupervisedSlicesWeb.MenuLive.Show do
     _ -> "#{money}"
   end
 
+  def get_size_qty(cart_items_map, item_id, size_id) do
+    key = cart_key(to_string(item_id), to_string(size_id), nil)
+    get_in(cart_items_map, [key, :quantity]) || 0
+  end
+
   def get_modifier_qty(cart_items_map, item_id, modifier_id) do
-    key = cart_key(to_string(item_id), to_string(modifier_id))
+    key = cart_key(to_string(item_id), nil, to_string(modifier_id))
     get_in(cart_items_map, [key, :quantity]) || 0
   end
 
   def get_item_qty(cart_items_map, item_id) do
-    key = cart_key(to_string(item_id), nil)
+    key = cart_key(to_string(item_id), nil, nil)
     get_in(cart_items_map, [key, :quantity]) || 0
   end
 end

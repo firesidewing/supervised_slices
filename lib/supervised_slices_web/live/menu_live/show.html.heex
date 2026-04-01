@@ -37,6 +37,52 @@
       </p>
     </div>
 
+    <%= if @selected_item.size_group && not Enum.empty?(@selected_item.size_group.sizes || []) do %>
+      <div>
+        <h3
+          class="text-xs font-bold uppercase tracking-widest text-on-surface-variant mb-3"
+          style="font-family: 'Be Vietnam Pro', sans-serif;"
+        >
+          Choose a Size
+        </h3>
+        <div class="space-y-2">
+          <%= for size <- Enum.sort_by(@selected_item.size_group.sizes, & &1.sort_order) do %>
+            <div class="flex items-center justify-between py-2.5 px-4 rounded-xl bg-surface-container-low">
+              <span class="text-sm font-semibold text-on-surface">{size.name}</span>
+              <div class="flex items-center gap-4">
+                <span class="text-sm font-bold text-primary">{format_money(size.price)}</span>
+                <div class="flex items-center bg-white rounded-full p-1 shadow-sm">
+                  <button
+                    phx-click="update_quantity"
+                    phx-value-item_id={@selected_item.id}
+                    phx-value-size_id={size.id}
+                    phx-value-delta="-1"
+                    class="w-8 h-8 flex items-center justify-center rounded-full hover:bg-surface-container transition-colors"
+                    aria-label={"Remove #{size.name}"}
+                  >
+                    <span class="material-symbols-outlined" style="font-size: 18px;">remove</span>
+                  </button>
+                  <span class="px-3 text-sm font-bold min-w-[2rem] text-center">
+                    {get_size_qty(@cart_items_map, @selected_item.id, size.id)}
+                  </span>
+                  <button
+                    phx-click="update_quantity"
+                    phx-value-item_id={@selected_item.id}
+                    phx-value-size_id={size.id}
+                    phx-value-delta="1"
+                    class="w-8 h-8 flex items-center justify-center rounded-full bg-primary text-white hover:bg-primary-container transition-colors"
+                    aria-label={"Add #{size.name}"}
+                  >
+                    <span class="material-symbols-outlined" style="font-size: 18px;">add</span>
+                  </button>
+                </div>
+              </div>
+            </div>
+          <% end %>
+        </div>
+      </div>
+    <% end %>
+
     <%= if not Enum.empty?(@selected_item.modifier_groups) do %>
       <%= for group <- @selected_item.modifier_groups do %>
         <div>
@@ -89,7 +135,9 @@
           </div>
         </div>
       <% end %>
-    <% else %>
+    <% end %>
+
+    <%= if is_nil(@selected_item.size_group) && Enum.empty?(@selected_item.modifier_groups) do %>
       <div>
         <div class="flex items-center justify-between py-2.5 px-4 rounded-xl bg-surface-container-low">
           <span class="text-base font-bold text-primary">
