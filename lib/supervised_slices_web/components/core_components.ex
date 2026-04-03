@@ -558,6 +558,9 @@ defmodule SupervisedSlicesWeb.CoreComponents do
                   <div class="flex items-center justify-between py-3 border-b border-surface-container-low last:border-0">
                     <div class="flex-1 min-w-0 mr-4">
                       <p class="font-semibold text-on-surface text-sm">{item.menu_item.name}</p>
+                      <p :if={item.selected_size} class="text-xs text-on-surface-variant mt-0.5">
+                        {item.selected_size.name}
+                      </p>
                       <p :if={modifier} class="text-xs text-on-surface-variant mt-0.5">
                         {modifier.name}
                       </p>
@@ -671,7 +674,11 @@ defmodule SupervisedSlicesWeb.CoreComponents do
   end
 
   defp basket_item_price(cart_item, modifier) do
-    base = cart_item.menu_item.price
+    base =
+      case cart_item.selected_size do
+        %{price: size_price} -> size_price
+        _ -> cart_item.menu_item.price
+      end
 
     price =
       if modifier && modifier.price_delta do
@@ -692,7 +699,12 @@ defmodule SupervisedSlicesWeb.CoreComponents do
     cart.cart_items
     |> Enum.reduce(nil, fn item, acc ->
       modifier = basket_find_modifier(item)
-      base = item.menu_item.price
+
+      base =
+        case item.selected_size do
+          %{price: size_price} -> size_price
+          _ -> item.menu_item.price
+        end
 
       item_price =
         if modifier && modifier.price_delta do

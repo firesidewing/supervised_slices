@@ -37,7 +37,7 @@
       </p>
     </div>
 
-    <%= if @selected_item.size_group && not Enum.empty?(@selected_item.size_group.sizes || []) do %>
+    <%= if not Enum.empty?(@selected_item.sizes || []) do %>
       <div>
         <h3
           class="text-xs font-bold uppercase tracking-widest text-on-surface-variant mb-3"
@@ -46,7 +46,7 @@
           Choose a Size
         </h3>
         <div class="space-y-2">
-          <%= for size <- Enum.sort_by(@selected_item.size_group.sizes, & &1.sort_order) do %>
+          <%= for size <- Enum.sort_by(@selected_item.sizes, & &1.sort_order) do %>
             <div class="flex items-center justify-between py-2.5 px-4 rounded-xl bg-surface-container-low">
               <span class="text-sm font-semibold text-on-surface">{size.name}</span>
               <div class="flex items-center gap-4">
@@ -100,7 +100,11 @@
                 </div>
                 <div class="flex items-center gap-4">
                   <span class="text-sm font-bold text-primary">
-                    {item_price(@selected_item.price, modifier.price_delta)}
+                    <%= if @selected_item.price do %>
+                      {item_price(@selected_item.price, modifier.price_delta)}
+                    <% else %>
+                      {if modifier.price_delta, do: "+#{format_money(modifier.price_delta)}", else: "Free"}
+                    <% end %>
                   </span>
                   <div class="flex items-center bg-white rounded-full p-1 shadow-sm">
                     <button
@@ -137,7 +141,7 @@
       <% end %>
     <% end %>
 
-    <%= if is_nil(@selected_item.size_group) && Enum.empty?(@selected_item.modifier_groups) do %>
+    <%= if Enum.empty?(@selected_item.sizes || []) && Enum.empty?(@selected_item.modifier_groups) do %>
       <div>
         <div class="flex items-center justify-between py-2.5 px-4 rounded-xl bg-surface-container-low">
           <span class="text-base font-bold text-primary">

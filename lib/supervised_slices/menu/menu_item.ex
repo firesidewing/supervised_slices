@@ -24,20 +24,11 @@ defmodule SupervisedSlices.Menu.MenuItem do
     defaults [:read, :destroy]
 
     create :create do
-      accept [:name, :description, :price, :sort_order, :image_url, :category_id, :size_group_id]
+      accept [:name, :description, :price, :sort_order, :image_url, :category_id]
     end
 
     update :update do
-      accept [
-        :name,
-        :description,
-        :price,
-        :available,
-        :sort_order,
-        :image_url,
-        :category_id,
-        :size_group_id
-      ]
+      accept [:name, :description, :price, :available, :sort_order, :image_url, :category_id]
     end
 
     read :available do
@@ -114,9 +105,7 @@ defmodule SupervisedSlices.Menu.MenuItem do
       public? true
     end
 
-    belongs_to :size_group, SupervisedSlices.Menu.SizeGroup do
-      public? true
-    end
+    has_many :sizes, SupervisedSlices.Menu.MenuItemSize
 
     many_to_many :modifier_groups, SupervisedSlices.Menu.MenuItemModifierGroup do
       through SupervisedSlices.Menu.MenuItemModifierGroupLink

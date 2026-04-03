@@ -342,7 +342,7 @@
             Menu Editor
           </h2>
           <p class="text-sm text-on-surface-variant mt-1">
-            Manage size groups, modifier groups, categories, and items
+            Manage modifier groups, categories, and items
           </p>
         </div>
         <button
@@ -354,143 +354,7 @@
         </button>
       </div>
 
-      <div class="grid grid-cols-1 xl:grid-cols-2 gap-6">
-        <div class="bg-surface-container-lowest rounded-xl p-5 space-y-3">
-          <div class="flex items-center justify-between">
-            <p
-              class="text-xs font-bold text-on-surface-variant uppercase tracking-wider"
-              style="font-family: 'Be Vietnam Pro', sans-serif;"
-            >
-              Size Groups
-            </p>
-            <button
-              phx-click="add_size_group"
-              type="button"
-              class="flex items-center gap-1 text-sm text-primary hover:opacity-80 font-bold"
-            >
-              <span class="material-symbols-outlined" style="font-size: 16px;">add_circle</span>
-              New Group
-            </button>
-          </div>
-
-          <%= if @creating_size_group do %>
-            <form phx-submit="create_size_group" class="flex items-center gap-2">
-              <input
-                type="text"
-                name="size_group[name]"
-                required
-                autofocus
-                placeholder="e.g. Pizza Sizes"
-                class="flex-1 bg-surface-container-low border-0 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-primary outline-none"
-              />
-              <button
-                type="submit"
-                class="bg-primary text-white px-4 py-2 rounded-lg text-sm font-bold hover:opacity-90"
-              >
-                Add
-              </button>
-              <button
-                type="button"
-                phx-click="cancel_add_size_group"
-                class="text-on-surface-variant hover:text-on-surface p-2"
-              >
-                <span class="material-symbols-outlined" style="font-size: 16px;">close</span>
-              </button>
-            </form>
-          <% end %>
-
-          <%= if Enum.empty?(@size_groups) do %>
-            <p class="text-xs text-on-surface-variant italic">No size groups yet. Create one to apply sizes to multiple items.</p>
-          <% else %>
-            <div class="space-y-3">
-              <%= for group <- @size_groups do %>
-                <div class="bg-surface-container-low rounded-lg p-3 space-y-2">
-                  <div class="flex items-center gap-2">
-                    <span
-                      class="flex-1 text-sm font-bold text-on-surface"
-                      style="font-family: 'Plus Jakarta Sans', sans-serif;"
-                    >
-                      {group.name}
-                    </span>
-                    <button
-                      phx-click="delete_size_group"
-                      phx-value-id={group.id}
-                      type="button"
-                      class="text-on-surface-variant hover:text-error transition-colors p-1"
-                      title="Delete size group"
-                    >
-                      <span class="material-symbols-outlined" style="font-size: 16px;">delete</span>
-                    </button>
-                  </div>
-
-                  <div class="pl-2 space-y-1">
-                    <%= for size <- Enum.sort_by(group.sizes || [], & &1.sort_order) do %>
-                      <div class="flex items-center gap-2 text-sm">
-                        <span class="flex-1 text-on-surface">{size.name}</span>
-                        <span class="font-bold text-primary">{format_money(size.price)}</span>
-                        <button
-                          phx-click="delete_size"
-                          phx-value-id={size.id}
-                          type="button"
-                          class="text-on-surface-variant hover:text-error transition-colors p-0.5"
-                        >
-                          <span class="material-symbols-outlined" style="font-size: 14px;">close</span>
-                        </button>
-                      </div>
-                    <% end %>
-
-                    <%= if @adding_size_to_group_id == group.id do %>
-                      <form phx-submit="create_size" class="flex items-center gap-2 mt-1">
-                        <input type="hidden" name="size[size_group_id]" value={group.id} />
-                        <input
-                          type="text"
-                          name="size[name]"
-                          required
-                          autofocus
-                          placeholder="e.g. Large"
-                          class="flex-1 bg-white border-0 rounded-lg px-2 py-1.5 text-sm focus:ring-2 focus:ring-primary outline-none"
-                        />
-                        <input
-                          type="text"
-                          name="size[price]"
-                          required
-                          placeholder="18.00"
-                          inputmode="decimal"
-                          class="w-24 bg-white border-0 rounded-lg px-2 py-1.5 text-sm focus:ring-2 focus:ring-primary outline-none"
-                        />
-                        <button
-                          type="submit"
-                          class="bg-primary text-white px-3 py-1.5 rounded-lg text-sm font-bold hover:opacity-90"
-                        >
-                          Add
-                        </button>
-                        <button
-                          type="button"
-                          phx-click="cancel_add_size"
-                          class="text-on-surface-variant hover:text-on-surface p-1"
-                        >
-                          <span class="material-symbols-outlined" style="font-size: 14px;">close</span>
-                        </button>
-                      </form>
-                    <% else %>
-                      <button
-                        phx-click="add_size"
-                        phx-value-group_id={group.id}
-                        type="button"
-                        class="flex items-center gap-1 text-xs text-on-surface-variant hover:text-on-surface transition-colors mt-1"
-                      >
-                        <span class="material-symbols-outlined text-primary" style="font-size: 14px;">add_circle</span>
-                        Add size
-                      </button>
-                    <% end %>
-                  </div>
-                </div>
-              <% end %>
-            </div>
-          <% end %>
-        </div>
-
-        <div class="bg-surface-container-lowest rounded-xl p-5 space-y-3">
+      <div class="bg-surface-container-lowest rounded-xl p-5 space-y-3">
           <div class="flex items-center justify-between">
             <p
               class="text-xs font-bold text-on-surface-variant uppercase tracking-wider"
@@ -635,7 +499,6 @@
             </div>
           <% end %>
         </div>
-      </div>
 
       <%= if @creating_category do %>
         <form
@@ -763,7 +626,7 @@
                           class="block text-xs font-bold text-on-surface-variant uppercase tracking-wider mb-1"
                           style="font-family: 'Be Vietnam Pro', sans-serif;"
                         >
-                          Base Price (CAD) — leave blank if using size group
+                          Base Price (CAD) — leave blank if using sizes
                         </label>
                         <input
                           type="text"
@@ -773,25 +636,6 @@
                           placeholder="e.g. 14.50"
                           class="w-full bg-surface-container-low border-0 rounded-lg px-4 py-2.5 text-sm focus:ring-2 focus:ring-primary outline-none"
                         />
-                      </div>
-                      <div>
-                        <label
-                          class="block text-xs font-bold text-on-surface-variant uppercase tracking-wider mb-1"
-                          style="font-family: 'Be Vietnam Pro', sans-serif;"
-                        >
-                          Size Group
-                        </label>
-                        <select
-                          name="item[size_group_id]"
-                          class="w-full bg-surface-container-low border-0 rounded-lg px-4 py-2.5 text-sm focus:ring-2 focus:ring-primary outline-none"
-                        >
-                          <option value="">None (use base price)</option>
-                          <%= for sg <- @size_groups do %>
-                            <option value={sg.id} selected={item.size_group_id == sg.id}>
-                              {sg.name}
-                            </option>
-                          <% end %>
-                        </select>
                       </div>
                       <div class="md:col-span-2">
                         <label
@@ -908,6 +752,82 @@
                       </div>
                     <% end %>
                   </div>
+
+                  <div class="border-t border-surface-container-low pt-4 space-y-3">
+                    <div class="flex items-center justify-between">
+                      <p
+                        class="text-xs font-bold text-on-surface-variant uppercase tracking-wider"
+                        style="font-family: 'Be Vietnam Pro', sans-serif;"
+                      >
+                        Sizes
+                      </p>
+                      <%= if @adding_size_to_item_id != item.id do %>
+                        <button
+                          phx-click="add_size"
+                          phx-value-item_id={item.id}
+                          type="button"
+                          class="flex items-center gap-1 text-sm text-primary hover:opacity-80 font-bold"
+                        >
+                          <span class="material-symbols-outlined" style="font-size: 16px;">add_circle</span>
+                          Add size
+                        </button>
+                      <% end %>
+                    </div>
+
+                    <%= for size <- Enum.sort_by(item.sizes || [], & &1.sort_order) do %>
+                      <div class="flex items-center gap-3 px-3 py-2 bg-surface-container-low rounded-lg">
+                        <span class="flex-1 text-sm text-on-surface">{size.name}</span>
+                        <span class="text-sm font-bold text-primary">{format_money(size.price)}</span>
+                        <button
+                          phx-click="delete_size"
+                          phx-value-id={size.id}
+                          type="button"
+                          class="text-on-surface-variant hover:text-error transition-colors p-1"
+                        >
+                          <span class="material-symbols-outlined" style="font-size: 14px;">close</span>
+                        </button>
+                      </div>
+                    <% end %>
+
+                    <%= if @adding_size_to_item_id == item.id do %>
+                      <form phx-submit="create_size" class="flex items-center gap-2">
+                        <input type="hidden" name="size[menu_item_id]" value={item.id} />
+                        <input
+                          type="text"
+                          name="size[name]"
+                          required
+                          autofocus
+                          placeholder="e.g. Large"
+                          class="flex-1 bg-surface-container-low border-0 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-primary outline-none"
+                        />
+                        <input
+                          type="text"
+                          name="size[price]"
+                          required
+                          placeholder="18.00"
+                          inputmode="decimal"
+                          class="w-28 bg-surface-container-low border-0 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-primary outline-none"
+                        />
+                        <button
+                          type="submit"
+                          class="bg-primary text-white px-4 py-2 rounded-lg text-sm font-bold hover:opacity-90"
+                        >
+                          Add
+                        </button>
+                        <button
+                          type="button"
+                          phx-click="cancel_add_size"
+                          class="text-on-surface-variant hover:text-on-surface p-2"
+                        >
+                          <span class="material-symbols-outlined" style="font-size: 16px;">close</span>
+                        </button>
+                      </form>
+                    <% end %>
+
+                    <%= if Enum.empty?(item.sizes || []) and @adding_size_to_item_id != item.id do %>
+                      <p class="text-xs text-on-surface-variant italic">No sizes yet. Add sizes to let customers choose (e.g. Small, Medium, Large).</p>
+                    <% end %>
+                  </div>
                 </div>
               <% else %>
                 <div class="bg-surface-container-lowest rounded-xl p-4 flex items-center gap-4 group hover:shadow-sm transition-shadow">
@@ -940,9 +860,9 @@
                           Off
                         </span>
                       <% end %>
-                      <%= if item.size_group do %>
+                      <%= if not Enum.empty?(item.sizes || []) do %>
                         <span class="bg-surface-container text-on-surface-variant text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full shrink-0">
-                          {item.size_group.name}
+                          {length(item.sizes)} sizes
                         </span>
                       <% end %>
                       <%= if not Enum.empty?(item.modifier_groups || []) do %>
@@ -955,10 +875,13 @@
                   </div>
 
                   <span class="text-sm font-bold text-primary shrink-0">
-                    <%= if item.price do %>
-                      {format_money(item.price)}
-                    <% else %>
-                      —
+                    <%= cond do %>
+                      <% item.price -> %>
+                        {format_money(item.price)}
+                      <% not Enum.empty?(item.sizes || []) -> %>
+                        From {item.sizes |> Enum.min_by(& &1.price.amount) |> then(& &1.price) |> format_money()}
+                      <% true -> %>
+                        —
                     <% end %>
                   </span>
 
@@ -1020,7 +943,7 @@
                   </div>
                   <div>
                     <label class="block text-xs font-bold text-on-surface-variant uppercase tracking-wider mb-1">
-                      Base Price (CAD) — leave blank if using size group
+                      Base Price (CAD) — leave blank if using sizes
                     </label>
                     <input
                       type="text"
@@ -1029,20 +952,6 @@
                       inputmode="decimal"
                       class="w-full bg-surface-container-low border-0 rounded-lg px-4 py-2.5 text-sm focus:ring-2 focus:ring-primary outline-none"
                     />
-                  </div>
-                  <div>
-                    <label class="block text-xs font-bold text-on-surface-variant uppercase tracking-wider mb-1">
-                      Size Group
-                    </label>
-                    <select
-                      name="item[size_group_id]"
-                      class="w-full bg-surface-container-low border-0 rounded-lg px-4 py-2.5 text-sm focus:ring-2 focus:ring-primary outline-none"
-                    >
-                      <option value="">None (use base price)</option>
-                      <%= for sg <- @size_groups do %>
-                        <option value={sg.id}>{sg.name}</option>
-                      <% end %>
-                    </select>
                   </div>
                   <div class="md:col-span-2">
                     <label class="block text-xs font-bold text-on-surface-variant uppercase tracking-wider mb-1">

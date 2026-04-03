@@ -33,8 +33,6 @@ defmodule SupervisedSlices.Cart.Cart do
       accept []
 
       change fn changeset, context ->
-        dbg(context)
-
         changeset
         |> maybe_set_user(context)
         |> set_session_from_tenant(context)
@@ -42,7 +40,7 @@ defmodule SupervisedSlices.Cart.Cart do
     end
 
     defp maybe_set_user(changeset, %{actor: %SupervisedSlices.Accounts.User{id: user_id}}) do
-      Ash.Changeset.force_change_attribute(changeset, :session_id, user_id) |> dbg
+      Ash.Changeset.force_change_attribute(changeset, :user_id, user_id)
     end
 
     defp maybe_set_user(changeset, _), do: changeset
@@ -51,7 +49,7 @@ defmodule SupervisedSlices.Cart.Cart do
            actor: %SupervisedSlices.Accounts.GuestSession{id: session_id}
          })
          when not is_nil(session_id) do
-      Ash.Changeset.force_change_attribute(changeset, :session_id, session_id) |> dbg
+      Ash.Changeset.force_change_attribute(changeset, :session_id, session_id)
     end
 
     defp set_session_from_tenant(changeset, _), do: changeset

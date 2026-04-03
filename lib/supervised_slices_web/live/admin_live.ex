@@ -11,8 +11,7 @@ defmodule SupervisedSlicesWeb.AdminLive do
     MenuItemSize,
     MenuItemModifierGroup,
     MenuItemModifier,
-    MenuItemModifierGroupLink,
-    SizeGroup
+    MenuItemModifierGroupLink
   }
 
   alias SupervisedSlices.Orders.Order
@@ -29,7 +28,6 @@ defmodule SupervisedSlicesWeb.AdminLive do
     active_carts = load_active_carts(scope)
     visitor_count = org.id |> OrgPresence.list_visitors() |> map_size()
     categories = load_categories(scope)
-    size_groups = load_size_groups(scope)
     modifier_groups = load_modifier_groups(scope)
 
     if connected?(socket) do
@@ -43,16 +41,13 @@ defmodule SupervisedSlicesWeb.AdminLive do
      |> assign(:visitor_count, visitor_count)
      |> assign(:active_carts, active_carts)
      |> assign(:categories, categories)
-     |> assign(:size_groups, size_groups)
      |> assign(:modifier_groups, modifier_groups)
      |> assign(:editing_item_id, nil)
      |> assign(:adding_to_category_id, nil)
      |> assign(:creating_category, false)
-     |> assign(:creating_size_group, false)
-     |> assign(:adding_size_to_group_id, nil)
+     |> assign(:adding_size_to_item_id, nil)
      |> assign(:creating_modifier_group, false)
      |> assign(:adding_modifier_to_group_id, nil)
-     |> assign(:assigning_modifier_group_to_item_id, nil)
      |> assign(:page_title, "Kitchen Command")
      |> stream(:orders, orders)}
   end
@@ -128,12 +123,7 @@ defmodule SupervisedSlicesWeb.AdminLive do
   # ---------------------------------------------------------------------------
 
   def handle_event("edit_item", %{"id" => id}, socket) do
-    {:noreply,
-     assign(socket,
-       editing_item_id: id,
-       adding_to_category_id: nil,
-       assigning_modifier_group_to_item_id: nil
-     )}
+    {:noreply, assign(socket, editing_item_id: id, adding_to_category_id: nil)}
   end
 
   def handle_event("add_item", %{"category_id" => id}, socket) do
@@ -145,28 +135,21 @@ defmodule SupervisedSlicesWeb.AdminLive do
      assign(socket,
        editing_item_id: nil,
        adding_to_category_id: nil,
-       adding_size_to_group_id: nil,
+       adding_size_to_item_id: nil,
        adding_modifier_to_group_id: nil,
-       assigning_modifier_group_to_item_id: nil
+       creating_modifier_group: false
      )}
   end
 
   def handle_event("save_item", %{"item" => params}, socket) do
     %{ash_scope: scope} = socket.assigns
 
-    size_group_id = case params["size_group_id"] do
-      "" -> nil
-      nil -> nil
-      v -> v
-    end
-
     attrs = %{
       name: params["name"],
       description: params["description"],
       price: parse_money(params["price"]),
       image_url: params["image_url"],
-      sort_order: String.to_integer(params["sort_order"] || "0"),
-      size_group_id: size_group_id
+      sort_order: String.to_integer(params["sort_order"] || "0")
     }
 
     MenuItem.get!(params["id"], scope: scope)
@@ -187,27 +170,21 @@ defmodule SupervisedSlicesWeb.AdminLive do
   def handle_event("create_item", %{"item" => params}, socket) do
     %{ash_scope: scope} = socket.assigns
 
-    size_group_id = case params["size_group_id"] do
-      "" -> nil
-      nil -> nil
-      v -> v
-    end
-
-    MenuItem.create!(
-      %{
-        name: params["name"],
-        description: params["description"],
-        price: parse_money(params["price"]),
-        image_url: params["image_url"],
-        sort_order: String.to_integer(params["sort_order"] || "0"),
-        category_id: params["category_id"],
-        size_group_id: size_group_id
-      },
-      scope: scope
-    )
+    item =
+      MenuItem.create!(
+        %{
+          name: params["name"],
+          description: params["description"],
+          price: parse_money(params["price"]),
+          image_url: params["image_url"],
+          sort_order: String.to_integer(params["sort_order"] || "0"),
+          category_id: params["category_id"]
+        },
+        scope: scope
+      )
 
     categories = load_categories(scope)
-    {:noreply, assign(socket, categories: categories, adding_to_category_id: nil)}
+    {:noreply, assign(socket, categories: categories, adding_to_category_id: nil, editing_item_id: item.id)}
   end
 
   def handle_event("edit_category", %{"id" => id}, socket) do
@@ -259,47 +236,19 @@ defmodule SupervisedSlicesWeb.AdminLive do
   end
 
   # ---------------------------------------------------------------------------
-  # Size Group events
+  # Size events (per-item)
   # ---------------------------------------------------------------------------
 
-  def handle_event("add_size_group", _params, socket) do
-    {:noreply, assign(socket, creating_size_group: true)}
-  end
-
-  def handle_event("cancel_add_size_group", _params, socket) do
-    {:noreply, assign(socket, creating_size_group: false)}
-  end
-
-  def handle_event("create_size_group", %{"size_group" => params}, socket) do
-    %{ash_scope: scope} = socket.assigns
-
-    SizeGroup.create!(
-      %{name: params["name"]},
-      scope: scope
-    )
-
-    size_groups = load_size_groups(scope)
-    {:noreply, assign(socket, size_groups: size_groups, creating_size_group: false)}
-  end
-
-  def handle_event("delete_size_group", %{"id" => id}, socket) do
-    %{ash_scope: scope} = socket.assigns
-    SizeGroup.get!(id, scope: scope) |> SizeGroup.destroy!(scope: scope)
-    size_groups = load_size_groups(scope)
-    categories = load_categories(scope)
-    {:noreply, assign(socket, size_groups: size_groups, categories: categories)}
-  end
-
-  def handle_event("add_size", %{"group_id" => group_id}, socket) do
+  def handle_event("add_size", %{"item_id" => item_id}, socket) do
     {:noreply,
      assign(socket,
-       adding_size_to_group_id: group_id,
+       adding_size_to_item_id: item_id,
        adding_modifier_to_group_id: nil
      )}
   end
 
   def handle_event("cancel_add_size", _params, socket) do
-    {:noreply, assign(socket, :adding_size_to_group_id, nil)}
+    {:noreply, assign(socket, :adding_size_to_item_id, nil)}
   end
 
   def handle_event("create_size", %{"size" => params}, socket) do
@@ -309,20 +258,20 @@ defmodule SupervisedSlicesWeb.AdminLive do
       %{
         name: params["name"],
         price: Money.new!(:CAD, Decimal.new(params["price"] || "0")),
-        size_group_id: params["size_group_id"]
+        menu_item_id: params["menu_item_id"]
       },
       scope: scope
     )
 
-    size_groups = load_size_groups(scope)
-    {:noreply, assign(socket, size_groups: size_groups, adding_size_to_group_id: nil)}
+    categories = load_categories(scope)
+    {:noreply, assign(socket, categories: categories, adding_size_to_item_id: nil)}
   end
 
   def handle_event("delete_size", %{"id" => id}, socket) do
     %{ash_scope: scope} = socket.assigns
     MenuItemSize.get!(id, scope: scope) |> MenuItemSize.destroy!(scope: scope)
-    size_groups = load_size_groups(scope)
-    {:noreply, assign(socket, :size_groups, size_groups)}
+    categories = load_categories(scope)
+    {:noreply, assign(socket, :categories, categories)}
   end
 
   # ---------------------------------------------------------------------------
@@ -376,7 +325,7 @@ defmodule SupervisedSlicesWeb.AdminLive do
     {:noreply,
      assign(socket,
        adding_modifier_to_group_id: group_id,
-       adding_size_to_group_id: nil
+       adding_size_to_item_id: nil
      )}
   end
 
@@ -410,18 +359,6 @@ defmodule SupervisedSlicesWeb.AdminLive do
   # ---------------------------------------------------------------------------
   # Item <-> Modifier Group assignment
   # ---------------------------------------------------------------------------
-
-  def handle_event("assign_modifier_group_panel", %{"item_id" => item_id}, socket) do
-    {:noreply,
-     assign(socket,
-       assigning_modifier_group_to_item_id: item_id,
-       editing_item_id: nil
-     )}
-  end
-
-  def handle_event("cancel_assign_modifier_group", _params, socket) do
-    {:noreply, assign(socket, assigning_modifier_group_to_item_id: nil)}
-  end
 
   def handle_event("assign_modifier_group", %{"item_id" => item_id, "group_id" => group_id}, socket) do
     %{ash_scope: scope} = socket.assigns
@@ -472,12 +409,8 @@ defmodule SupervisedSlicesWeb.AdminLive do
   defp load_categories(scope) do
     Category.active!(
       scope: scope,
-      load: [menu_items: [modifier_groups: [:modifiers], size_group: [:sizes]]]
+      load: [menu_items: [modifier_groups: [:modifiers], sizes: []]]
     )
-  end
-
-  defp load_size_groups(scope) do
-    SizeGroup.list!(scope: scope, load: [:sizes], authorize?: false)
   end
 
   defp load_modifier_groups(scope) do
@@ -537,20 +470,11 @@ defmodule SupervisedSlicesWeb.AdminLive do
     order.id |> String.slice(-4, 4) |> String.upcase()
   end
 
-  defp status_badge_class(:pending),
-    do: "bg-primary-fixed text-on-primary-fixed-variant"
-
-  defp status_badge_class(:confirmed),
-    do: "bg-primary-fixed text-on-primary-fixed-variant"
-
-  defp status_badge_class(:preparing),
-    do: "bg-tertiary-fixed text-on-tertiary-fixed-variant"
-
-  defp status_badge_class(:ready),
-    do: "bg-secondary-fixed text-on-secondary-fixed-variant"
-
-  defp status_badge_class(_),
-    do: "bg-surface-container text-on-surface-variant"
+  defp status_badge_class(:pending), do: "bg-primary-fixed text-on-primary-fixed-variant"
+  defp status_badge_class(:confirmed), do: "bg-primary-fixed text-on-primary-fixed-variant"
+  defp status_badge_class(:preparing), do: "bg-tertiary-fixed text-on-tertiary-fixed-variant"
+  defp status_badge_class(:ready), do: "bg-secondary-fixed text-on-secondary-fixed-variant"
+  defp status_badge_class(_), do: "bg-surface-container text-on-surface-variant"
 
   defp status_label(:pending), do: "New"
   defp status_label(:confirmed), do: "Confirmed"

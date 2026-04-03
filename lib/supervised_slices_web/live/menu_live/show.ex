@@ -7,17 +7,21 @@ defmodule SupervisedSlicesWeb.MenuLive.Show do
   alias SupervisedSlices.Cart.{Cart, CartItem}
   alias SupervisedSlices.Menu.MenuItem
   alias SupervisedSlices.Orders.{Order, OrderItem}
-  alias SupervisedSlices.PubSubNotifier
+  alias SupervisedSlices.{OrgPresence, PubSubNotifier}
 
   # ---------------------------------------------------------------------------
   # Mount
   # ---------------------------------------------------------------------------
 
   def mount(_params, _session, socket) do
-    %{ash_scope: scope} = socket.assigns
+    %{org: org, ash_scope: scope} = socket.assigns
 
     cart = load_cart(scope)
     {cart_items_map, cart_count} = build_cart_state(cart)
+
+    if connected?(socket) do
+      OrgPresence.track_visitor(self(), org.id, scope.guest_session_id || "anon", %{})
+    end
 
     {:ok,
      socket
@@ -38,7 +42,7 @@ defmodule SupervisedSlicesWeb.MenuLive.Show do
       MenuItem.get!(id,
         scope: socket.assigns.ash_scope,
         authorize?: false,
-        load: [modifier_groups: [:modifiers], size_group: [:sizes]]
+        load: [modifier_groups: [:modifiers], sizes: []]
       )
 
     {:noreply,
@@ -214,13 +218,13 @@ defmodule SupervisedSlicesWeb.MenuLive.Show do
 
     case scope.current_user do
       %User{id: user_id} ->
-        case Cart.active_for_user(user_id, scope: scope, load: cart_load) do
+        case Cart.active_for_user(user_id, scope: scope, load: cart_load, authorize?: false) do
           {:ok, cart} -> cart
           _ -> nil
         end
 
       %GuestSession{id: session_id} ->
-        case Cart.active_for_session(session_id, scope: scope, load: cart_load) do
+        case Cart.active_for_session(session_id, scope: scope, load: cart_load, authorize?: false) do
           {:ok, cart} -> cart
           _ -> nil
         end

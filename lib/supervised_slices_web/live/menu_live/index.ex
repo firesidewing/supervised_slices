@@ -21,7 +21,7 @@ defmodule SupervisedSlicesWeb.MenuLive.Index do
       Category.active!(
         scope: scope,
         authorize?: false,
-        load: [menu_items: [modifier_groups: [:modifiers], size_group: [:sizes]]]
+        load: [menu_items: [modifier_groups: [:modifiers], sizes: []]]
       )
 
     cart = load_cart(scope)
@@ -228,13 +228,13 @@ defmodule SupervisedSlicesWeb.MenuLive.Index do
 
     case scope.current_user do
       %User{id: user_id} ->
-        case Cart.active_for_user(user_id, scope: scope, load: cart_load) do
+        case Cart.active_for_user(user_id, scope: scope, load: cart_load, authorize?: false) do
           {:ok, cart} -> cart
           _ -> nil
         end
 
       %GuestSession{id: session_id} ->
-        case Cart.active_for_session(session_id, scope: scope, load: cart_load) do
+        case Cart.active_for_session(session_id, scope: scope, load: cart_load, authorize?: false) do
           {:ok, cart} -> cart
           _ -> nil
         end
@@ -293,8 +293,10 @@ defmodule SupervisedSlicesWeb.MenuLive.Index do
         _ -> cart_item.menu_item.price
       end
 
+    dbg(base)
+
     if modifier && modifier.price_delta do
-      case Money.add(base, modifier.price_delta) do
+      case Money.add(base, modifier.price_delta) |> dbg do
         {:ok, p} -> p
         _ -> base
       end
@@ -306,7 +308,7 @@ defmodule SupervisedSlicesWeb.MenuLive.Index do
   defp order_total(cart) do
     Enum.reduce(cart.cart_items, nil, fn item, acc ->
       modifier = order_find_modifier(item)
-      line = Money.mult!(order_item_price(item, modifier), item.quantity)
+      line = Money.mult!(order_item_price(item, modifier), item.quantity) |> dbg
       if is_nil(acc), do: line, else: elem(Money.add(acc, line), 1)
     end)
   end
