@@ -620,7 +620,8 @@ defmodule SupervisedSlicesWeb.CoreComponents do
                   class="block text-xs font-bold uppercase tracking-widest text-on-surface-variant mb-1.5"
                   style="font-family: 'Be Vietnam Pro', sans-serif;"
                 >
-                  Phone <span class="text-on-surface-variant/50 normal-case font-normal">(optional)</span>
+                  Phone
+                  <span class="text-on-surface-variant/50 normal-case font-normal">(optional)</span>
                 </label>
                 <input
                   type="tel"
@@ -634,7 +635,8 @@ defmodule SupervisedSlicesWeb.CoreComponents do
                   class="block text-xs font-bold uppercase tracking-widest text-on-surface-variant mb-1.5"
                   style="font-family: 'Be Vietnam Pro', sans-serif;"
                 >
-                  Notes <span class="text-on-surface-variant/50 normal-case font-normal">(optional)</span>
+                  Notes
+                  <span class="text-on-surface-variant/50 normal-case font-normal">(optional)</span>
                 </label>
                 <textarea
                   name="notes"

@@ -38,7 +38,8 @@
 
       <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
         <%= for item <- category.menu_items do %>
-          <% customizable? = not Enum.empty?(item.sizes || []) or not Enum.empty?(item.modifier_groups || []) %>
+          <% customizable? =
+            not Enum.empty?(item.sizes || []) or not Enum.empty?(item.modifier_groups || []) %>
           <div class="bg-surface-container-lowest rounded-xl p-4 transition-all hover:scale-[1.01] hover:shadow-[0px_12px_32px_rgba(93,63,62,0.08)] flex flex-col gap-4">
             <.link navigate={~p"/menu/#{@org.slug}/item/#{item.id}"} class="flex gap-4 group">
               <div class="relative w-24 h-24 shrink-0 overflow-hidden rounded-lg">
@@ -66,7 +67,10 @@
               <span class="text-sm font-bold text-primary">
                 <%= cond do %>
                   <% not Enum.empty?(item.sizes || []) -> %>
-                    From {item.sizes |> Enum.min_by(& &1.price.amount) |> then(& &1.price) |> format_money()}
+                    From {item.sizes
+                    |> Enum.min_by(& &1.price.amount)
+                    |> then(& &1.price)
+                    |> format_money()}
                   <% item.price -> %>
                     {format_money(item.price)}
                   <% true -> %>
@@ -79,7 +83,9 @@
                   class="flex items-center gap-1.5 bg-primary text-white text-xs font-bold px-4 py-2 rounded-full hover:opacity-90 transition-opacity"
                 >
                   Customize
-                  <span class="material-symbols-outlined" style="font-size: 14px;">arrow_forward</span>
+                  <span class="material-symbols-outlined" style="font-size: 14px;">
+                    arrow_forward
+                  </span>
                 </.link>
               <% else %>
                 <div class="flex items-center bg-white rounded-full p-1 shadow-sm">

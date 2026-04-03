@@ -103,7 +103,9 @@
                     <%= if @selected_item.price do %>
                       {item_price(@selected_item.price, modifier.price_delta)}
                     <% else %>
-                      {if modifier.price_delta, do: "+#{format_money(modifier.price_delta)}", else: "Free"}
+                      {if modifier.price_delta,
+                        do: "+#{format_money(modifier.price_delta)}",
+                        else: "Free"}
                     <% end %>
                   </span>
                   <div class="flex items-center bg-white rounded-full p-1 shadow-sm">
@@ -190,7 +192,10 @@
         Explore Menu
       </span>
     </.link>
-    <button phx-click="toggle_basket" class="flex items-center gap-1.5 text-white/80 px-5 py-2.5 hover:scale-[1.02] transition-all active:scale-95">
+    <button
+      phx-click="toggle_basket"
+      class="flex items-center gap-1.5 text-white/80 px-5 py-2.5 hover:scale-[1.02] transition-all active:scale-95"
+    >
       <span class="material-symbols-outlined">shopping_cart_checkout</span>
       <span
         class="text-[10px] uppercase tracking-widest"
