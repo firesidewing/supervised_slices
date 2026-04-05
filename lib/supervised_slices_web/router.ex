@@ -39,8 +39,8 @@ defmodule SupervisedSlicesWeb.Router do
       # If an authenticated user must *not* be present:
       # on_mount {SupervisedSlicesWeb.LiveUserAuth, :live_no_user}
 
-      live "/menu/:org_slug", MenuLive.Index, :index
-      live "/menu/:org_slug/item/:id", MenuLive.Show, :show
+      live "/menu/:org_slug", MenuLive, :index
+      live "/menu/:org_slug/item/:id", MenuLive, :show
 
       live "/kitchen/:org_slug", AdminLive, :orders
       live "/kitchen/:org_slug/baskets", AdminLive, :baskets

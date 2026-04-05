@@ -1,11 +1,11 @@
-defmodule SupervisedSlicesWeb.MenuLive.Index do
+defmodule SupervisedSlicesWeb.MenuLive do
   use SupervisedSlicesWeb, :live_view
 
   on_mount {SupervisedSlicesWeb.LiveUserAuth, :live_user_optional}
 
   alias SupervisedSlices.Accounts.{GuestSession, User}
   alias SupervisedSlices.Cart.{Cart, CartItem}
-  alias SupervisedSlices.Menu.Category
+  alias SupervisedSlices.Menu.{Category, MenuItem}
   alias SupervisedSlices.Orders.{Order, OrderItem}
   alias SupervisedSlices.OrgPresence
   alias SupervisedSlices.PubSubNotifier
@@ -39,6 +39,7 @@ defmodule SupervisedSlicesWeb.MenuLive.Index do
      |> assign(:cart_count, cart_count)
      |> assign(:show_basket, false)
      |> assign(:checkout_step, :review)
+     |> assign(:selected_item, nil)
      |> assign(:page_title, org.name)}
   end
 
@@ -46,8 +47,25 @@ defmodule SupervisedSlicesWeb.MenuLive.Index do
   # handle_params
   # ---------------------------------------------------------------------------
 
+  def handle_params(%{"id" => id}, _uri, socket) do
+    item =
+      MenuItem.get!(id,
+        scope: socket.assigns.ash_scope,
+        authorize?: false,
+        load: [modifier_groups: [:modifiers], sizes: []]
+      )
+
+    {:noreply,
+     socket
+     |> assign(:selected_item, item)
+     |> assign(:page_title, item.name)}
+  end
+
   def handle_params(_params, _uri, socket) do
-    {:noreply, socket}
+    {:noreply,
+     socket
+     |> assign(:selected_item, nil)
+     |> assign(:page_title, socket.assigns.org.name)}
   end
 
   # ---------------------------------------------------------------------------
@@ -293,10 +311,8 @@ defmodule SupervisedSlicesWeb.MenuLive.Index do
         _ -> cart_item.menu_item.price
       end
 
-    dbg(base)
-
     if modifier && modifier.price_delta do
-      case Money.add(base, modifier.price_delta) |> dbg do
+      case Money.add(base, modifier.price_delta) do
         {:ok, p} -> p
         _ -> base
       end
@@ -308,42 +324,115 @@ defmodule SupervisedSlicesWeb.MenuLive.Index do
   defp order_total(cart) do
     Enum.reduce(cart.cart_items, nil, fn item, acc ->
       modifier = order_find_modifier(item)
-      line = Money.mult!(order_item_price(item, modifier), item.quantity) |> dbg
+      line = Money.mult!(order_item_price(item, modifier), item.quantity)
       if is_nil(acc), do: line, else: elem(Money.add(acc, line), 1)
     end)
   end
 
   # ---------------------------------------------------------------------------
-  # Template helpers (used in HEEx templates)
+  # Template
   # ---------------------------------------------------------------------------
 
-  def item_price(base_price, nil), do: format_money(base_price)
+  def render(assigns) do
+    ~H"""
+    <header class="fixed top-0 w-full z-50 bg-[#faf9f6]/80 backdrop-blur-xl flex items-center gap-4 px-4 py-4">
+      <.link
+        :if={@live_action == :show}
+        navigate={~p"/menu/#{@org.slug}"}
+        class="flex items-center justify-center w-10 h-10 rounded-full hover:bg-surface-container transition-colors text-on-surface-variant active:scale-95"
+        aria-label="Back to menu"
+      >
+        <span class="material-symbols-outlined">arrow_back</span>
+      </.link>
+      <h1
+        class="text-xl font-bold tracking-tight text-[#E31837]"
+        style="font-family: 'Plus Jakarta Sans', sans-serif;"
+      >
+        {@org.name}
+      </h1>
+      <div :if={@live_action == :index} class="ml-auto flex items-center gap-3">
+        <button
+          phx-click="toggle_basket"
+          class="text-on-surface-variant hover:scale-105 transition-transform active:scale-95 relative"
+        >
+          <span class="material-symbols-outlined">shopping_bag</span>
+          <span
+            :if={@cart_count > 0}
+            class="absolute -top-1 -right-1 bg-primary text-white text-[10px] font-black rounded-full w-4 h-4 flex items-center justify-center leading-none"
+          >
+            {@cart_count}
+          </span>
+        </button>
+      </div>
+    </header>
 
-  def item_price(base_price, price_delta) do
-    case Money.add(base_price, price_delta) do
-      {:ok, total} -> format_money(total)
-      _ -> format_money(base_price)
-    end
+    <.live_component
+      :if={@live_action == :index}
+      module={SupervisedSlicesWeb.MenuLive.MenuComponent}
+      id="menu"
+      categories={@categories}
+      cart_items_map={@cart_items_map}
+      org={@org}
+    />
+
+    <.live_component
+      :if={@live_action == :show && @selected_item != nil}
+      module={SupervisedSlicesWeb.MenuLive.ItemComponent}
+      id="item"
+      selected_item={@selected_item}
+      cart_items_map={@cart_items_map}
+      org={@org}
+    />
+
+    <.menu_nav cart_count={@cart_count} org={@org} />
+
+    <.basket_drawer cart={@cart} show={@show_basket} checkout_step={@checkout_step} />
+
+    <div class="fixed top-[15%] right-[-20px] opacity-10 pointer-events-none transform rotate-45 select-none hidden lg:block text-on-surface">
+      <span class="material-symbols-outlined" style="font-size: 120px;">potted_plant</span>
+    </div>
+    <div class="fixed bottom-[12%] left-[-20px] opacity-10 pointer-events-none transform -rotate-12 select-none hidden lg:block text-on-surface">
+      <span class="material-symbols-outlined" style="font-size: 150px;">cooking</span>
+    </div>
+    """
   end
 
-  def format_money(money) do
-    Money.to_string!(money)
-  rescue
-    _ -> "#{money}"
-  end
-
-  def get_size_qty(cart_items_map, item_id, size_id) do
-    key = cart_key(to_string(item_id), to_string(size_id), nil)
-    get_in(cart_items_map, [key, :quantity]) || 0
-  end
-
-  def get_modifier_qty(cart_items_map, item_id, modifier_id) do
-    key = cart_key(to_string(item_id), nil, to_string(modifier_id))
-    get_in(cart_items_map, [key, :quantity]) || 0
-  end
-
-  def get_item_qty(cart_items_map, item_id) do
-    key = cart_key(to_string(item_id), nil, nil)
-    get_in(cart_items_map, [key, :quantity]) || 0
+  defp menu_nav(assigns) do
+    ~H"""
+    <nav class="fixed bottom-6 left-0 right-0 flex justify-center items-center px-4 z-50 pointer-events-none">
+      <div class="pointer-events-auto w-[90%] max-w-lg bg-gradient-to-r from-[#b90027] to-[#e31837] rounded-full flex justify-around items-center px-4 py-2 shadow-[0px_12px_32px_rgba(185,0,39,0.25)]">
+        <.link
+          navigate={~p"/menu/#{@org.slug}"}
+          class="flex items-center gap-2 bg-white/20 rounded-full px-5 py-2.5 text-white font-bold hover:scale-[1.02] transition-all active:scale-95"
+        >
+          <span class="material-symbols-outlined">restaurant_menu</span>
+          <span
+            class="text-[10px] uppercase tracking-widest"
+            style="font-family: 'Be Vietnam Pro', sans-serif;"
+          >
+            Explore Menu
+          </span>
+        </.link>
+        <button
+          phx-click="toggle_basket"
+          class="flex items-center gap-1.5 text-white/80 px-5 py-2.5 hover:scale-[1.02] transition-all active:scale-95"
+        >
+          <span class="material-symbols-outlined">shopping_cart_checkout</span>
+          <span
+            class="text-[10px] uppercase tracking-widest"
+            style="font-family: 'Be Vietnam Pro', sans-serif;"
+          >
+            View Basket
+          </span>
+          <span
+            :if={@cart_count > 0}
+            class="ml-1 bg-white text-primary text-[10px] font-black rounded-full w-5 h-5 flex items-center justify-center"
+          >
+            {@cart_count}
+          </span>
+        </button>
+      </div>
+    </nav>
+    """
   end
 end

@@ -19,6 +19,8 @@ The palette is a celebration of ingredients: Warm Whites (Flour/Dough), Tomato R
 
 ### Surface Hierarchy & Nesting
 Treat the UI as a physical stack of parchment and marble:
+
+
 1.  **Base Layer:** `surface` (`#faf9f6`) or `background` (`#faf9f6`).
 2.  **Sectioning:** `surface-container-low` (`#f4f3f1`) for large content blocks.
 3.  **Interactive Elements:** Use `surface-container-lowest` (`#ffffff`) for cards to make them "pop" against the warmer background.
