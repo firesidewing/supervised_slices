@@ -15,10 +15,7 @@ defmodule SupervisedSlicesWeb.MenuLive.MenuComponent do
             if(rem(idx, 2) == 0, do: "bg-primary", else: "bg-secondary")
           ]}>
           </div>
-          <h2
-            class="text-2xl font-extrabold tracking-tight text-on-surface"
-            style="font-family: 'Plus Jakarta Sans', sans-serif;"
-          >
+          <h2 class="font-headline text-2xl font-extrabold tracking-tight text-on-surface">
             {category.name}
           </h2>
         </div>
@@ -50,21 +47,18 @@ defmodule SupervisedSlicesWeb.MenuLive.MenuComponent do
       )
 
     ~H"""
-    <div class="bg-surface-container-lowest rounded-xl p-4 transition-all hover:scale-[1.01] hover:shadow-[0px_12px_32px_rgba(93,63,62,0.08)] flex flex-col gap-4">
+    <div class="bg-surface-container-lowest rounded-xl p-4 transition-all hover:scale-[1.02] hover:shadow-[0px_12px_32px_rgba(93,63,62,0.08)] flex flex-col gap-4">
       <.link navigate={~p"/menu/#{@org.slug}/item/#{@item.id}"} class="flex gap-4 group">
-        <div class="relative w-24 h-24 shrink-0 overflow-hidden rounded-lg">
+        <div :if={@item.image_url} class="relative w-24 h-24 shrink-0 overflow-hidden rounded-lg">
           <img
-            src={@item.image_url || "https://placehold.co/96x96/f4f3f1/5d3f3e?text=🍕"}
+            src={@item.image_url}
             alt={@item.name}
             class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
             style={"view-transition-name: item-img-#{@item.id};"}
           />
         </div>
         <div class="flex-1 min-w-0">
-          <h3
-            class="text-base font-bold leading-snug mb-1 text-on-surface"
-            style="font-family: 'Plus Jakarta Sans', sans-serif;"
-          >
+          <h3 class="font-headline text-base font-bold leading-snug mb-1 text-on-surface">
             {@item.name}
           </h3>
           <p class="text-sm text-on-surface-variant line-clamp-2 leading-relaxed">
@@ -96,7 +90,7 @@ defmodule SupervisedSlicesWeb.MenuLive.MenuComponent do
           class="flex items-center gap-1.5 bg-primary text-white text-xs font-bold px-4 py-2 rounded-full hover:opacity-90 transition-opacity"
         >
           Customize
-          <span class="material-symbols-outlined" style="font-size: 14px;">arrow_forward</span>
+          <span class="material-symbols-outlined text-sm">arrow_forward</span>
         </.link>
 
         <div :if={!@customizable?} class="flex items-center bg-white rounded-full p-1 shadow-sm">
@@ -107,7 +101,7 @@ defmodule SupervisedSlicesWeb.MenuLive.MenuComponent do
             class="w-7 h-7 flex items-center justify-center rounded-full hover:bg-surface-container transition-colors"
             aria-label="Remove one"
           >
-            <span class="material-symbols-outlined" style="font-size: 18px;">remove</span>
+            <span class="material-symbols-outlined text-lg">remove</span>
           </button>
           <span class="px-2.5 text-sm font-bold min-w-[1.5rem] text-center">
             {get_item_qty(@cart_items_map, @item.id)}
@@ -119,7 +113,7 @@ defmodule SupervisedSlicesWeb.MenuLive.MenuComponent do
             class="w-7 h-7 flex items-center justify-center rounded-full bg-primary text-white hover:bg-primary-container transition-colors"
             aria-label="Add one"
           >
-            <span class="material-symbols-outlined" style="font-size: 18px;">add</span>
+            <span class="material-symbols-outlined text-lg">add</span>
           </button>
         </div>
       </div>

@@ -8,9 +8,12 @@ defmodule SupervisedSlicesWeb.MenuLive.ItemComponent do
   def render(assigns) do
     ~H"""
     <main class="pt-[4.5rem] pb-32 max-w-2xl mx-auto">
-      <div class="relative w-full aspect-[4/3] overflow-hidden bg-surface-container-low">
+      <div
+        :if={@selected_item.image_url}
+        class="relative w-full aspect-[4/3] overflow-hidden bg-surface-container-low"
+      >
         <img
-          src={@selected_item.image_url || "https://placehold.co/600x450/f4f3f1/5d3f3e?text=🍕"}
+          src={@selected_item.image_url}
           alt={@selected_item.name}
           class="w-full h-full object-cover"
           style={"view-transition-name: item-img-#{@selected_item.id};"}
@@ -19,10 +22,7 @@ defmodule SupervisedSlicesWeb.MenuLive.ItemComponent do
 
       <div class="px-5 pt-6 space-y-8">
         <div>
-          <h2
-            class="text-3xl font-extrabold tracking-tight text-on-surface leading-tight"
-            style="font-family: 'Plus Jakarta Sans', sans-serif;"
-          >
+          <h2 class="font-headline text-3xl font-extrabold tracking-tight text-on-surface leading-tight">
             {@selected_item.name}
           </h2>
           <p class="mt-3 text-on-surface-variant leading-relaxed text-base">
@@ -31,10 +31,7 @@ defmodule SupervisedSlicesWeb.MenuLive.ItemComponent do
         </div>
 
         <div :if={not Enum.empty?(@selected_item.sizes || [])}>
-          <h3
-            class="text-xs font-bold uppercase tracking-widest text-on-surface-variant mb-3"
-            style="font-family: 'Be Vietnam Pro', sans-serif;"
-          >
+          <h3 class="font-body text-xs font-bold uppercase tracking-widest text-on-surface-variant mb-3">
             Choose a Size
           </h3>
           <div class="space-y-2">
@@ -48,10 +45,7 @@ defmodule SupervisedSlicesWeb.MenuLive.ItemComponent do
         </div>
 
         <div :for={group <- @selected_item.modifier_groups}>
-          <h3
-            class="text-xs font-bold uppercase tracking-widest text-on-surface-variant mb-3"
-            style="font-family: 'Be Vietnam Pro', sans-serif;"
-          >
+          <h3 class="font-body text-xs font-bold uppercase tracking-widest text-on-surface-variant mb-3">
             {group.name}
           </h3>
           <div class="space-y-2">
@@ -80,7 +74,7 @@ defmodule SupervisedSlicesWeb.MenuLive.ItemComponent do
                 class="w-8 h-8 flex items-center justify-center rounded-full hover:bg-surface-container transition-colors"
                 aria-label="Remove one"
               >
-                <span class="material-symbols-outlined" style="font-size: 18px;">remove</span>
+                <span class="material-symbols-outlined text-lg">remove</span>
               </button>
               <span class="px-3 text-sm font-bold min-w-[2rem] text-center">
                 {get_item_qty(@cart_items_map, @selected_item.id)}
@@ -92,7 +86,7 @@ defmodule SupervisedSlicesWeb.MenuLive.ItemComponent do
                 class="w-8 h-8 flex items-center justify-center rounded-full bg-primary text-white hover:bg-primary-container transition-colors"
                 aria-label="Add one"
               >
-                <span class="material-symbols-outlined" style="font-size: 18px;">add</span>
+                <span class="material-symbols-outlined text-lg">add</span>
               </button>
             </div>
           </div>
@@ -117,7 +111,7 @@ defmodule SupervisedSlicesWeb.MenuLive.ItemComponent do
             class="w-8 h-8 flex items-center justify-center rounded-full hover:bg-surface-container transition-colors"
             aria-label={"Remove #{@size.name}"}
           >
-            <span class="material-symbols-outlined" style="font-size: 18px;">remove</span>
+            <span class="material-symbols-outlined text-lg">remove</span>
           </button>
           <span class="px-3 text-sm font-bold min-w-[2rem] text-center">
             {get_size_qty(@cart_items_map, @item.id, @size.id)}
@@ -130,7 +124,7 @@ defmodule SupervisedSlicesWeb.MenuLive.ItemComponent do
             class="w-8 h-8 flex items-center justify-center rounded-full bg-primary text-white hover:bg-primary-container transition-colors"
             aria-label={"Add #{@size.name}"}
           >
-            <span class="material-symbols-outlined" style="font-size: 18px;">add</span>
+            <span class="material-symbols-outlined text-lg">add</span>
           </button>
         </div>
       </div>
@@ -157,7 +151,7 @@ defmodule SupervisedSlicesWeb.MenuLive.ItemComponent do
             class="w-8 h-8 flex items-center justify-center rounded-full hover:bg-surface-container transition-colors"
             aria-label={"Remove #{@modifier.name}"}
           >
-            <span class="material-symbols-outlined" style="font-size: 18px;">remove</span>
+            <span class="material-symbols-outlined text-lg">remove</span>
           </button>
           <span class="px-3 text-sm font-bold min-w-[2rem] text-center">
             {get_modifier_qty(@cart_items_map, @item.id, @modifier.id)}
@@ -170,7 +164,7 @@ defmodule SupervisedSlicesWeb.MenuLive.ItemComponent do
             class="w-8 h-8 flex items-center justify-center rounded-full bg-primary text-white hover:bg-primary-container transition-colors"
             aria-label={"Add #{@modifier.name}"}
           >
-            <span class="material-symbols-outlined" style="font-size: 18px;">add</span>
+            <span class="material-symbols-outlined text-lg">add</span>
           </button>
         </div>
       </div>

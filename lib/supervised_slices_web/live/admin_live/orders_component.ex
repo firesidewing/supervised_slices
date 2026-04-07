@@ -50,45 +50,26 @@ defmodule SupervisedSlicesWeb.AdminLive.OrdersComponent do
     <section class="p-8 space-y-8">
       <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
         <div class="bg-surface-container-low rounded-xl p-8 flex flex-col justify-center">
-          <span
-            class="text-xs uppercase tracking-widest font-bold text-on-surface-variant mb-2"
-            style="font-family: 'Be Vietnam Pro', sans-serif;"
-          >
+          <span class="font-body text-xs uppercase tracking-widest font-bold text-on-surface-variant mb-2">
             Active Tickets
           </span>
-          <span
-            class="text-4xl font-black text-on-surface"
-            style="font-family: 'Plus Jakarta Sans', sans-serif;"
-            id="active-tickets-count"
-          >
+          <span class="font-headline text-4xl font-black text-on-surface" id="active-tickets-count">
             &mdash;
           </span>
         </div>
         <div class="bg-secondary-container/30 rounded-xl p-8 flex flex-col justify-center">
-          <span
-            class="text-xs uppercase tracking-widest font-bold text-secondary mb-2"
-            style="font-family: 'Be Vietnam Pro', sans-serif;"
-          >
+          <span class="font-body text-xs uppercase tracking-widest font-bold text-secondary mb-2">
             Customers Browsing
           </span>
-          <span
-            class="text-4xl font-black text-secondary"
-            style="font-family: 'Plus Jakarta Sans', sans-serif;"
-          >
+          <span class="font-headline text-4xl font-black text-secondary">
             {@visitor_count}
           </span>
         </div>
         <div class="bg-primary-container rounded-xl p-8 flex flex-col justify-center">
-          <span
-            class="text-xs uppercase tracking-widest font-bold text-on-primary-container/70 mb-2"
-            style="font-family: 'Be Vietnam Pro', sans-serif;"
-          >
+          <span class="font-body text-xs uppercase tracking-widest font-bold text-on-primary-container/70 mb-2">
             Active Baskets
           </span>
-          <span
-            class="text-4xl font-black text-on-primary-container italic"
-            style="font-family: 'Plus Jakarta Sans', sans-serif;"
-          >
+          <span class="font-headline text-4xl font-black text-on-primary-container italic">
             {@active_carts_count}
           </span>
         </div>
@@ -96,10 +77,7 @@ defmodule SupervisedSlicesWeb.AdminLive.OrdersComponent do
 
       <div class="space-y-3">
         <div class="flex items-center justify-between px-2 pb-1">
-          <h2
-            class="text-xl font-bold text-on-surface"
-            style="font-family: 'Plus Jakarta Sans', sans-serif;"
-          >
+          <h2 class="font-headline text-xl font-bold text-on-surface">
             Live Queue
           </h2>
           <span class="text-sm text-on-surface-variant">Oldest first</span>
@@ -113,18 +91,12 @@ defmodule SupervisedSlicesWeb.AdminLive.OrdersComponent do
             >
               <div class="flex items-start gap-5 min-w-0">
                 <div class="bg-surface-container-low w-16 h-16 shrink-0 rounded-xl flex items-center justify-center">
-                  <span
-                    class="text-lg font-black text-on-surface"
-                    style="font-family: 'Plus Jakarta Sans', sans-serif;"
-                  >
+                  <span class="font-headline text-lg font-black text-on-surface">
                     #{order_number(order)}
                   </span>
                 </div>
                 <div class="min-w-0">
-                  <h3
-                    class="text-base font-bold text-on-surface truncate"
-                    style="font-family: 'Plus Jakarta Sans', sans-serif;"
-                  >
+                  <h3 class="font-headline text-base font-bold text-on-surface truncate">
                     {order.customer_name}
                   </h3>
                   <p class="text-sm text-on-surface-variant">{time_ago(order.inserted_at)}</p>
@@ -137,16 +109,18 @@ defmodule SupervisedSlicesWeb.AdminLive.OrdersComponent do
               <div class="flex-1 px-2 min-w-0">
                 <div class="flex flex-wrap gap-2">
                   <%= for item <- (order.order_items || []) do %>
-                    <span
-                      class="bg-surface-container px-3 py-1 rounded-full text-xs font-bold text-on-surface uppercase tracking-wider"
-                      style="font-family: 'Be Vietnam Pro', sans-serif;"
-                    >
+                    <span class="font-body bg-surface-container px-3 py-1 rounded-full text-xs font-bold text-on-surface uppercase tracking-wider">
                       {item.quantity}x {item.item_name}
                     </span>
                   <% end %>
                 </div>
                 <div class="mt-2 text-sm font-bold text-primary">
                   {format_money(order.total_price)}
+                  <%= if order.tax_amount && Money.compare!(order.tax_amount, Money.new!(0, order.tax_amount.currency)) != :eq do %>
+                    <span class="text-xs font-normal text-on-surface-variant ml-1">
+                      incl. {format_money(order.tax_amount)} tax
+                    </span>
+                  <% end %>
                 </div>
               </div>
 
@@ -167,14 +141,13 @@ defmodule SupervisedSlicesWeb.AdminLive.OrdersComponent do
                     phx-value-id={order.id}
                     phx-target={@myself}
                     class={[
-                      "px-6 py-2.5 rounded-xl font-bold transition-all active:scale-95 duration-150",
+                      "font-headline px-6 py-2.5 rounded-xl font-bold transition-all active:scale-95 duration-150",
                       if(order.status == :ready,
                         do: "bg-primary text-white hover:opacity-90 shadow-lg shadow-primary/20",
                         else:
                           "bg-surface-container-highest text-on-surface hover:bg-surface-container-high"
                       )
                     ]}
-                    style="font-family: 'Plus Jakarta Sans', sans-serif;"
                   >
                     {next_status_label(order.status)}
                   </button>
@@ -188,7 +161,7 @@ defmodule SupervisedSlicesWeb.AdminLive.OrdersComponent do
                     class="w-9 h-9 flex items-center justify-center rounded-full text-on-surface-variant hover:bg-error-container hover:text-error transition-colors"
                     title="Cancel order"
                   >
-                    <span class="material-symbols-outlined" style="font-size: 18px;">close</span>
+                    <span class="material-symbols-outlined text-lg">close</span>
                   </button>
                 <% end %>
               </div>

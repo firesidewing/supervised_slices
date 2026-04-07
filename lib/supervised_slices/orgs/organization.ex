@@ -10,6 +10,10 @@ defmodule SupervisedSlices.Orgs.Organization do
     repo SupervisedSlices.Repo
   end
 
+  code_interface do
+    define :update_settings, action: :update_settings
+  end
+
   actions do
     defaults [:read, :destroy]
 
@@ -21,6 +25,10 @@ defmodule SupervisedSlices.Orgs.Organization do
       accept [:name, :active]
     end
 
+    update :update_settings do
+      accept [:tax_rate]
+    end
+
     read :by_slug do
       argument :slug, :string, allow_nil?: false
       get? true
@@ -30,6 +38,10 @@ defmodule SupervisedSlices.Orgs.Organization do
 
   policies do
     policy action_type(:read) do
+      authorize_if always()
+    end
+
+    policy action(:update_settings) do
       authorize_if always()
     end
 
@@ -53,6 +65,12 @@ defmodule SupervisedSlices.Orgs.Organization do
 
     attribute :active, :boolean do
       default true
+      allow_nil? false
+      public? true
+    end
+
+    attribute :tax_rate, :decimal do
+      default Decimal.new("0")
       allow_nil? false
       public? true
     end

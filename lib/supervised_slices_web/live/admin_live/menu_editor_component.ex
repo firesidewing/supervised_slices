@@ -332,7 +332,6 @@ defmodule SupervisedSlicesWeb.AdminLive.MenuEditorComponent do
         <div>
           <h2
             class="text-xl font-bold text-on-surface"
-            style="font-family: 'Plus Jakarta Sans', sans-serif;"
           >
             Menu Editor
           </h2>
@@ -344,7 +343,6 @@ defmodule SupervisedSlicesWeb.AdminLive.MenuEditorComponent do
           phx-click="add_category"
           phx-target={@myself}
           class="flex items-center gap-2 bg-primary text-white px-5 py-2.5 rounded-xl font-bold text-sm hover:opacity-90 transition-opacity"
-          style="font-family: 'Plus Jakarta Sans', sans-serif;"
         >
           <span class="material-symbols-outlined" style="font-size: 18px;">add</span> New Category
         </button>
@@ -354,7 +352,6 @@ defmodule SupervisedSlicesWeb.AdminLive.MenuEditorComponent do
         <div class="flex items-center justify-between">
           <p
             class="text-xs font-bold text-on-surface-variant uppercase tracking-wider"
-            style="font-family: 'Be Vietnam Pro', sans-serif;"
           >
             Modifier Groups
           </p>
@@ -423,7 +420,6 @@ defmodule SupervisedSlicesWeb.AdminLive.MenuEditorComponent do
                 <div class="flex items-center gap-2">
                   <span
                     class="flex-1 text-sm font-bold text-on-surface"
-                    style="font-family: 'Plus Jakarta Sans', sans-serif;"
                   >
                     {group.name}
                   </span>
@@ -536,7 +532,6 @@ defmodule SupervisedSlicesWeb.AdminLive.MenuEditorComponent do
             autofocus
             placeholder="Category name…"
             class="flex-1 text-base font-bold bg-surface-container-low border-0 rounded-lg px-4 py-2.5 focus:ring-2 focus:ring-primary outline-none"
-            style="font-family: 'Plus Jakarta Sans', sans-serif;"
           />
           <input
             type="number"
@@ -580,7 +575,6 @@ defmodule SupervisedSlicesWeb.AdminLive.MenuEditorComponent do
                 name="category[name]"
                 value={category.name}
                 class="flex-1 text-lg font-extrabold bg-white border-0 rounded-lg px-4 py-2 focus:ring-2 focus:ring-primary outline-none"
-                style="font-family: 'Plus Jakarta Sans', sans-serif;"
                 autofocus
               />
               <input
@@ -610,7 +604,6 @@ defmodule SupervisedSlicesWeb.AdminLive.MenuEditorComponent do
               <div class="h-7 w-1 rounded-full bg-primary shrink-0"></div>
               <h3
                 class="text-xl font-extrabold text-on-surface flex-1"
-                style="font-family: 'Plus Jakarta Sans', sans-serif;"
               >
                 {category.name}
               </h3>
@@ -636,7 +629,6 @@ defmodule SupervisedSlicesWeb.AdminLive.MenuEditorComponent do
                       <div>
                         <label
                           class="block text-xs font-bold text-on-surface-variant uppercase tracking-wider mb-1"
-                          style="font-family: 'Be Vietnam Pro', sans-serif;"
                         >
                           Name
                         </label>
@@ -651,7 +643,6 @@ defmodule SupervisedSlicesWeb.AdminLive.MenuEditorComponent do
                       <div>
                         <label
                           class="block text-xs font-bold text-on-surface-variant uppercase tracking-wider mb-1"
-                          style="font-family: 'Be Vietnam Pro', sans-serif;"
                         >
                           Base Price (CAD) — leave blank if using sizes
                         </label>
@@ -667,7 +658,6 @@ defmodule SupervisedSlicesWeb.AdminLive.MenuEditorComponent do
                       <div class="md:col-span-2">
                         <label
                           class="block text-xs font-bold text-on-surface-variant uppercase tracking-wider mb-1"
-                          style="font-family: 'Be Vietnam Pro', sans-serif;"
                         >
                           Description
                         </label>
@@ -680,7 +670,6 @@ defmodule SupervisedSlicesWeb.AdminLive.MenuEditorComponent do
                       <div>
                         <label
                           class="block text-xs font-bold text-on-surface-variant uppercase tracking-wider mb-1"
-                          style="font-family: 'Be Vietnam Pro', sans-serif;"
                         >
                           Image URL
                         </label>
@@ -694,7 +683,6 @@ defmodule SupervisedSlicesWeb.AdminLive.MenuEditorComponent do
                       <div>
                         <label
                           class="block text-xs font-bold text-on-surface-variant uppercase tracking-wider mb-1"
-                          style="font-family: 'Be Vietnam Pro', sans-serif;"
                         >
                           Sort Order
                         </label>
@@ -727,7 +715,6 @@ defmodule SupervisedSlicesWeb.AdminLive.MenuEditorComponent do
                   <div class="border-t border-surface-container-low pt-4 space-y-3">
                     <p
                       class="text-xs font-bold text-on-surface-variant uppercase tracking-wider"
-                      style="font-family: 'Be Vietnam Pro', sans-serif;"
                     >
                       Modifier Groups
                     </p>
@@ -793,7 +780,6 @@ defmodule SupervisedSlicesWeb.AdminLive.MenuEditorComponent do
                     <div class="flex items-center justify-between">
                       <p
                         class="text-xs font-bold text-on-surface-variant uppercase tracking-wider"
-                        style="font-family: 'Be Vietnam Pro', sans-serif;"
                       >
                         Sizes
                       </p>
@@ -902,7 +888,6 @@ defmodule SupervisedSlicesWeb.AdminLive.MenuEditorComponent do
                     <div class="flex items-center gap-2">
                       <span
                         class="font-bold text-on-surface text-sm truncate"
-                        style="font-family: 'Plus Jakarta Sans', sans-serif;"
                       >
                         {item.name}
                       </span>
@@ -979,7 +964,6 @@ defmodule SupervisedSlicesWeb.AdminLive.MenuEditorComponent do
                 <input type="hidden" name="item[category_id]" value={category.id} />
                 <h4
                   class="text-sm font-bold text-on-surface"
-                  style="font-family: 'Plus Jakarta Sans', sans-serif;"
                 >
                   New Item
                 </h4>

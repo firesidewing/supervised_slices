@@ -499,6 +499,7 @@ defmodule SupervisedSlicesWeb.CoreComponents do
   attr :cart, :any, required: true
   attr :show, :boolean, required: true
   attr :checkout_step, :atom, required: true
+  attr :tax_rate, :any, required: true
 
   def basket_drawer(assigns) do
     ~H"""
@@ -514,10 +515,10 @@ defmodule SupervisedSlicesWeb.CoreComponents do
         phx-click="toggle_basket"
       />
       <div class={[
-        "absolute bottom-0 left-0 right-0 bg-[#faf9f6] rounded-t-3xl max-h-[80vh] flex flex-col transition-transform duration-300 ease-out",
+        "absolute bottom-0 left-0 right-0 bg-background rounded-t-3xl max-h-[80vh] flex flex-col transition-transform duration-300 ease-out",
         if(@show, do: "translate-y-0", else: "translate-y-full")
       ]}>
-        <div class="flex items-center justify-between px-6 py-5 border-b border-surface-container-low shrink-0">
+        <div class="flex items-center justify-between px-6 py-5 shrink-0">
           <div class="flex items-center gap-2">
             <button
               :if={@checkout_step == :confirm}
@@ -527,10 +528,7 @@ defmodule SupervisedSlicesWeb.CoreComponents do
             >
               <span class="material-symbols-outlined">arrow_back</span>
             </button>
-            <h2
-              class="text-xl font-extrabold tracking-tight text-on-surface"
-              style="font-family: 'Plus Jakarta Sans', sans-serif;"
-            >
+            <h2 class="font-headline text-xl font-extrabold tracking-tight text-on-surface">
               {if @checkout_step == :confirm, do: "Your Details", else: "Your Basket"}
             </h2>
           </div>
@@ -552,10 +550,10 @@ defmodule SupervisedSlicesWeb.CoreComponents do
                 <p class="mt-3 font-medium">Your basket is empty</p>
               </div>
             <% else %>
-              <div class="space-y-1">
+              <div class="space-y-1.5">
                 <%= for item <- @cart.cart_items do %>
                   <% modifier = basket_find_modifier(item) %>
-                  <div class="flex items-center justify-between py-3 border-b border-surface-container-low last:border-0">
+                  <div class="flex items-center justify-between py-2.5 px-3 bg-surface-container-low rounded-xl">
                     <div class="flex-1 min-w-0 mr-4">
                       <p class="font-semibold text-on-surface text-sm">{item.menu_item.name}</p>
                       <p :if={item.selected_size} class="text-xs text-on-surface-variant mt-0.5">
@@ -580,14 +578,26 @@ defmodule SupervisedSlicesWeb.CoreComponents do
           </div>
 
           <%= if not is_nil(@cart) and not Enum.empty?(@cart.cart_items) do %>
-            <div class="px-6 pb-8 pt-4 border-t border-surface-container-low shrink-0 space-y-4">
-              <div class="flex justify-between items-center">
-                <span class="font-bold text-on-surface">Total</span>
-                <span class="text-lg font-extrabold text-primary">{basket_total(@cart)}</span>
+            <div class="bg-surface-container-low rounded-t-2xl px-6 pb-8 pt-5 shrink-0 space-y-4">
+              <div class="space-y-1.5">
+                <div class="flex justify-between items-center text-sm text-on-surface-variant">
+                  <span>Subtotal</span>
+                  <span>{basket_subtotal_string(@cart)}</span>
+                </div>
+                <%= if basket_has_tax?(@tax_rate) do %>
+                  <div class="flex justify-between items-center text-sm text-on-surface-variant">
+                    <span>Tax ({basket_tax_percent_label(@tax_rate)}%)</span>
+                    <span>{basket_tax_string(@cart, @tax_rate)}</span>
+                  </div>
+                <% end %>
+                <div class="flex justify-between items-center pt-1">
+                  <span class="font-bold text-on-surface">Total</span>
+                  <span class="text-lg font-extrabold text-primary">{basket_total(@cart, @tax_rate)}</span>
+                </div>
               </div>
               <button
                 phx-click="start_checkout"
-                class="w-full bg-gradient-to-r from-[#b90027] to-[#e31837] text-white font-bold py-4 rounded-full text-sm uppercase tracking-widest hover:scale-[1.01] transition-all active:scale-95 shadow-[0px_8px_24px_rgba(185,0,39,0.25)]"
+                class="w-full bg-gradient-to-r from-primary to-primary-container text-white font-bold py-4 rounded-full text-sm uppercase tracking-widest hover:scale-[1.02] transition-all active:scale-95 shadow-[0px_8px_24px_rgba(185,0,39,0.25)]"
               >
                 Place Order
               </button>
@@ -601,10 +611,7 @@ defmodule SupervisedSlicesWeb.CoreComponents do
           >
             <div class="flex-1 px-6 py-4 space-y-4">
               <div>
-                <label
-                  class="block text-xs font-bold uppercase tracking-widest text-on-surface-variant mb-1.5"
-                  style="font-family: 'Be Vietnam Pro', sans-serif;"
-                >
+                <label class="font-body block text-xs font-bold uppercase tracking-widest text-on-surface-variant mb-1.5">
                   Your Name <span class="text-primary">*</span>
                 </label>
                 <input
@@ -616,10 +623,7 @@ defmodule SupervisedSlicesWeb.CoreComponents do
                 />
               </div>
               <div>
-                <label
-                  class="block text-xs font-bold uppercase tracking-widest text-on-surface-variant mb-1.5"
-                  style="font-family: 'Be Vietnam Pro', sans-serif;"
-                >
+                <label class="font-body block text-xs font-bold uppercase tracking-widest text-on-surface-variant mb-1.5">
                   Phone
                   <span class="text-on-surface-variant/50 normal-case font-normal">(optional)</span>
                 </label>
@@ -631,10 +635,7 @@ defmodule SupervisedSlicesWeb.CoreComponents do
                 />
               </div>
               <div>
-                <label
-                  class="block text-xs font-bold uppercase tracking-widest text-on-surface-variant mb-1.5"
-                  style="font-family: 'Be Vietnam Pro', sans-serif;"
-                >
+                <label class="font-body block text-xs font-bold uppercase tracking-widest text-on-surface-variant mb-1.5">
                   Notes
                   <span class="text-on-surface-variant/50 normal-case font-normal">(optional)</span>
                 </label>
@@ -646,14 +647,26 @@ defmodule SupervisedSlicesWeb.CoreComponents do
                 />
               </div>
             </div>
-            <div class="px-6 pb-8 pt-4 border-t border-surface-container-low shrink-0 space-y-2">
-              <div class="flex justify-between items-center mb-2">
-                <span class="font-bold text-on-surface">Total</span>
-                <span class="text-lg font-extrabold text-primary">{basket_total(@cart)}</span>
+            <div class="bg-surface-container-low rounded-t-2xl px-6 pb-8 pt-5 shrink-0 space-y-4">
+              <div class="space-y-1.5">
+                <div class="flex justify-between items-center text-sm text-on-surface-variant">
+                  <span>Subtotal</span>
+                  <span>{basket_subtotal_string(@cart)}</span>
+                </div>
+                <%= if basket_has_tax?(@tax_rate) do %>
+                  <div class="flex justify-between items-center text-sm text-on-surface-variant">
+                    <span>Tax ({basket_tax_percent_label(@tax_rate)}%)</span>
+                    <span>{basket_tax_string(@cart, @tax_rate)}</span>
+                  </div>
+                <% end %>
+                <div class="flex justify-between items-center pt-1">
+                  <span class="font-bold text-on-surface">Total</span>
+                  <span class="text-lg font-extrabold text-primary">{basket_total(@cart, @tax_rate)}</span>
+                </div>
               </div>
               <button
                 type="submit"
-                class="w-full bg-gradient-to-r from-[#b90027] to-[#e31837] text-white font-bold py-4 rounded-full text-sm uppercase tracking-widest hover:scale-[1.01] transition-all active:scale-95 shadow-[0px_8px_24px_rgba(185,0,39,0.25)]"
+                class="w-full bg-gradient-to-r from-primary to-primary-container text-white font-bold py-4 rounded-full text-sm uppercase tracking-widest hover:scale-[1.02] transition-all active:scale-95 shadow-[0px_8px_24px_rgba(185,0,39,0.25)]"
               >
                 Confirm Order
               </button>
@@ -697,7 +710,7 @@ defmodule SupervisedSlicesWeb.CoreComponents do
     _ -> ""
   end
 
-  defp basket_total(cart) do
+  defp basket_subtotal_money(cart) do
     cart.cart_items
     |> Enum.reduce(nil, fn item, acc ->
       modifier = basket_find_modifier(item)
@@ -729,9 +742,54 @@ defmodule SupervisedSlicesWeb.CoreComponents do
         end
       end
     end)
-    |> case do
+  end
+
+  defp basket_subtotal_string(cart) do
+    case basket_subtotal_money(cart) do
       nil -> ""
       total -> Money.to_string!(total)
+    end
+  rescue
+    _ -> ""
+  end
+
+  defp basket_has_tax?(tax_rate) do
+    Decimal.compare(tax_rate, Decimal.new("0")) == :gt
+  rescue
+    _ -> false
+  end
+
+  defp basket_tax_percent_label(tax_rate) do
+    tax_rate
+    |> Decimal.mult(Decimal.new("100"))
+    |> Decimal.normalize()
+    |> Decimal.to_string()
+  rescue
+    _ -> "0"
+  end
+
+  defp basket_tax_string(cart, tax_rate) do
+    case basket_subtotal_money(cart) do
+      nil ->
+        ""
+
+      subtotal ->
+        tax = Money.mult!(subtotal, tax_rate)
+        Money.to_string!(tax)
+    end
+  rescue
+    _ -> ""
+  end
+
+  defp basket_total(cart, tax_rate) do
+    case basket_subtotal_money(cart) do
+      nil ->
+        ""
+
+      subtotal ->
+        tax = Money.mult!(subtotal, tax_rate)
+        {:ok, total} = Money.add(subtotal, tax)
+        Money.to_string!(total)
     end
   rescue
     _ -> ""

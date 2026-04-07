@@ -81,7 +81,11 @@ defmodule SupervisedSlicesWeb.MenuLive do
   end
 
   def handle_event("place_order", params, socket) do
-    %{ash_scope: scope, cart: cart} = socket.assigns
+    %{ash_scope: scope, cart: cart, org: org} = socket.assigns
+
+    subtotal = order_subtotal(cart)
+    tax_amount = order_tax_amount(subtotal, org.tax_rate)
+    {:ok, total_price} = Money.add(subtotal, tax_amount)
 
     order =
       Order.place_order!(
@@ -89,7 +93,8 @@ defmodule SupervisedSlicesWeb.MenuLive do
           customer_name: params["customer_name"],
           customer_phone: params["customer_phone"],
           notes: params["notes"],
-          total_price: order_total(cart)
+          total_price: total_price,
+          tax_amount: tax_amount
         },
         scope: scope
       )
@@ -321,12 +326,20 @@ defmodule SupervisedSlicesWeb.MenuLive do
     end
   end
 
-  defp order_total(cart) do
+  defp order_subtotal(cart) do
     Enum.reduce(cart.cart_items, nil, fn item, acc ->
       modifier = order_find_modifier(item)
       line = Money.mult!(order_item_price(item, modifier), item.quantity)
       if is_nil(acc), do: line, else: elem(Money.add(acc, line), 1)
     end)
+  end
+
+  defp order_tax_amount(subtotal, tax_rate) do
+    if Decimal.compare(tax_rate, Decimal.new("0")) == :gt do
+      Money.mult!(subtotal, tax_rate)
+    else
+      Money.new!(0, subtotal.currency)
+    end
   end
 
   # ---------------------------------------------------------------------------
@@ -335,7 +348,7 @@ defmodule SupervisedSlicesWeb.MenuLive do
 
   def render(assigns) do
     ~H"""
-    <header class="fixed top-0 w-full z-50 bg-[#faf9f6]/80 backdrop-blur-xl flex items-center gap-4 px-4 py-4">
+    <header class="fixed top-0 w-full z-50 bg-background/80 backdrop-blur-xl flex items-center gap-4 px-4 py-4">
       <.link
         :if={@live_action == :show}
         navigate={~p"/menu/#{@org.slug}"}
@@ -344,10 +357,7 @@ defmodule SupervisedSlicesWeb.MenuLive do
       >
         <span class="material-symbols-outlined">arrow_back</span>
       </.link>
-      <h1
-        class="text-xl font-bold tracking-tight text-[#E31837]"
-        style="font-family: 'Plus Jakarta Sans', sans-serif;"
-      >
+      <h1 class="font-headline text-xl font-bold tracking-tight text-primary-container">
         {@org.name}
       </h1>
       <div :if={@live_action == :index} class="ml-auto flex items-center gap-3">
@@ -386,7 +396,7 @@ defmodule SupervisedSlicesWeb.MenuLive do
 
     <.menu_nav cart_count={@cart_count} org={@org} />
 
-    <.basket_drawer cart={@cart} show={@show_basket} checkout_step={@checkout_step} />
+    <.basket_drawer cart={@cart} show={@show_basket} checkout_step={@checkout_step} tax_rate={@org.tax_rate} />
 
     <div class="fixed top-[15%] right-[-20px] opacity-10 pointer-events-none transform rotate-45 select-none hidden lg:block text-on-surface">
       <span class="material-symbols-outlined" style="font-size: 120px;">potted_plant</span>
@@ -400,16 +410,13 @@ defmodule SupervisedSlicesWeb.MenuLive do
   defp menu_nav(assigns) do
     ~H"""
     <nav class="fixed bottom-6 left-0 right-0 flex justify-center items-center px-4 z-50 pointer-events-none">
-      <div class="pointer-events-auto w-[90%] max-w-lg bg-gradient-to-r from-[#b90027] to-[#e31837] rounded-full flex justify-around items-center px-4 py-2 shadow-[0px_12px_32px_rgba(185,0,39,0.25)]">
+      <div class="pointer-events-auto w-[90%] max-w-lg bg-gradient-to-r from-primary to-primary-container rounded-full flex justify-around items-center px-4 py-2 shadow-[0px_12px_32px_rgba(185,0,39,0.25)]">
         <.link
           navigate={~p"/menu/#{@org.slug}"}
           class="flex items-center gap-2 bg-white/20 rounded-full px-5 py-2.5 text-white font-bold hover:scale-[1.02] transition-all active:scale-95"
         >
           <span class="material-symbols-outlined">restaurant_menu</span>
-          <span
-            class="text-[10px] uppercase tracking-widest"
-            style="font-family: 'Be Vietnam Pro', sans-serif;"
-          >
+          <span class="font-body text-[10px] uppercase tracking-widest">
             Explore Menu
           </span>
         </.link>
@@ -418,10 +425,7 @@ defmodule SupervisedSlicesWeb.MenuLive do
           class="flex items-center gap-1.5 text-white/80 px-5 py-2.5 hover:scale-[1.02] transition-all active:scale-95"
         >
           <span class="material-symbols-outlined">shopping_cart_checkout</span>
-          <span
-            class="text-[10px] uppercase tracking-widest"
-            style="font-family: 'Be Vietnam Pro', sans-serif;"
-          >
+          <span class="font-body text-[10px] uppercase tracking-widest">
             View Basket
           </span>
           <span

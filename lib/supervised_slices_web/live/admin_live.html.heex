@@ -1,15 +1,9 @@
-<aside class="h-screen w-72 fixed left-0 top-0 bg-[#faf9f6] border-r border-stone-100 flex flex-col py-8 gap-2 z-40">
+<aside class="h-screen w-72 fixed left-0 top-0 bg-surface-container-low flex flex-col py-8 gap-2 z-40">
   <div class="px-6 pb-4">
-    <div
-      class="text-xl font-black text-[#b90027] italic"
-      style="font-family: 'Plus Jakarta Sans', sans-serif;"
-    >
+    <div class="font-headline text-xl font-black text-primary italic">
       Kitchen Command
     </div>
-    <div
-      class="text-xs text-on-surface-variant mt-0.5"
-      style="font-family: 'Be Vietnam Pro', sans-serif;"
-    >
+    <div class="font-body text-xs text-on-surface-variant mt-0.5">
       {@org.name}
     </div>
   </div>
@@ -18,13 +12,12 @@
     <.link
       navigate={~p"/kitchen/#{@org.slug}"}
       class={[
-        "flex items-center gap-4 px-6 py-4 rounded-2xl font-medium transition-all duration-200",
+        "flex items-center gap-4 px-6 py-4 rounded-2xl font-medium transition-all duration-200 font-headline",
         if(@live_action == :orders,
-          do: "bg-white text-[#b90027] shadow-sm",
-          else: "text-on-surface-variant hover:bg-surface-container-low hover:translate-x-0.5"
+          do: "bg-white text-primary shadow-sm",
+          else: "text-on-surface-variant hover:bg-surface-container hover:translate-x-0.5"
         )
       ]}
-      style="font-family: 'Plus Jakarta Sans', sans-serif;"
     >
       <span class="material-symbols-outlined">pending_actions</span>
       <span>Live Orders</span>
@@ -33,13 +26,12 @@
     <.link
       navigate={~p"/kitchen/#{@org.slug}/baskets"}
       class={[
-        "flex items-center gap-4 px-6 py-4 rounded-2xl font-medium transition-all duration-200",
+        "flex items-center gap-4 px-6 py-4 rounded-2xl font-medium transition-all duration-200 font-headline",
         if(@live_action == :baskets,
-          do: "bg-white text-[#b90027] shadow-sm",
-          else: "text-on-surface-variant hover:bg-surface-container-low hover:translate-x-0.5"
+          do: "bg-white text-primary shadow-sm",
+          else: "text-on-surface-variant hover:bg-surface-container hover:translate-x-0.5"
         )
       ]}
-      style="font-family: 'Plus Jakarta Sans', sans-serif;"
     >
       <span class="material-symbols-outlined">shopping_cart_checkout</span>
       <span>Basket Monitor</span>
@@ -48,16 +40,29 @@
     <.link
       navigate={~p"/kitchen/#{@org.slug}/menu"}
       class={[
-        "flex items-center gap-4 px-6 py-4 rounded-2xl font-medium transition-all duration-200",
+        "flex items-center gap-4 px-6 py-4 rounded-2xl font-medium transition-all duration-200 font-headline",
         if(@live_action == :menu,
-          do: "bg-white text-[#b90027] shadow-sm",
-          else: "text-on-surface-variant hover:bg-surface-container-low hover:translate-x-0.5"
+          do: "bg-white text-primary shadow-sm",
+          else: "text-on-surface-variant hover:bg-surface-container hover:translate-x-0.5"
         )
       ]}
-      style="font-family: 'Plus Jakarta Sans', sans-serif;"
     >
       <span class="material-symbols-outlined">edit_note</span>
       <span>Menu Editor</span>
+    </.link>
+
+    <.link
+      navigate={~p"/kitchen/#{@org.slug}/settings"}
+      class={[
+        "flex items-center gap-4 px-6 py-4 rounded-2xl font-medium transition-all duration-200 font-headline",
+        if(@live_action == :settings,
+          do: "bg-white text-primary shadow-sm",
+          else: "text-on-surface-variant hover:bg-surface-container hover:translate-x-0.5"
+        )
+      ]}
+    >
+      <span class="material-symbols-outlined">manage_accounts</span>
+      <span>Settings</span>
     </.link>
   </nav>
 
@@ -71,23 +76,21 @@
   </div>
 </aside>
 
-<main class="ml-72 min-h-screen bg-[#faf9f6]">
-  <header class="bg-[#faf9f6]/90 backdrop-blur-sm sticky top-0 z-30 flex justify-between items-center px-10 py-5 border-b border-stone-100">
+<main class="ml-72 min-h-screen bg-background">
+  <header class="bg-background/90 backdrop-blur-sm sticky top-0 z-30 flex justify-between items-center px-10 py-5">
     <div class="flex items-center gap-4">
-      <h1
-        class="text-2xl font-black text-[#b90027] italic"
-        style="font-family: 'Plus Jakarta Sans', sans-serif;"
-      >
+      <h1 class="font-headline text-2xl font-black text-primary italic">
         {case @live_action do
           :orders -> "Live Orders"
           :baskets -> "Basket Monitor"
           :menu -> "Menu Editor"
+          :settings -> "Settings"
         end}
       </h1>
     </div>
     <div class="flex items-center gap-6">
       <div class="flex items-center gap-2 text-sm text-on-surface-variant">
-        <span class="material-symbols-outlined" style="font-size: 18px;">visibility</span>
+        <span class="material-symbols-outlined text-lg">visibility</span>
         <span class="font-semibold">{@visitor_count}</span>
         <span>on menu</span>
       </div>
@@ -118,6 +121,14 @@
       module={SupervisedSlicesWeb.AdminLive.MenuEditorComponent}
       id="menu-editor"
       ash_scope={@ash_scope}
+    />
+  <% end %>
+
+  <%= if @live_action == :settings do %>
+    <.live_component
+      module={SupervisedSlicesWeb.AdminLive.SettingsComponent}
+      id="settings"
+      org={@org}
     />
   <% end %>
 </main>

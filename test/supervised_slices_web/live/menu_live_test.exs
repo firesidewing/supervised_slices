@@ -6,7 +6,9 @@ defmodule SupervisedSlicesWeb.MenuLiveTest do
   alias SupervisedSlices.Menu.{Category, MenuItem}
   alias SupervisedSlices.Orgs.Organization
 
-  setup do
+  defp create_org(opts \\ []) do
+    tax_rate = Keyword.get(opts, :tax_rate, Decimal.new("0"))
+
     org =
       Organization
       |> Ash.Changeset.for_create(:create, %{
@@ -15,30 +17,43 @@ defmodule SupervisedSlicesWeb.MenuLiveTest do
       })
       |> Ash.create!(authorize?: false)
 
-    scope = %SupervisedSlices.Scope{
+    Organization.update_settings!(org, %{tax_rate: tax_rate}, authorize?: false)
+  end
+
+  defp create_scope(org) do
+    %SupervisedSlices.Scope{
       current_user: nil,
       current_tenant: org.id,
       guest_session_id: Ash.UUIDv7.generate()
     }
+  end
 
-    category =
-      Category.create!(
-        %{name: "Starters", sort_order: 1},
-        scope: scope,
-        authorize?: false
-      )
+  defp create_category(scope) do
+    Category.create!(
+      %{name: "Starters", sort_order: 1},
+      scope: scope,
+      authorize?: false
+    )
+  end
 
-    item =
-      MenuItem.create!(
-        %{
-          name: "Bruschetta",
-          description: "Toasted bread with tomato",
-          price: Money.new!(:USD, "9.00"),
-          category_id: category.id
-        },
-        scope: scope,
-        authorize?: false
-      )
+  defp create_item(scope, category) do
+    MenuItem.create!(
+      %{
+        name: "Bruschetta",
+        description: "Toasted bread with tomato",
+        price: Money.new!(:USD, "9.00"),
+        category_id: category.id
+      },
+      scope: scope,
+      authorize?: false
+    )
+  end
+
+  setup do
+    org = create_org()
+    scope = create_scope(org)
+    category = create_category(scope)
+    item = create_item(scope, category)
 
     %{org: org, category: category, item: item}
   end
@@ -110,6 +125,112 @@ defmodule SupervisedSlicesWeb.MenuLiveTest do
         |> render_click()
 
       assert html =~ "1"
+    end
+  end
+
+  describe "tax display" do
+    test "basket shows subtotal and total without a tax line when tax rate is 0", %{
+      conn: conn,
+      org: org,
+      item: item
+    } do
+      {:ok, lv, _html} = live(conn, ~p"/menu/#{org.slug}/item/#{item.id}")
+
+      lv |> element("button[phx-click='update_quantity'][phx-value-delta='1']") |> render_click()
+
+      html = lv |> element("nav button[phx-click='toggle_basket']") |> render_click()
+
+      assert html =~ "Subtotal"
+      assert html =~ "Total"
+      refute html =~ "Tax ("
+    end
+
+    test "basket shows subtotal, tax line, and total when tax rate is set", %{
+      conn: conn,
+      item: _item
+    } do
+      taxed_org = create_org(tax_rate: Decimal.new("0.085"))
+      taxed_scope = create_scope(taxed_org)
+      taxed_category = create_category(taxed_scope)
+      taxed_item = create_item(taxed_scope, taxed_category)
+
+      {:ok, lv, _html} = live(conn, ~p"/menu/#{taxed_org.slug}/item/#{taxed_item.id}")
+
+      lv |> element("button[phx-click='update_quantity'][phx-value-delta='1']") |> render_click()
+
+      html = lv |> element("nav button[phx-click='toggle_basket']") |> render_click()
+
+      assert html =~ "Subtotal"
+      assert html =~ "Tax (8.5%)"
+      assert html =~ "Total"
+    end
+
+    test "tax amount is calculated correctly on a $9 item at 10% tax", %{conn: conn} do
+      taxed_org = create_org(tax_rate: Decimal.new("0.10"))
+      taxed_scope = create_scope(taxed_org)
+      taxed_category = create_category(taxed_scope)
+      taxed_item = create_item(taxed_scope, taxed_category)
+
+      {:ok, lv, _html} = live(conn, ~p"/menu/#{taxed_org.slug}/item/#{taxed_item.id}")
+
+      lv |> element("button[phx-click='update_quantity'][phx-value-delta='1']") |> render_click()
+
+      html = lv |> element("nav button[phx-click='toggle_basket']") |> render_click()
+
+      assert html =~ "$9.00"
+      assert html =~ "$0.90"
+      assert html =~ "$9.90"
+    end
+  end
+
+  describe "order placement with tax" do
+    test "placing an order stores tax_amount on the order", %{conn: conn} do
+      alias SupervisedSlices.Orders.Order
+
+      taxed_org = create_org(tax_rate: Decimal.new("0.10"))
+      taxed_scope = create_scope(taxed_org)
+      taxed_category = create_category(taxed_scope)
+      taxed_item = create_item(taxed_scope, taxed_category)
+
+      {:ok, lv, _html} = live(conn, ~p"/menu/#{taxed_org.slug}/item/#{taxed_item.id}")
+
+      lv |> element("button[phx-click='update_quantity'][phx-value-delta='1']") |> render_click()
+      lv |> element("nav button[phx-click='toggle_basket']") |> render_click()
+      lv |> element("button[phx-click='start_checkout']") |> render_click()
+
+      lv
+      |> form("form[phx-submit='place_order']", %{customer_name: "Test Customer"})
+      |> render_submit()
+
+      orders = Order.active!(scope: taxed_scope, authorize?: false)
+      order = List.first(orders)
+
+      assert order != nil
+      assert order.tax_amount != nil
+      assert Money.compare!(order.tax_amount, Money.new!(:USD, "0.90")) == :eq
+      assert Money.compare!(order.total_price, Money.new!(:USD, "9.90")) == :eq
+    end
+
+    test "placing an order with no tax stores zero tax_amount", %{conn: conn, org: org, item: item} do
+      alias SupervisedSlices.Orders.Order
+
+      scope = create_scope(org)
+
+      {:ok, lv, _html} = live(conn, ~p"/menu/#{org.slug}/item/#{item.id}")
+
+      lv |> element("button[phx-click='update_quantity'][phx-value-delta='1']") |> render_click()
+      lv |> element("nav button[phx-click='toggle_basket']") |> render_click()
+      lv |> element("button[phx-click='start_checkout']") |> render_click()
+
+      lv
+      |> form("form[phx-submit='place_order']", %{customer_name: "Test Customer"})
+      |> render_submit()
+
+      orders = Order.active!(scope: scope, authorize?: false)
+      order = List.first(orders)
+
+      assert order != nil
+      assert Money.compare!(order.total_price, Money.new!(:USD, "9.00")) == :eq
     end
   end
 end

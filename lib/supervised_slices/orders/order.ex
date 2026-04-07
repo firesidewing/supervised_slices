@@ -27,7 +27,7 @@ defmodule SupervisedSlices.Orders.Order do
     defaults [:read]
 
     create :place_order do
-      accept [:customer_name, :customer_phone, :customer_email, :notes, :total_price]
+      accept [:customer_name, :customer_phone, :customer_email, :notes, :total_price, :tax_amount]
 
       change fn changeset, context ->
         changeset =
@@ -107,6 +107,11 @@ defmodule SupervisedSlices.Orders.Order do
 
     attribute :total_price, AshMoney.Types.Money do
       allow_nil? false
+      public? true
+    end
+
+    attribute :tax_amount, AshMoney.Types.Money do
+      allow_nil? true
       public? true
     end
 

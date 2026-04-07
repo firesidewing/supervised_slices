@@ -10,10 +10,7 @@ defmodule SupervisedSlicesWeb.AdminLive.BasketsComponent do
     <section class="p-8 space-y-8">
       <div class="flex items-center justify-between">
         <div>
-          <h2
-            class="text-xl font-bold text-on-surface"
-            style="font-family: 'Plus Jakarta Sans', sans-serif;"
-          >
+          <h2 class="font-headline text-xl font-bold text-on-surface">
             Active Baskets
           </h2>
           <p class="text-sm text-on-surface-variant mt-1">
@@ -37,16 +34,10 @@ defmodule SupervisedSlicesWeb.AdminLive.BasketsComponent do
             <div class="bg-surface-container-lowest rounded-xl p-5 space-y-4">
               <div class="flex items-center justify-between">
                 <div class="flex items-center gap-2">
-                  <span
-                    class="material-symbols-outlined text-on-surface-variant"
-                    style="font-size: 18px;"
-                  >
+                  <span class="material-symbols-outlined text-on-surface-variant text-lg">
                     shopping_bag
                   </span>
-                  <span
-                    class="text-xs font-bold text-on-surface-variant uppercase tracking-wider"
-                    style="font-family: 'Be Vietnam Pro', sans-serif;"
-                  >
+                  <span class="font-body text-xs font-bold text-on-surface-variant uppercase tracking-wider">
                     Session …{String.slice(cart.session_id || "anon", -6, 6)}
                   </span>
                 </div>
