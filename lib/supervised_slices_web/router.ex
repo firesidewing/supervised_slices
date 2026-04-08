@@ -42,6 +42,8 @@ defmodule SupervisedSlicesWeb.Router do
       live "/menu/:org_slug", MenuLive, :index
       live "/menu/:org_slug/item/:id", MenuLive, :show
 
+      live "/orders/:org_slug/:order_id", OrderTrackingLive, :index
+
       live "/kitchen/:org_slug", AdminLive, :orders
       live "/kitchen/:org_slug/baskets", AdminLive, :baskets
       live "/kitchen/:org_slug/menu", AdminLive, :menu

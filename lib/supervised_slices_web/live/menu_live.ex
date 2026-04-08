@@ -141,7 +141,7 @@ defmodule SupervisedSlicesWeb.MenuLive do
        show_basket: false,
        checkout_step: :review
      )
-     |> put_flash(:info, "Order placed! We'll have it ready soon.")}
+     |> push_navigate(to: ~p"/orders/#{org.slug}/#{order.id}")}
   end
 
   def handle_event(

@@ -26,6 +26,7 @@ defmodule SupervisedSlicesWeb.AdminLive.OrdersComponent do
       |> assign(:active_carts_count, assigns.active_carts_count)
       |> assign(:visitor_count, assigns.visitor_count)
       |> assign(:ash_scope, assigns.ash_scope)
+      |> assign(:org, assigns.org)
       |> stream(:orders, assigns.orders, reset: true)
 
     {:ok, socket}
@@ -42,6 +43,13 @@ defmodule SupervisedSlicesWeb.AdminLive.OrdersComponent do
     %{ash_scope: scope} = socket.assigns
     order = Order.get!(order_id, scope: scope)
     Order.update_status!(order, %{status: :cancelled}, scope: scope)
+    {:noreply, socket}
+  end
+
+  def handle_event("send_preset_update", %{"id" => order_id, "message" => message}, socket) do
+    %{ash_scope: scope} = socket.assigns
+    order = Order.get!(order_id, scope: scope)
+    Order.send_update!(order, %{message: message}, scope: scope)
     {:noreply, socket}
   end
 
@@ -124,45 +132,64 @@ defmodule SupervisedSlicesWeb.AdminLive.OrdersComponent do
                 </div>
               </div>
 
-              <div class="flex items-center gap-4 shrink-0">
-                <div class={[
-                  "flex items-center gap-2 px-4 py-2 rounded-full text-xs font-bold uppercase tracking-widest",
-                  status_badge_class(order.status)
-                ]}>
-                  <%= if order.status == :pending do %>
-                    <span class="w-1.5 h-1.5 rounded-full bg-primary animate-pulse"></span>
+              <div class="flex flex-col items-end gap-3 shrink-0">
+                <div class="flex items-center gap-4">
+                  <div class={[
+                    "flex items-center gap-2 px-4 py-2 rounded-full text-xs font-bold uppercase tracking-widest",
+                    status_badge_class(order.status)
+                  ]}>
+                    <%= if order.status == :pending do %>
+                      <span class="w-1.5 h-1.5 rounded-full bg-primary animate-pulse"></span>
+                    <% end %>
+                    {status_label(order.status)}
+                  </div>
+
+                  <%= if next_status_label(order.status) do %>
+                    <button
+                      phx-click="advance_order"
+                      phx-value-id={order.id}
+                      phx-target={@myself}
+                      class={[
+                        "font-headline px-6 py-2.5 rounded-xl font-bold transition-all active:scale-95 duration-150",
+                        if(order.status == :ready,
+                          do: "bg-primary text-white hover:opacity-90 shadow-lg shadow-primary/20",
+                          else:
+                            "bg-surface-container-highest text-on-surface hover:bg-surface-container-high"
+                        )
+                      ]}
+                    >
+                      {next_status_label(order.status)}
+                    </button>
                   <% end %>
-                  {status_label(order.status)}
+
+                  <%= if order.status not in [:completed, :cancelled] do %>
+                    <button
+                      phx-click="cancel_order"
+                      phx-value-id={order.id}
+                      phx-target={@myself}
+                      class="w-9 h-9 flex items-center justify-center rounded-full text-on-surface-variant hover:bg-error-container hover:text-error transition-colors"
+                      title="Cancel order"
+                    >
+                      <span class="material-symbols-outlined text-lg">close</span>
+                    </button>
+                  <% end %>
                 </div>
 
-                <%= if next_status_label(order.status) do %>
-                  <button
-                    phx-click="advance_order"
-                    phx-value-id={order.id}
-                    phx-target={@myself}
-                    class={[
-                      "font-headline px-6 py-2.5 rounded-xl font-bold transition-all active:scale-95 duration-150",
-                      if(order.status == :ready,
-                        do: "bg-primary text-white hover:opacity-90 shadow-lg shadow-primary/20",
-                        else:
-                          "bg-surface-container-highest text-on-surface hover:bg-surface-container-high"
-                      )
-                    ]}
-                  >
-                    {next_status_label(order.status)}
-                  </button>
-                <% end %>
-
-                <%= if order.status not in [:completed, :cancelled] do %>
-                  <button
-                    phx-click="cancel_order"
-                    phx-value-id={order.id}
-                    phx-target={@myself}
-                    class="w-9 h-9 flex items-center justify-center rounded-full text-on-surface-variant hover:bg-error-container hover:text-error transition-colors"
-                    title="Cancel order"
-                  >
-                    <span class="material-symbols-outlined text-lg">close</span>
-                  </button>
+                <%!-- Quick update chips (kitchen → customer) --%>
+                <%= if order.status in [:confirmed, :preparing] do %>
+                  <div class="flex flex-wrap gap-2 justify-end">
+                    <%= for msg <- ["Running a bit behind", "Ready in ~5 min", "Coming right up!"] do %>
+                      <button
+                        phx-click="send_preset_update"
+                        phx-value-id={order.id}
+                        phx-value-message={msg}
+                        phx-target={@myself}
+                        class="font-body text-xs px-3 py-1.5 rounded-full bg-surface-container text-on-surface-variant hover:bg-secondary-container hover:text-on-secondary-container transition-colors active:scale-95"
+                      >
+                        {msg}
+                      </button>
+                    <% end %>
+                  </div>
                 <% end %>
               </div>
             </div>

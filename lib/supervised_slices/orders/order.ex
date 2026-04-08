@@ -19,8 +19,10 @@ defmodule SupervisedSlices.Orders.Order do
     define :get, action: :read, get_by: :id
     define :place_order, action: :place_order
     define :update_status, action: :update_status
+    define :send_update, action: :send_update
     define :active, action: :active
     define :all, action: :all
+    define :for_user, args: [:user_id]
   end
 
   actions do
@@ -53,7 +55,31 @@ defmodule SupervisedSlices.Orders.Order do
       accept [:status]
 
       after_action(fn _changeset, order, _context ->
+        SupervisedSlices.Orders.OrderUpdate.create!(
+          %{order_id: order.id, status: order.status},
+          tenant: order.organization_id,
+          authorize?: false
+        )
+
         SupervisedSlices.PubSubNotifier.broadcast_order_status(order)
+        {:ok, order}
+      end)
+    end
+
+    update :send_update do
+      argument :message, :string, allow_nil?: false
+
+      after_action(fn changeset, order, _context ->
+        message = Ash.Changeset.get_argument(changeset, :message)
+
+        {:ok, update} =
+          SupervisedSlices.Orders.OrderUpdate.create(
+            %{order_id: order.id, message: message},
+            tenant: order.organization_id,
+            authorize?: false
+          )
+
+        SupervisedSlices.PubSubNotifier.broadcast_order_update(update)
         {:ok, order}
       end)
     end
@@ -80,6 +106,10 @@ defmodule SupervisedSlices.Orders.Order do
     end
 
     policy action(:update_status) do
+      authorize_if SupervisedSlices.Orgs.Checks.IsOrgAdmin
+    end
+
+    policy action(:send_update) do
       authorize_if SupervisedSlices.Orgs.Checks.IsOrgAdmin
     end
 
@@ -151,5 +181,6 @@ defmodule SupervisedSlices.Orders.Order do
     end
 
     has_many :order_items, SupervisedSlices.Orders.OrderItem
+    has_many :order_updates, SupervisedSlices.Orders.OrderUpdate
   end
 end

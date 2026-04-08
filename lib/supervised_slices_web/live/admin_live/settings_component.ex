@@ -8,22 +8,33 @@ defmodule SupervisedSlicesWeb.AdminLive.SettingsComponent do
      socket
      |> assign(assigns)
      |> assign(:tax_input, format_tax_rate(org.tax_rate))
+     |> assign(:prep_time_input, to_string(org.default_prep_time))
      |> assign(:save_status, nil)}
   end
 
-  def handle_event("save_settings", %{"tax_rate" => raw}, socket) do
-    case parse_tax_rate(raw) do
-      {:ok, rate} ->
-        Organization.update_settings!(socket.assigns.org, %{tax_rate: rate}, authorize?: false)
+  def handle_event("save_settings", %{"tax_rate" => raw_tax, "prep_time" => raw_prep}, socket) do
+    with {:ok, rate} <- parse_tax_rate(raw_tax),
+         {:ok, prep_time} <- parse_prep_time(raw_prep) do
+      Organization.update_settings!(socket.assigns.org, %{tax_rate: rate, default_prep_time: prep_time},
+        authorize?: false
+      )
 
-        {:noreply,
-         socket
-         |> assign(:tax_input, format_tax_rate(rate))
-         |> assign(:org, %{socket.assigns.org | tax_rate: rate})
-         |> assign(:save_status, :ok)}
-
+      {:noreply,
+       socket
+       |> assign(:tax_input, format_tax_rate(rate))
+       |> assign(:prep_time_input, to_string(prep_time))
+       |> assign(:org, %{socket.assigns.org | tax_rate: rate, default_prep_time: prep_time})
+       |> assign(:save_status, :ok)}
+    else
       :error ->
         {:noreply, assign(socket, :save_status, :error)}
+    end
+  end
+
+  defp parse_prep_time(raw) do
+    case Integer.parse(String.trim(raw)) do
+      {n, ""} when n >= 1 and n <= 120 -> {:ok, n}
+      _ -> :error
     end
   end
 
@@ -58,14 +69,35 @@ defmodule SupervisedSlicesWeb.AdminLive.SettingsComponent do
       <div class="bg-white rounded-3xl shadow-sm p-8 space-y-6">
         <div>
           <h2 class="font-headline text-lg font-extrabold text-on-surface">
-            Tax Settings
+            Kitchen Settings
           </h2>
           <p class="font-body text-sm text-on-surface-variant mt-1">
-            Applied to every order at checkout. Enter 0 to disable tax.
+            Configure defaults for orders and tax.
           </p>
         </div>
 
         <form phx-submit="save_settings" phx-target={@myself} class="space-y-4">
+          <div>
+            <label class="font-body block text-xs font-bold uppercase tracking-widest text-on-surface-variant mb-1.5">
+              Default Prep Time (minutes)
+            </label>
+            <div class="relative">
+              <input
+                type="text"
+                name="prep_time"
+                value={@prep_time_input}
+                placeholder="e.g. 20"
+                class="w-full px-4 py-3 pr-14 rounded-xl bg-surface-container-low border-0 text-on-surface placeholder-on-surface-variant/50 text-sm font-medium focus:outline-none focus:ring-2 focus:ring-primary/40"
+              />
+              <span class="absolute right-4 top-1/2 -translate-y-1/2 text-on-surface-variant font-bold text-sm">
+                min
+              </span>
+            </div>
+            <p class="font-body text-xs text-on-surface-variant mt-1.5">
+              Shown to customers as their estimated wait time. Between 1–120 min.
+            </p>
+          </div>
+
           <div>
             <label class="font-body block text-xs font-bold uppercase tracking-widest text-on-surface-variant mb-1.5">
               Tax Rate (%)
@@ -82,14 +114,17 @@ defmodule SupervisedSlicesWeb.AdminLive.SettingsComponent do
                 %
               </span>
             </div>
+            <p class="font-body text-xs text-on-surface-variant mt-1.5">
+              Applied to every order at checkout. Enter 0 to disable tax.
+            </p>
           </div>
 
           <%= if @save_status == :ok do %>
-            <p class="text-sm text-secondary font-medium">Tax rate saved.</p>
+            <p class="text-sm text-secondary font-medium">Settings saved.</p>
           <% end %>
           <%= if @save_status == :error do %>
             <p class="text-sm text-primary font-medium">
-              Enter a valid percentage between 0 and 100.
+              Check your values: prep time 1–120 min, tax 0–100%.
             </p>
           <% end %>
 

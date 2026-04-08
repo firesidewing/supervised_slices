@@ -39,7 +39,7 @@ defmodule SupervisedSlices.Orgs.Organization do
     end
 
     update :update_settings do
-      accept [:tax_rate]
+      accept [:tax_rate, :default_prep_time]
     end
 
     read :by_slug do
@@ -103,6 +103,12 @@ defmodule SupervisedSlices.Orgs.Organization do
 
     attribute :tax_rate, :decimal do
       default Decimal.new("0")
+      allow_nil? false
+      public? true
+    end
+
+    attribute :default_prep_time, :integer do
+      default 20
       allow_nil? false
       public? true
     end
