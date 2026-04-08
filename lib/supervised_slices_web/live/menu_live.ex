@@ -34,7 +34,7 @@ defmodule SupervisedSlicesWeb.MenuLive do
     {:ok,
      socket
      |> assign(:categories, categories)
-     |> assign(:cart, cart)
+     |> assign(:cart, cart
      |> assign(:cart_items_map, cart_items_map)
      |> assign(:cart_count, cart_count)
      |> assign(:show_basket, false)
@@ -71,6 +71,18 @@ defmodule SupervisedSlicesWeb.MenuLive do
   # ---------------------------------------------------------------------------
   # Cart events
   # ---------------------------------------------------------------------------
+
+  def handle_info({:item_component_add_to_cart, item_id, size_id, modifier_ids}, socket) do
+    socket =
+      do_add_complex_item(
+        socket,
+        to_string(item_id),
+        if(size_id, do: to_string(size_id)),
+        modifier_ids
+      )
+
+    {:noreply, push_navigate(socket, to: ~p"/menu/#{socket.assigns.org.slug}")}
+  end
 
   def handle_event("toggle_basket", _params, socket) do
     {:noreply, assign(socket, show_basket: !socket.assigns.show_basket, checkout_step: :review)}
@@ -175,9 +187,43 @@ defmodule SupervisedSlicesWeb.MenuLive do
     {:noreply, socket}
   end
 
+  def handle_event("remove_cart_item", %{"cart_item_id" => cart_item_id}, socket) do
+    result =
+      Enum.find(socket.assigns.cart_items_map, fn {_k, %{cart_item_id: cid}} ->
+        to_string(cid) == cart_item_id
+      end)
+
+    socket =
+      case result do
+        {key, %{cart_item_id: cid}} -> do_remove_item(socket, cid, key)
+        nil -> socket
+      end
+
+    {:noreply, socket}
+  end
+
   # ---------------------------------------------------------------------------
   # Cart helpers
   # ---------------------------------------------------------------------------
+
+  defp do_add_complex_item(socket, item_id, size_id, modifier_ids) do
+    %{ash_scope: scope, cart: cart} = socket.assigns
+
+    cart = cart || Cart.create!(scope: scope)
+
+    CartItem.add_to_cart!(
+      %{
+        cart_id: cart.id,
+        menu_item_id: item_id,
+        quantity: 1,
+        selected_modifier_ids: modifier_ids,
+        selected_size_id: size_id
+      },
+      scope: scope
+    )
+
+    refresh_cart(socket, cart)
+  end
 
   defp do_add_item(socket, item_id, size_id, modifier_id) do
     %{ash_scope: scope, cart: cart} = socket.assigns
@@ -360,20 +406,6 @@ defmodule SupervisedSlicesWeb.MenuLive do
       <h1 class="font-headline text-xl font-bold tracking-tight text-primary-container">
         {@org.name}
       </h1>
-      <div :if={@live_action == :index} class="ml-auto flex items-center gap-3">
-        <button
-          phx-click="toggle_basket"
-          class="text-on-surface-variant hover:scale-105 transition-transform active:scale-95 relative"
-        >
-          <span class="material-symbols-outlined">shopping_bag</span>
-          <span
-            :if={@cart_count > 0}
-            class="absolute -top-1 -right-1 bg-primary text-white text-[10px] font-black rounded-full w-4 h-4 flex items-center justify-center leading-none"
-          >
-            {@cart_count}
-          </span>
-        </button>
-      </div>
     </header>
 
     <.live_component
@@ -396,7 +428,13 @@ defmodule SupervisedSlicesWeb.MenuLive do
 
     <.menu_nav cart_count={@cart_count} org={@org} />
 
-    <.basket_drawer cart={@cart} show={@show_basket} checkout_step={@checkout_step} tax_rate={@org.tax_rate} />
+    <.basket_drawer
+      cart={@cart}
+      show={@show_basket}
+      checkout_step={@checkout_step}
+      tax_rate={@org.tax_rate}
+      org={@org}
+    />
 
     <div class="fixed top-[15%] right-[-20px] opacity-10 pointer-events-none transform rotate-45 select-none hidden lg:block text-on-surface">
       <span class="material-symbols-outlined" style="font-size: 120px;">potted_plant</span>
@@ -409,31 +447,25 @@ defmodule SupervisedSlicesWeb.MenuLive do
 
   defp menu_nav(assigns) do
     ~H"""
-    <nav class="fixed bottom-6 left-0 right-0 flex justify-center items-center px-4 z-50 pointer-events-none">
-      <div class="pointer-events-auto w-[90%] max-w-lg bg-gradient-to-r from-primary to-primary-container rounded-full flex justify-around items-center px-4 py-2 shadow-[0px_12px_32px_rgba(185,0,39,0.25)]">
-        <.link
-          navigate={~p"/menu/#{@org.slug}"}
-          class="flex items-center gap-2 bg-white/20 rounded-full px-5 py-2.5 text-white font-bold hover:scale-[1.02] transition-all active:scale-95"
-        >
-          <span class="material-symbols-outlined">restaurant_menu</span>
-          <span class="font-body text-[10px] uppercase tracking-widest">
-            Explore Menu
-          </span>
-        </.link>
+    <nav class="fixed bottom-6 left-0 right-0 flex justify-center px-5 z-50 pointer-events-none">
+      <div class="pointer-events-auto w-full max-w-lg">
         <button
           phx-click="toggle_basket"
-          class="flex items-center gap-1.5 text-white/80 px-5 py-2.5 hover:scale-[1.02] transition-all active:scale-95"
+          class="w-full flex items-center justify-between bg-gradient-to-r from-primary to-primary-container text-on-primary rounded-full px-6 py-4 shadow-[0px_12px_32px_rgba(185,0,39,0.25)] hover:scale-[1.01] transition-all active:scale-95"
         >
-          <span class="material-symbols-outlined">shopping_cart_checkout</span>
-          <span class="font-body text-[10px] uppercase tracking-widest">
-            View Basket
-          </span>
-          <span
-            :if={@cart_count > 0}
-            class="ml-1 bg-white text-primary text-[10px] font-black rounded-full w-5 h-5 flex items-center justify-center"
-          >
-            {@cart_count}
-          </span>
+          <div class="flex items-center gap-2.5">
+            <span class="material-symbols-outlined">shopping_bag</span>
+            <span class="font-body text-sm font-bold uppercase tracking-widest">View Basket</span>
+          </div>
+          <div class="flex items-center gap-2">
+            <span
+              :if={@cart_count > 0}
+              class="bg-white/25 rounded-full px-3 py-0.5 text-sm font-bold"
+            >
+              {@cart_count}
+            </span>
+            <span class="material-symbols-outlined opacity-70">chevron_right</span>
+          </div>
         </button>
       </div>
     </nav>

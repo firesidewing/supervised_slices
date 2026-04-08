@@ -67,10 +67,9 @@ defmodule SupervisedSlicesWeb.MenuLiveTest do
       assert html =~ item.name
     end
 
-    test "renders explore menu nav button", %{conn: conn, org: org} do
+    test "renders view basket nav button", %{conn: conn, org: org} do
       {:ok, _lv, html} = live(conn, ~p"/menu/#{org.slug}")
 
-      assert html =~ "Explore Menu"
       assert html =~ "View Basket"
     end
 
@@ -110,7 +109,7 @@ defmodule SupervisedSlicesWeb.MenuLiveTest do
 
       html = render_patch(lv, ~p"/menu/#{org.slug}")
 
-      assert html =~ "Explore Menu"
+      assert html =~ "View Basket"
       refute html =~ "arrow_back"
     end
   end
@@ -180,6 +179,95 @@ defmodule SupervisedSlicesWeb.MenuLiveTest do
       assert html =~ "$9.00"
       assert html =~ "$0.90"
       assert html =~ "$9.90"
+    end
+  end
+
+  describe "basket item management" do
+    alias SupervisedSlices.Accounts.GuestSession
+    alias SupervisedSlices.Cart.{Cart, CartItem}
+    alias SupervisedSlices.Menu.{MenuItemModifierGroup, MenuItemModifier, MenuItemModifierGroupLink}
+
+    test "removing a basket item clears it from the basket", %{conn: conn, org: org, item: item} do
+      {:ok, lv, _html} = live(conn, ~p"/menu/#{org.slug}/item/#{item.id}")
+      lv |> element("button[phx-click='update_quantity'][phx-value-delta='1']") |> render_click()
+
+      html = lv |> element("nav button[phx-click='toggle_basket']") |> render_click()
+      assert html =~ "Subtotal"
+      assert html =~ "remove_cart_item"
+
+      html = lv |> element("button[phx-click='remove_cart_item']") |> render_click()
+
+      assert html =~ "Your basket is empty"
+    end
+
+    test "basket item row contains an edit link to the item detail page", %{
+      conn: conn,
+      org: org,
+      item: item
+    } do
+      {:ok, lv, _html} = live(conn, ~p"/menu/#{org.slug}/item/#{item.id}")
+      lv |> element("button[phx-click='update_quantity'][phx-value-delta='1']") |> render_click()
+
+      html = lv |> element("nav button[phx-click='toggle_basket']") |> render_click()
+
+      assert html =~ "/menu/#{org.slug}/item/#{item.id}"
+    end
+
+    test "basket shows all selected modifiers for an item", %{conn: conn, org: org, item: item} do
+      session_id = Ash.UUIDv7.generate()
+
+      scope = %SupervisedSlices.Scope{
+        current_user: %GuestSession{id: session_id},
+        current_tenant: org.id,
+        guest_session_id: session_id
+      }
+
+      group =
+        MenuItemModifierGroup.create!(%{name: "Add-ons", sort_order: 0},
+          scope: scope,
+          authorize?: false
+        )
+
+      mod1 =
+        MenuItemModifier.create!(
+          %{name: "Extra Cheese", sort_order: 0, modifier_group_id: group.id},
+          scope: scope,
+          authorize?: false
+        )
+
+      mod2 =
+        MenuItemModifier.create!(
+          %{name: "Jalapeños", sort_order: 1, modifier_group_id: group.id},
+          scope: scope,
+          authorize?: false
+        )
+
+      MenuItemModifierGroupLink.assign(
+        %{menu_item_id: item.id, modifier_group_id: group.id},
+        scope: scope,
+        authorize?: false
+      )
+
+      cart = Cart.create!(scope: scope)
+
+      CartItem.add_to_cart!(
+        %{
+          cart_id: cart.id,
+          menu_item_id: item.id,
+          quantity: 1,
+          selected_modifier_ids: [mod1.id, mod2.id]
+        },
+        scope: scope,
+        authorize?: false
+      )
+
+      conn = Plug.Test.init_test_session(conn, %{"guest_session_id" => session_id})
+      {:ok, lv, _html} = live(conn, ~p"/menu/#{org.slug}")
+
+      html = lv |> element("nav button[phx-click='toggle_basket']") |> render_click()
+
+      assert html =~ "Extra Cheese"
+      assert html =~ "Jalapeños"
     end
   end
 

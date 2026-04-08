@@ -25,9 +25,12 @@ defmodule SupervisedSlices.Cart.Checks.OwnsCart do
       |> Ash.Query.filter(id == ^cart_id)
       |> Ash.read_one(authorize?: false, tenant: context.subject.tenant)
       |> case do
-        {:ok, %SupervisedSlices.Cart.Cart{} = cart} ->
-          dbg(cart.session_id == actor.id)
-          cart.session_id == actor.id
+        {:ok, %SupervisedSlices.Cart.Cart{session_id: cart_id} = _cart}
+        when not is_nil(cart_id) ->
+          cart_id == actor.id
+
+        {:ok, %SupervisedSlices.Cart.Cart{user_id: user_id} = _cart} when not is_nil(user_id) ->
+          user_id == actor.id
 
         _ ->
           false

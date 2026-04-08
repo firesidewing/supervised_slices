@@ -552,24 +552,40 @@ defmodule SupervisedSlicesWeb.CoreComponents do
             <% else %>
               <div class="space-y-1.5">
                 <%= for item <- @cart.cart_items do %>
-                  <% modifier = basket_find_modifier(item) %>
-                  <div class="flex items-center justify-between py-2.5 px-3 bg-surface-container-low rounded-xl">
-                    <div class="flex-1 min-w-0 mr-4">
+                  <% modifiers = basket_find_modifiers(item) %>
+                  <div class="flex items-start justify-between py-2.5 px-3 bg-surface-container-low rounded-xl gap-2">
+                    <div class="flex-1 min-w-0">
                       <p class="font-semibold text-on-surface text-sm">{item.menu_item.name}</p>
                       <p :if={item.selected_size} class="text-xs text-on-surface-variant mt-0.5">
                         {item.selected_size.name}
                       </p>
-                      <p :if={modifier} class="text-xs text-on-surface-variant mt-0.5">
-                        {modifier.name}
-                      </p>
+                      <%= for modifier <- modifiers do %>
+                        <p class="text-xs text-on-surface-variant mt-0.5">{modifier.name}</p>
+                      <% end %>
                     </div>
-                    <div class="flex items-center gap-3 shrink-0">
+                    <div class="flex items-center gap-1.5 shrink-0 pt-0.5">
                       <span class="text-sm font-bold text-primary">
-                        {basket_item_price(item, modifier)}
+                        {basket_item_price(item, modifiers)}
                       </span>
                       <span class="text-xs text-on-surface-variant bg-surface-container px-2 py-0.5 rounded-full font-medium">
                         ×{item.quantity}
                       </span>
+                      <.link
+                        navigate={"/menu/#{@org.slug}/item/#{item.menu_item_id}"}
+                        phx-click="toggle_basket"
+                        class="w-7 h-7 flex items-center justify-center rounded-full hover:bg-surface-container-high transition-colors text-on-surface-variant"
+                        aria-label="Edit item"
+                      >
+                        <span class="material-symbols-outlined" style="font-size: 16px;">edit</span>
+                      </.link>
+                      <button
+                        phx-click="remove_cart_item"
+                        phx-value-cart_item_id={item.id}
+                        class="w-7 h-7 flex items-center justify-center rounded-full hover:bg-error/10 transition-colors text-on-surface-variant hover:text-error"
+                        aria-label="Remove item"
+                      >
+                        <span class="material-symbols-outlined" style="font-size: 16px;">delete</span>
+                      </button>
                     </div>
                   </div>
                 <% end %>
@@ -678,17 +694,15 @@ defmodule SupervisedSlicesWeb.CoreComponents do
     """
   end
 
-  defp basket_find_modifier(cart_item) do
-    modifier_id = List.first(cart_item.selected_modifier_ids)
+  defp basket_find_modifiers(cart_item) do
+    modifier_ids = MapSet.new(Enum.map(cart_item.selected_modifier_ids || [], &to_string/1))
 
-    if modifier_id do
-      Enum.find_value(cart_item.menu_item.modifier_groups || [], fn group ->
-        Enum.find(group.modifiers || [], &(&1.id == modifier_id))
-      end)
-    end
+    Enum.flat_map(cart_item.menu_item.modifier_groups || [], fn group ->
+      Enum.filter(group.modifiers || [], &MapSet.member?(modifier_ids, to_string(&1.id)))
+    end)
   end
 
-  defp basket_item_price(cart_item, modifier) do
+  defp basket_item_price(cart_item, modifiers) do
     base =
       case cart_item.selected_size do
         %{price: size_price} -> size_price
@@ -696,14 +710,16 @@ defmodule SupervisedSlicesWeb.CoreComponents do
       end
 
     price =
-      if modifier && modifier.price_delta do
-        case Money.add(base, modifier.price_delta) do
-          {:ok, total} -> total
-          _ -> base
+      Enum.reduce(modifiers, base, fn modifier, acc ->
+        if modifier.price_delta do
+          case Money.add(acc, modifier.price_delta) do
+            {:ok, total} -> total
+            _ -> acc
+          end
+        else
+          acc
         end
-      else
-        base
-      end
+      end)
 
     Money.to_string!(price)
   rescue
@@ -713,7 +729,7 @@ defmodule SupervisedSlicesWeb.CoreComponents do
   defp basket_subtotal_money(cart) do
     cart.cart_items
     |> Enum.reduce(nil, fn item, acc ->
-      modifier = basket_find_modifier(item)
+      modifiers = basket_find_modifiers(item)
 
       base =
         case item.selected_size do
@@ -722,14 +738,16 @@ defmodule SupervisedSlicesWeb.CoreComponents do
         end
 
       item_price =
-        if modifier && modifier.price_delta do
-          case Money.add(base, modifier.price_delta) do
-            {:ok, p} -> p
-            _ -> base
+        Enum.reduce(modifiers, base, fn modifier, inner_acc ->
+          if modifier.price_delta do
+            case Money.add(inner_acc, modifier.price_delta) do
+              {:ok, p} -> p
+              _ -> inner_acc
+            end
+          else
+            inner_acc
           end
-        else
-          base
-        end
+        end)
 
       line_total = Money.mult!(item_price, item.quantity)
 

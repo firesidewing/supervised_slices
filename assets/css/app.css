@@ -212,4 +212,23 @@
 /* Make LiveView wrapper divs transparent for layout */
 [data-phx-session], [data-phx-teleported-src] { display: contents }
 
+/* Design system color enforcement — daisyUI theme plugins override @theme variables in the
+   CSS cascade (they come later in the file), so we re-assert the design system palette here.
+   Using !important on custom properties is valid per spec and overrides media-query scoped
+   values (e.g. prefers-color-scheme: dark triggering the daisyUI dark theme). */
+:root {
+  --color-primary: #b90027 !important;
+  --color-primary-container: #e31837 !important;
+  --color-on-primary: #ffffff !important;
+  --color-secondary: #3a6843 !important;
+  --color-secondary-container: #b9ecbd !important;
+  --color-on-secondary: #ffffff !important;
+  --color-surface: #faf9f6 !important;
+  --color-surface-container-lowest: #ffffff !important;
+  --color-surface-container-low: #f4f3f1 !important;
+  --color-surface-container: #efeeeb !important;
+  --color-on-surface: #1a1c1a !important;
+  --color-on-surface-variant: #5d3f3e !important;
+}
+
 /* This file is for your main application CSS */

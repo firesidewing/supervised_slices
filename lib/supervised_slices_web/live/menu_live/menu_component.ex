@@ -7,20 +7,16 @@ defmodule SupervisedSlicesWeb.MenuLive.MenuComponent do
 
   def render(assigns) do
     ~H"""
-    <main class="pt-24 pb-36 px-4 max-w-5xl mx-auto">
-      <section :for={{category, idx} <- Enum.with_index(@categories)} class="mb-12">
-        <div class="flex items-center gap-3 mb-6">
-          <div class={[
-            "h-8 w-1 rounded-full shrink-0",
-            if(rem(idx, 2) == 0, do: "bg-primary", else: "bg-secondary")
-          ]}>
-          </div>
-          <h2 class="font-headline text-2xl font-extrabold tracking-tight text-on-surface">
+    <main class="bg-background min-h-screen pt-20 pb-28 px-4 max-w-2xl mx-auto">
+      <section :for={category <- @categories} class="mb-10">
+        <div class="flex items-center gap-3 mb-5">
+          <div class="w-[3px] h-6 bg-primary rounded-full shrink-0" />
+          <h2 class="font-headline text-xl font-extrabold tracking-tight text-on-surface">
             {category.name}
           </h2>
         </div>
 
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div class="space-y-3">
           <.menu_item_card
             :for={item <- category.menu_items}
             item={item}
@@ -39,86 +35,109 @@ defmodule SupervisedSlicesWeb.MenuLive.MenuComponent do
   end
 
   defp menu_item_card(assigns) do
-    assigns =
-      assign(assigns,
-        customizable?:
-          not Enum.empty?(assigns.item.sizes || []) or
-            not Enum.empty?(assigns.item.modifier_groups || [])
-      )
+    qty = get_item_qty(assigns.cart_items_map, assigns.item.id)
+
+    customizable? =
+      not Enum.empty?(assigns.item.sizes || []) or
+        not Enum.empty?(assigns.item.modifier_groups || [])
+
+    assigns = assign(assigns, qty: qty, customizable?: customizable?)
 
     ~H"""
-    <div class="bg-surface-container-lowest rounded-xl p-4 transition-all hover:scale-[1.02] hover:shadow-[0px_12px_32px_rgba(93,63,62,0.08)] flex flex-col gap-4">
-      <.link navigate={~p"/menu/#{@org.slug}/item/#{@item.id}"} class="flex gap-4 group">
-        <div :if={@item.image_url} class="relative w-24 h-24 shrink-0 overflow-hidden rounded-lg">
-          <img
-            src={@item.image_url}
-            alt={@item.name}
-            class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
-            style={"view-transition-name: item-img-#{@item.id};"}
-          />
-        </div>
-        <div class="flex-1 min-w-0">
-          <h3 class="font-headline text-base font-bold leading-snug mb-1 text-on-surface">
-            {@item.name}
-          </h3>
-          <p class="text-sm text-on-surface-variant line-clamp-2 leading-relaxed">
-            {@item.description}
-          </p>
-        </div>
-      </.link>
-
-      <div class="flex items-center justify-between py-1.5 px-3 rounded-lg bg-surface-container-low">
-        <span class="text-sm font-bold text-primary">
-          {cond do
-            not Enum.empty?(@item.sizes || []) ->
-              "From " <>
-                format_money(
-                  @item.sizes |> Enum.min_by(& &1.price.amount) |> then(& &1.price)
-                )
-
-            @item.price ->
-              format_money(@item.price)
-
-            true ->
-              "—"
-          end}
-        </span>
-
+    <div class={[
+      "bg-surface-container-lowest rounded-2xl p-4 transition-colors duration-200",
+      "shadow-[0px_2px_12px_rgba(93,63,62,0.06)]",
+      @qty > 0 && "ring-1 ring-primary/20"
+    ]}>
+      <div class="flex gap-4 items-start">
         <.link
-          :if={@customizable?}
+          :if={@item.image_url}
           navigate={~p"/menu/#{@org.slug}/item/#{@item.id}"}
-          class="flex items-center gap-1.5 bg-primary text-white text-xs font-bold px-4 py-2 rounded-full hover:opacity-90 transition-opacity"
+          class="shrink-0"
+          aria-label={@item.name}
         >
-          Customize
-          <span class="material-symbols-outlined text-sm">arrow_forward</span>
+          <div class="w-[76px] h-[76px] rounded-xl overflow-hidden bg-surface-container-low">
+            <img
+              src={@item.image_url}
+              alt={@item.name}
+              class="w-full h-full object-cover"
+              style={"view-transition-name: item-img-#{@item.id};"}
+            />
+          </div>
         </.link>
 
-        <div :if={!@customizable?} class="flex items-center bg-white rounded-full p-1 shadow-sm">
-          <button
-            phx-click="update_quantity"
-            phx-value-item_id={@item.id}
-            phx-value-delta="-1"
-            class="w-7 h-7 flex items-center justify-center rounded-full hover:bg-surface-container transition-colors"
-            aria-label="Remove one"
+        <div class="flex-1 min-w-0">
+          <.link navigate={~p"/menu/#{@org.slug}/item/#{@item.id}"} class="hover:opacity-80 transition-opacity">
+            <h3 class="font-headline text-base font-bold leading-snug text-on-surface">
+              {@item.name}
+            </h3>
+          </.link>
+          <p
+            :if={@item.description}
+            class="text-sm text-on-surface-variant line-clamp-2 leading-relaxed mt-0.5"
           >
-            <span class="material-symbols-outlined text-lg">remove</span>
-          </button>
-          <span class="px-2.5 text-sm font-bold min-w-[1.5rem] text-center">
-            {get_item_qty(@cart_items_map, @item.id)}
-          </span>
-          <button
-            phx-click="update_quantity"
-            phx-value-item_id={@item.id}
-            phx-value-delta="1"
-            class="w-7 h-7 flex items-center justify-center rounded-full bg-primary text-white hover:bg-primary-container transition-colors"
-            aria-label="Add one"
-          >
-            <span class="material-symbols-outlined text-lg">add</span>
-          </button>
+            {@item.description}
+          </p>
+
+          <div class="flex items-center justify-between mt-3">
+            <span class="font-headline text-base font-bold text-primary">
+              {price_label(@item)}
+            </span>
+
+            <.link
+              :if={@customizable?}
+              navigate={~p"/menu/#{@org.slug}/item/#{@item.id}"}
+              class="flex items-center gap-1 bg-primary text-on-primary text-xs font-bold px-3.5 py-2 rounded-full hover:opacity-90 transition-opacity active:scale-95"
+            >
+              Customize
+              <span class="material-symbols-outlined" style="font-size: 14px;">arrow_forward</span>
+            </.link>
+
+            <div :if={not @customizable?} class="flex items-center gap-1.5">
+              <button
+                :if={@qty > 0}
+                phx-click="update_quantity"
+                phx-value-item_id={@item.id}
+                phx-value-delta="-1"
+                class="w-8 h-8 rounded-full bg-surface-container flex items-center justify-center hover:bg-surface-container-high transition-colors active:scale-95"
+                aria-label="Remove one"
+              >
+                <span class="material-symbols-outlined text-on-surface" style="font-size: 18px;">
+                  remove
+                </span>
+              </button>
+              <span :if={@qty > 0} class="min-w-[1.5rem] text-center text-sm font-bold text-on-surface">
+                {@qty}
+              </span>
+              <button
+                phx-click="update_quantity"
+                phx-value-item_id={@item.id}
+                phx-value-delta="1"
+                class="w-8 h-8 rounded-full bg-primary text-on-primary flex items-center justify-center hover:opacity-90 transition-colors active:scale-95"
+                aria-label="Add one"
+              >
+                <span class="material-symbols-outlined" style="font-size: 18px;">add</span>
+              </button>
+            </div>
+          </div>
         </div>
       </div>
     </div>
     """
+  end
+
+  defp price_label(item) do
+    cond do
+      not Enum.empty?(item.sizes || []) ->
+        min_price = item.sizes |> Enum.min_by(& &1.price.amount) |> then(& &1.price)
+        "From #{format_money(min_price)}"
+
+      item.price ->
+        format_money(item.price)
+
+      true ->
+        "—"
+    end
   end
 
   defp format_money(money) do
