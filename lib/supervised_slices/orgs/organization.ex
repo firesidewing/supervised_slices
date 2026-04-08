@@ -3,11 +3,24 @@ defmodule SupervisedSlices.Orgs.Organization do
     otp_app: :supervised_slices,
     domain: SupervisedSlices.Orgs,
     data_layer: AshPostgres.DataLayer,
-    authorizers: [Ash.Policy.Authorizer]
+    authorizers: [Ash.Policy.Authorizer],
+    extensions: [AshOban]
 
   postgres do
     table "organizations"
     repo SupervisedSlices.Repo
+  end
+
+  oban do
+    triggers do
+      trigger :cleanup_stale_carts do
+        scheduler_cron "0 * * * *"
+        scheduler_queue :cart_cleanup
+        queue :cart_cleanup
+        action :cleanup_stale_carts
+        where expr(active == true)
+      end
+    end
   end
 
   code_interface do
@@ -34,6 +47,21 @@ defmodule SupervisedSlices.Orgs.Organization do
       get? true
       filter expr(slug == ^arg(:slug))
     end
+
+    update :cleanup_stale_carts do
+      accept []
+      require_atomic? false
+
+      change fn changeset, _context ->
+        Ash.Changeset.after_action(changeset, fn _changeset, org ->
+          SupervisedSlices.Cart.Cart
+          |> Ash.Query.filter(status == :active and updated_at < ago(24, :hour))
+          |> Ash.bulk_update!(:abandon, %{}, authorize?: false, tenant: org.id)
+
+          {:ok, org}
+        end)
+      end
+    end
   end
 
   policies do
@@ -42,6 +70,10 @@ defmodule SupervisedSlices.Orgs.Organization do
     end
 
     policy action(:update_settings) do
+      authorize_if always()
+    end
+
+    policy action(:cleanup_stale_carts) do
       authorize_if always()
     end
 
