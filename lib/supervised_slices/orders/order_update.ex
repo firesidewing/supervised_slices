@@ -16,7 +16,6 @@ defmodule SupervisedSlices.Orders.OrderUpdate do
   end
 
   code_interface do
-    define :create
     define :for_order, args: [:order_id]
   end
 
@@ -39,8 +38,10 @@ defmodule SupervisedSlices.Orders.OrderUpdate do
       authorize_if always()
     end
 
+    # create is intentionally not exposed to external callers — it is only invoked
+    # from Order action after_action hooks with authorize?: false.
     policy action(:create) do
-      authorize_if always()
+      forbid_if always()
     end
   end
 

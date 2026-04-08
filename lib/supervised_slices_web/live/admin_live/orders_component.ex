@@ -1,8 +1,7 @@
 defmodule SupervisedSlicesWeb.AdminLive.OrdersComponent do
   use SupervisedSlicesWeb, :live_component
 
-  alias SupervisedSlices.Orders.{Order, OrderUpdate}
-  alias SupervisedSlices.PubSubNotifier
+  alias SupervisedSlices.Orders.Order
 
   def mount(socket) do
     {:ok, stream(socket, :orders, [])}
@@ -48,16 +47,9 @@ defmodule SupervisedSlicesWeb.AdminLive.OrdersComponent do
   end
 
   def handle_event("send_preset_update", %{"id" => order_id, "message" => message}, socket) do
-    %{org: org} = socket.assigns
-
-    {:ok, update} =
-      OrderUpdate.create(
-        %{order_id: order_id, message: message},
-        tenant: org.id,
-        authorize?: false
-      )
-
-    PubSubNotifier.broadcast_order_update(update)
+    %{ash_scope: scope} = socket.assigns
+    order = Order.get!(order_id, scope: scope)
+    Order.send_update!(order, %{message: message}, scope: scope)
     {:noreply, socket}
   end
 

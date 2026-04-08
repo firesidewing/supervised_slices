@@ -25,20 +25,23 @@ defmodule SupervisedSlices.Orders.OrderUpdateTest do
     )
   end
 
+  # Helper for creating OrderUpdate records in tests. Uses the raw Ash API
+  # since create is intentionally not exposed via code_interface (system-internal).
+  defp create_update(params, org) do
+    OrderUpdate
+    |> Ash.Changeset.for_create(:create, params)
+    |> Ash.create!(tenant: org.id, authorize?: false)
+  end
+
   setup do
     org = create_org()
     order = create_order(org)
     %{org: org, order: order}
   end
 
-  describe "create/2" do
+  describe "create (internal)" do
     test "creates an update with a status", %{org: org, order: order} do
-      assert {:ok, update} =
-               OrderUpdate.create(
-                 %{order_id: order.id, status: :confirmed},
-                 tenant: org.id,
-                 authorize?: false
-               )
+      update = create_update(%{order_id: order.id, status: :confirmed}, org)
 
       assert update.status == :confirmed
       assert update.message == nil
@@ -46,71 +49,51 @@ defmodule SupervisedSlices.Orders.OrderUpdateTest do
     end
 
     test "creates an update with a message", %{org: org, order: order} do
-      assert {:ok, update} =
-               OrderUpdate.create(
-                 %{order_id: order.id, message: "Ready in ~5 min"},
-                 tenant: org.id,
-                 authorize?: false
-               )
+      update = create_update(%{order_id: order.id, message: "Ready in ~5 min"}, org)
 
       assert update.message == "Ready in ~5 min"
       assert update.status == nil
     end
 
     test "creates an update with both status and message", %{org: org, order: order} do
-      assert {:ok, update} =
-               OrderUpdate.create(
-                 %{order_id: order.id, status: :preparing, message: "Starting now"},
-                 tenant: org.id,
-                 authorize?: false
-               )
+      update = create_update(%{order_id: order.id, status: :preparing, message: "Starting now"}, org)
 
       assert update.status == :preparing
       assert update.message == "Starting now"
+    end
+
+    test "create is forbidden for external callers (with an actor)", %{org: org, order: order} do
+      actor = %SupervisedSlices.Accounts.User{
+        id: Ash.UUIDv7.generate(),
+        email: "test@example.com"
+      }
+
+      result =
+        OrderUpdate
+        |> Ash.Changeset.for_create(:create, %{order_id: order.id, status: :confirmed})
+        |> Ash.create(tenant: org.id, actor: actor)
+
+      assert {:error, %Ash.Error.Forbidden{}} = result
     end
   end
 
   describe "for_order/2" do
     test "returns updates for the correct order in chronological order", %{org: org, order: order} do
-      {:ok, _} =
-        OrderUpdate.create(%{order_id: order.id, status: :confirmed},
-          tenant: org.id,
-          authorize?: false
-        )
-
-      {:ok, _} =
-        OrderUpdate.create(%{order_id: order.id, message: "Running behind"},
-          tenant: org.id,
-          authorize?: false
-        )
-
-      {:ok, _} =
-        OrderUpdate.create(%{order_id: order.id, status: :preparing},
-          tenant: org.id,
-          authorize?: false
-        )
+      create_update(%{order_id: order.id, status: :confirmed}, org)
+      create_update(%{order_id: order.id, message: "Running behind"}, org)
+      create_update(%{order_id: order.id, status: :preparing}, org)
 
       updates = OrderUpdate.for_order!(order.id, tenant: org.id, authorize?: false)
 
       assert length(updates) == 3
-      statuses = Enum.map(updates, & &1.status)
-      assert statuses == [:confirmed, nil, :preparing]
+      assert Enum.map(updates, & &1.status) == [:confirmed, nil, :preparing]
     end
 
     test "does not return updates from other orders", %{org: org, order: order} do
       other_order = create_order(org)
 
-      {:ok, _} =
-        OrderUpdate.create(%{order_id: order.id, status: :confirmed},
-          tenant: org.id,
-          authorize?: false
-        )
-
-      {:ok, _} =
-        OrderUpdate.create(%{order_id: other_order.id, status: :preparing},
-          tenant: org.id,
-          authorize?: false
-        )
+      create_update(%{order_id: order.id, status: :confirmed}, org)
+      create_update(%{order_id: other_order.id, status: :preparing}, org)
 
       updates = OrderUpdate.for_order!(order.id, tenant: org.id, authorize?: false)
       assert length(updates) == 1
