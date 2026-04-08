@@ -34,6 +34,11 @@ defmodule SupervisedSlices.PubSubNotifier do
     Phoenix.PubSub.broadcast(@pubsub, "carts:#{org_id}", {:cart_updated, cart})
   end
 
+  @doc "Broadcast a kitchen update message for a specific order (customer tracking)."
+  def broadcast_order_update(%{organization_id: org_id, order_id: order_id} = update) do
+    Phoenix.PubSub.broadcast(@pubsub, "orders:#{org_id}:#{order_id}", {:order_update, update})
+  end
+
   # ---------------------------------------------------------------------------
   # Subscribe helpers (for use in LiveView mount/handle_info)
   # ---------------------------------------------------------------------------
@@ -52,4 +57,5 @@ defmodule SupervisedSlices.PubSubNotifier do
   def subscribe_to_org_carts(org_id) do
     Phoenix.PubSub.subscribe(@pubsub, "carts:#{org_id}")
   end
+
 end

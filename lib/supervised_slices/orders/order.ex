@@ -21,6 +21,7 @@ defmodule SupervisedSlices.Orders.Order do
     define :update_status, action: :update_status
     define :active, action: :active
     define :all, action: :all
+    define :for_user, args: [:user_id]
   end
 
   actions do
@@ -53,6 +54,12 @@ defmodule SupervisedSlices.Orders.Order do
       accept [:status]
 
       after_action(fn _changeset, order, _context ->
+        SupervisedSlices.Orders.OrderUpdate.create!(
+          %{order_id: order.id, status: order.status},
+          tenant: order.organization_id,
+          authorize?: false
+        )
+
         SupervisedSlices.PubSubNotifier.broadcast_order_status(order)
         {:ok, order}
       end)
@@ -151,5 +158,6 @@ defmodule SupervisedSlices.Orders.Order do
     end
 
     has_many :order_items, SupervisedSlices.Orders.OrderItem
+    has_many :order_updates, SupervisedSlices.Orders.OrderUpdate
   end
 end
