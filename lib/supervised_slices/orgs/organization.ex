@@ -55,15 +55,17 @@ defmodule SupervisedSlices.Orgs.Organization do
       accept []
       require_atomic? false
 
-      # change fn changeset, _context ->
-      #   Ash.Changeset.after_action(changeset, fn _changeset, org ->
-      #     SupervisedSlices.Cart.Cart
-      #     |> Ash.Query.filter(status == true and updated_at < ago(24, :hour))
-      #     |> Ash.bulk_update!(:abandon, %{}, authorize?: false, tenant: org.id)
+      change fn changeset, _context ->
+        require Ash.Query
 
-      #     {:ok, org}
-      #   end)
-      # end
+        Ash.Changeset.after_action(changeset, fn _changeset, org ->
+          SupervisedSlices.Cart.Cart
+          |> Ash.Query.filter(status == :active and updated_at < ago(24, :hour))
+          |> Ash.bulk_update!(:abandon, %{}, authorize?: false, tenant: org.id)
+
+          {:ok, org}
+        end)
+      end
     end
   end
 
@@ -72,11 +74,11 @@ defmodule SupervisedSlices.Orgs.Organization do
       authorize_if always()
     end
 
-    policy action(:update_settings) do
+    bypass action(:update_settings) do
       authorize_if always()
     end
 
-    policy action(:cleanup_stale_carts) do
+    bypass action(:cleanup_stale_carts) do
       authorize_if always()
     end
 
