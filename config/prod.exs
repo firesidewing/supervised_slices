@@ -20,6 +20,10 @@ config :supervised_slices, SupervisedSlicesWeb.Endpoint,
     ]
   ]
 
+# Configures the mailer to use Swoosh's Logger adapter in production
+# so that emails are printed to the logs.
+config :supervised_slices, SupervisedSlices.Mailer, adapter: Swoosh.Adapters.Logger
+
 # Configure Swoosh API Client
 config :swoosh, api_client: Swoosh.ApiClient.Req
 

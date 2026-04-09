@@ -9,14 +9,8 @@ defmodule SupervisedSlicesWeb.AuthOverrides do
 
   # For a complete reference, see https://hexdocs.pm/ash_authentication_phoenix/ui-overrides.html
 
-  override AshAuthentication.Phoenix.Components.Register do
-    set :extra_fields, [
-      organization_name: [
-        label: "Organization Name",
-        placeholder: "Enter your organization name",
-        input_type: :text
-      ]
-    ]
+  override AshAuthentication.Phoenix.Components.Password do
+    set :register_extra_component, &SupervisedSlicesWeb.AuthComponents.RegisterExtra.render/1
   end
 
   # override AshAuthentication.Phoenix.Components.Banner do

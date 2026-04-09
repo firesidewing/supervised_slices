@@ -390,18 +390,20 @@ defmodule SupervisedSlicesWeb.MenuLive do
 
   def render(assigns) do
     ~H"""
-    <header class="fixed top-0 w-full z-50 bg-background/80 backdrop-blur-xl flex items-center gap-4 px-4 py-4">
+    <header class="fixed top-0 w-full z-50 bg-background/90 backdrop-blur-xl border-b border-on-surface/[0.03] flex items-center gap-4 px-6 py-5 shadow-sm shadow-black/[0.02]">
       <.link
         :if={@live_action == :show}
         navigate={~p"/menu/#{@org.slug}"}
-        class="flex items-center justify-center w-10 h-10 rounded-full hover:bg-surface-container transition-colors text-on-surface-variant active:scale-95"
+        class="flex items-center justify-center w-11 h-11 rounded-full bg-surface-container-low hover:bg-surface-container transition-all text-on-surface active:scale-90 shadow-sm"
         aria-label="Back to menu"
       >
-        <span class="material-symbols-outlined">arrow_back</span>
+        <span class="material-symbols-outlined !text-[20px] font-black">arrow_back</span>
       </.link>
-      <h1 class="font-headline text-xl font-bold tracking-tight text-primary-container">
-        {@org.name}
-      </h1>
+      <div class="flex flex-col">
+        <h1 class="font-headline text-lg font-black tracking-tighter text-primary leading-none uppercase italic">
+          {@org.name}
+        </h1>
+      </div>
     </header>
 
     <.live_component
@@ -422,7 +424,7 @@ defmodule SupervisedSlicesWeb.MenuLive do
       org={@org}
     />
 
-    <.menu_nav cart_count={@cart_count} org={@org} />
+    <.menu_nav :if={@live_action == :index} cart_count={@cart_count} org={@org} cart={@cart} />
 
     <.basket_drawer
       cart={@cart}
@@ -432,35 +434,51 @@ defmodule SupervisedSlicesWeb.MenuLive do
       org={@org}
     />
 
-    <div class="fixed top-[15%] right-[-20px] opacity-10 pointer-events-none transform rotate-45 select-none hidden lg:block text-on-surface">
-      <span class="material-symbols-outlined" style="font-size: 120px;">potted_plant</span>
+    <div class="fixed top-[15%] right-[-30px] opacity-[0.03] pointer-events-none transform rotate-[25deg] select-none hidden lg:block text-on-surface">
+      <span class="material-symbols-outlined" style="font-size: 180px;">local_pizza</span>
     </div>
-    <div class="fixed bottom-[12%] left-[-20px] opacity-10 pointer-events-none transform -rotate-12 select-none hidden lg:block text-on-surface">
-      <span class="material-symbols-outlined" style="font-size: 150px;">cooking</span>
+    <div class="fixed bottom-[20%] left-[-40px] opacity-[0.04] pointer-events-none transform -rotate-[15deg] select-none hidden lg:block text-on-surface">
+      <span class="material-symbols-outlined" style="font-size: 200px;">egg</span>
+    </div>
+    <div class="fixed top-[45%] left-[-20px] opacity-[0.02] pointer-events-none transform rotate-[10deg] select-none hidden lg:block text-on-surface">
+      <span class="material-symbols-outlined" style="font-size: 140px;">spa</span>
+    </div>
+    <div class="fixed bottom-[10%] right-[-10px] opacity-[0.03] pointer-events-none transform -rotate-[20deg] select-none hidden lg:block text-on-surface">
+      <span class="material-symbols-outlined" style="font-size: 160px;">skillet</span>
+    </div>
+    <div class="fixed inset-0 pointer-events-none opacity-[0.02] mix-blend-multiply z-[-1]" style="background-image: url('https://www.transparenttextures.com/patterns/handmade-paper.png');"></div>
+    <div class="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 pointer-events-none opacity-[0.015] font-headline text-[25vw] font-black tracking-tighter leading-none select-none z-[-1] whitespace-nowrap italic -rotate-12">
+      SUPERVISED SLICES
     </div>
     """
   end
 
   defp menu_nav(assigns) do
     ~H"""
-    <nav class="fixed bottom-6 left-0 right-0 flex justify-center px-5 z-50 pointer-events-none">
-      <div class="pointer-events-auto w-full max-w-lg">
+    <nav class="fixed bottom-8 left-0 right-0 flex justify-center md:justify-end px-6 md:px-12 z-50 pointer-events-none">
+      <div class="pointer-events-auto w-full max-w-lg md:max-w-md">
         <button
           phx-click="toggle_basket"
-          class="w-full flex items-center justify-between bg-gradient-to-r from-primary to-primary-container text-on-primary rounded-full px-6 py-4 shadow-[0px_12px_32px_rgba(185,0,39,0.25)] hover:scale-[1.01] transition-all active:scale-95"
+          class={[
+            "w-full flex items-center justify-between bg-gradient-to-r from-primary to-primary-container text-on-primary rounded-2xl px-8 py-6",
+            "shadow-[0px_24px_48px_rgba(185,0,39,0.3)] hover:scale-[1.03] hover:shadow-[0px_32px_64px_rgba(185,0,39,0.4)]",
+            "transition-all duration-300 active:scale-95 group"
+          ]}
         >
-          <div class="flex items-center gap-2.5">
-            <span class="material-symbols-outlined">shopping_bag</span>
-            <span class="font-body text-sm font-bold uppercase tracking-widest">View Basket</span>
+          <div class="flex items-center gap-4">
+            <div class="relative">
+              <span class="material-symbols-outlined font-black !text-[26px]">shopping_bag</span>
+              <div :if={@cart_count > 0} class="absolute -top-1.5 -right-1.5 w-5 h-5 bg-white text-primary rounded-full flex items-center justify-center text-[10px] font-black shadow-sm group-hover:scale-110 transition-transform">
+                {@cart_count}
+              </div>
+            </div>
+            <span class="font-headline text-base font-black tracking-tight uppercase">View Basket</span>
           </div>
-          <div class="flex items-center gap-2">
-            <span
-              :if={@cart_count > 0}
-              class="bg-white/25 rounded-full px-3 py-0.5 text-sm font-bold"
-            >
-              {@cart_count}
+          <div class="flex items-center gap-3">
+            <span :if={@cart_count > 0} class="font-headline text-xl font-black opacity-90 group-hover:scale-110 transition-transform">
+              {basket_subtotal_string(@cart)}
             </span>
-            <span class="material-symbols-outlined opacity-70">chevron_right</span>
+            <span class="material-symbols-outlined !text-[24px] font-black group-hover:translate-x-1 transition-transform">chevron_right</span>
           </div>
         </button>
       </div>

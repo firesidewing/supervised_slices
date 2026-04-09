@@ -64,8 +64,8 @@ defmodule SupervisedSlicesWeb.Router do
                   auth_routes_prefix: "/auth",
                   on_mount: [{SupervisedSlicesWeb.LiveUserAuth, :live_no_user}],
                   overrides: [
-                    SupervisedSlicesWeb.AuthOverrides,
-                    Elixir.AshAuthentication.Phoenix.Overrides.DaisyUI
+                    Elixir.AshAuthentication.Phoenix.Overrides.DaisyUI,
+                    SupervisedSlicesWeb.AuthOverrides
                   ]
 
     # Remove this if you do not want to use the reset password feature
@@ -79,16 +79,16 @@ defmodule SupervisedSlicesWeb.Router do
     confirm_route SupervisedSlices.Accounts.User, :confirm_new_user,
       auth_routes_prefix: "/auth",
       overrides: [
-        SupervisedSlicesWeb.AuthOverrides,
-        Elixir.AshAuthentication.Phoenix.Overrides.DaisyUI
+        Elixir.AshAuthentication.Phoenix.Overrides.DaisyUI,
+        SupervisedSlicesWeb.AuthOverrides
       ]
 
     # Remove this if you do not use the magic link strategy.
     magic_sign_in_route(SupervisedSlices.Accounts.User, :magic_link,
       auth_routes_prefix: "/auth",
       overrides: [
-        SupervisedSlicesWeb.AuthOverrides,
-        Elixir.AshAuthentication.Phoenix.Overrides.DaisyUI
+        Elixir.AshAuthentication.Phoenix.Overrides.DaisyUI,
+        SupervisedSlicesWeb.AuthOverrides
       ]
     )
   end

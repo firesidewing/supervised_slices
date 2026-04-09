@@ -7,16 +7,15 @@ defmodule SupervisedSlicesWeb.MenuLive.MenuComponent do
 
   def render(assigns) do
     ~H"""
-    <main class="bg-background min-h-screen pt-20 pb-28 px-4 max-w-2xl mx-auto">
-      <section :for={category <- @categories} class="mb-10">
-        <div class="flex items-center gap-3 mb-5">
-          <div class="w-[3px] h-6 bg-primary rounded-full shrink-0" />
-          <h2 class="font-headline text-xl font-extrabold tracking-tight text-on-surface">
+    <main class="bg-background min-h-screen pt-28 pb-28 px-4 max-w-2xl mx-auto">
+      <section :for={category <- @categories} class="mb-12 last:mb-0">
+        <div class="flex flex-col gap-1 mb-6 px-2">
+          <h2 class="font-headline text-3xl font-black tracking-tighter text-on-surface uppercase italic">
             {category.name}
           </h2>
         </div>
 
-        <div class="space-y-3">
+        <div class="grid grid-cols-1 gap-4">
           <.menu_item_card
             :for={item <- category.menu_items}
             item={item}
@@ -45,78 +44,81 @@ defmodule SupervisedSlicesWeb.MenuLive.MenuComponent do
 
     ~H"""
     <div class={[
-      "bg-surface-container-lowest rounded-2xl p-4 transition-colors duration-200",
-      "shadow-[0px_2px_12px_rgba(93,63,62,0.06)]",
-      @qty > 0 && "ring-1 ring-primary/20"
+      "bg-surface-container-lowest rounded-xl p-5 transition-all duration-300",
+      "shadow-[0px_12px_32px_rgba(93,63,62,0.08)] hover:shadow-[0px_16px_48px_rgba(93,63,62,0.12)]",
+      "hover:scale-[1.02] active:scale-[0.98] group"
     ]}>
-      <div class="flex gap-4 items-start">
+      <div class="flex gap-5 items-start">
         <.link
           :if={@item.image_url}
           navigate={~p"/menu/#{@org.slug}/item/#{@item.id}"}
-          class="shrink-0"
+          class="shrink-0 relative overflow-visible"
           aria-label={@item.name}
         >
-          <div class="w-[76px] h-[76px] rounded-xl overflow-hidden bg-surface-container-low">
+          <div class="w-24 h-24 rounded-lg overflow-hidden bg-surface-container-low shadow-inner">
             <img
               src={@item.image_url}
               alt={@item.name}
-              class="w-full h-full object-cover"
+              class="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
               style={"view-transition-name: item-img-#{@item.id};"}
             />
           </div>
+          <div :if={@qty > 0} class="absolute -top-2 -right-2 w-7 h-7 bg-primary text-on-primary rounded-full flex items-center justify-center text-xs font-black shadow-lg animate-in zoom-in duration-300">
+            {@qty}
+          </div>
         </.link>
 
-        <div class="flex-1 min-w-0">
-          <.link navigate={~p"/menu/#{@org.slug}/item/#{@item.id}"} class="hover:opacity-80 transition-opacity">
-            <h3 class="font-headline text-base font-bold leading-snug text-on-surface">
-              {@item.name}
-            </h3>
-          </.link>
+        <div class="flex-1 min-w-0 py-1">
+          <div class="flex justify-between items-start gap-2">
+            <.link navigate={~p"/menu/#{@org.slug}/item/#{@item.id}"} class="block group/title">
+              <h3 class="font-headline text-lg font-black leading-tight text-on-surface group-hover/title:text-primary transition-colors">
+                {@item.name}
+              </h3>
+            </.link>
+            <span class="font-headline text-base font-black text-primary shrink-0">
+              {price_label(@item)}
+            </span>
+          </div>
+          
           <p
             :if={@item.description}
-            class="text-sm text-on-surface-variant line-clamp-2 leading-relaxed mt-0.5"
+            class="text-sm text-on-surface-variant line-clamp-2 leading-relaxed mt-2 font-medium opacity-80"
           >
             {@item.description}
           </p>
 
-          <div class="flex items-center justify-between mt-3">
-            <span class="font-headline text-base font-bold text-primary">
-              {price_label(@item)}
-            </span>
-
+          <div class="flex items-center justify-end mt-4">
             <.link
               :if={@customizable?}
               navigate={~p"/menu/#{@org.slug}/item/#{@item.id}"}
-              class="flex items-center gap-1 bg-primary text-on-primary text-xs font-bold px-3.5 py-2 rounded-full hover:opacity-90 transition-opacity active:scale-95"
+              class="flex items-center gap-2 bg-gradient-to-r from-primary to-primary-container text-on-primary text-xs font-black px-5 py-2.5 rounded-lg hover:shadow-lg hover:shadow-primary/20 transition-all active:scale-95"
             >
-              Customize
-              <span class="material-symbols-outlined" style="font-size: 14px;">arrow_forward</span>
+              CUSTOMIZE
+              <span class="material-symbols-outlined !text-[16px]">arrow_forward</span>
             </.link>
 
-            <div :if={not @customizable?} class="flex items-center gap-1.5">
+            <div :if={not @customizable?} class="flex items-center gap-3">
               <button
                 :if={@qty > 0}
                 phx-click="update_quantity"
                 phx-value-item_id={@item.id}
                 phx-value-delta="-1"
-                class="w-8 h-8 rounded-full bg-surface-container flex items-center justify-center hover:bg-surface-container-high transition-colors active:scale-95"
+                class="w-9 h-9 rounded-full bg-surface-container flex items-center justify-center hover:bg-surface-container-high transition-all active:scale-90"
                 aria-label="Remove one"
               >
-                <span class="material-symbols-outlined text-on-surface" style="font-size: 18px;">
+                <span class="material-symbols-outlined text-on-surface" style="font-size: 20px;">
                   remove
                 </span>
               </button>
-              <span :if={@qty > 0} class="min-w-[1.5rem] text-center text-sm font-bold text-on-surface">
-                {@qty}
-              </span>
+              
               <button
                 phx-click="update_quantity"
                 phx-value-item_id={@item.id}
                 phx-value-delta="1"
-                class="w-8 h-8 rounded-full bg-primary text-on-primary flex items-center justify-center hover:opacity-90 transition-colors active:scale-95"
+                class="w-9 h-9 rounded-full bg-gradient-to-r from-primary to-primary-container text-on-primary flex items-center justify-center hover:shadow-lg hover:shadow-primary/20 transition-all active:scale-90"
                 aria-label="Add one"
               >
-                <span class="material-symbols-outlined" style="font-size: 18px;">add</span>
+                <span class="material-symbols-outlined" style="font-size: 20px;">add</span>
               </button>
             </div>
           </div>

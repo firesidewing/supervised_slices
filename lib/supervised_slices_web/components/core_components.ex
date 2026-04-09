@@ -516,81 +516,86 @@ defmodule SupervisedSlicesWeb.CoreComponents do
         phx-click="toggle_basket"
       />
       <div class={[
-        "absolute bottom-0 left-0 right-0 bg-background rounded-t-3xl max-h-[80vh] flex flex-col transition-transform duration-300 ease-out",
-        if(@show, do: "translate-y-0", else: "translate-y-full")
+        "absolute bottom-0 md:top-0 left-0 right-0 md:left-auto md:w-[480px] bg-background rounded-t-[3rem] md:rounded-l-[3.5rem] md:rounded-tr-none max-h-[90vh] md:max-h-screen flex flex-col transition-transform duration-500 ease-[cubic-bezier(0.34,1.56,0.64,1)]",
+        "shadow-[0px_-16px_48px_rgba(0,0,0,0.15)] md:shadow-[-24px_0px_64px_rgba(0,0,0,0.1)]",
+        if(@show, do: "translate-y-0 md:translate-x-0", else: "translate-y-full md:translate-x-full")
       ]}>
-        <div class="flex items-center justify-between px-6 py-5 shrink-0">
-          <div class="flex items-center gap-2">
+        <div class="flex items-center justify-between px-8 py-7 shrink-0 border-b border-on-surface/[0.03]">
+          <div class="flex items-center gap-3">
             <button
               :if={@checkout_step == :confirm}
               phx-click="start_checkout"
               phx-value-step="review"
-              class="w-9 h-9 flex items-center justify-center rounded-full hover:bg-surface-container transition-colors"
+              class="w-11 h-11 flex items-center justify-center rounded-full bg-surface-container-low hover:bg-surface-container transition-all active:scale-90"
             >
-              <span class="material-symbols-outlined">arrow_back</span>
+              <span class="material-symbols-outlined font-black">arrow_back</span>
             </button>
-            <h2 class="font-headline text-xl font-extrabold tracking-tight text-on-surface">
-              {if @checkout_step == :confirm, do: "Your Details", else: "Your Basket"}
-            </h2>
+            <div class="flex flex-col">
+              <h2 class="font-headline text-2xl font-black tracking-tighter text-on-surface uppercase italic">
+                {if @checkout_step == :confirm, do: "Your Details", else: "Your Basket"}
+              </h2>
+            </div>
           </div>
           <button
             phx-click="toggle_basket"
-            class="w-9 h-9 flex items-center justify-center rounded-full hover:bg-surface-container transition-colors"
+            class="w-11 h-11 flex items-center justify-center rounded-full bg-surface-container-low hover:bg-surface-container transition-all active:scale-90"
           >
-            <span class="material-symbols-outlined">close</span>
+            <span class="material-symbols-outlined font-black">close</span>
           </button>
         </div>
 
         <%= if @checkout_step == :review do %>
-          <div class="overflow-y-auto flex-1 px-6 py-4">
+          <div class="overflow-y-auto flex-1 px-6 py-6 scroll-smooth no-scrollbar">
             <%= if is_nil(@cart) or Enum.empty?(@cart.cart_items) do %>
-              <div class="text-center py-16 text-on-surface-variant">
-                <span class="material-symbols-outlined opacity-30" style="font-size: 56px;">
-                  shopping_cart
-                </span>
-                <p class="mt-3 font-medium">Your basket is empty</p>
+              <div class="text-center py-24 text-on-surface-variant flex flex-col items-center">
+                <div class="w-24 h-24 rounded-full bg-surface-container-low flex items-center justify-center mb-6">
+                  <span class="material-symbols-outlined opacity-30 !text-5xl">shopping_cart</span>
+                </div>
+                <p class="text-xl font-black tracking-tight text-on-surface uppercase opacity-50">Empty Kitchen</p>
+                <p class="mt-2 font-medium opacity-60">Add some slices to your tray</p>
               </div>
             <% else %>
-              <div class="space-y-1.5">
+              <div class="grid grid-cols-1 gap-3">
                 <%= for item <- @cart.cart_items do %>
                   <% modifiers = basket_find_modifiers(item) %>
-                  <div class="flex items-start justify-between py-2.5 px-3 bg-surface-container-low rounded-xl gap-2">
-                    <div class="flex-1 min-w-0 flex flex-col gap-0.5">
-                      <p class="font-semibold text-on-surface text-sm">
-                        <span :if={item.selected_size} class="text-sm font-bold text-secondary uppercase tracking-widest mr-1.5">
+                  <div class="flex items-start justify-between p-4 bg-surface-container-lowest rounded-xl shadow-sm border border-on-surface/[0.03] gap-4 group hover:shadow-md transition-all duration-300">
+                    <div class="flex-1 min-w-0 flex flex-col gap-1">
+                      <div class="flex items-center gap-2">
+                         <span :if={item.selected_size} class="text-[10px] font-black bg-secondary/10 text-secondary px-2 py-0.5 rounded-md uppercase tracking-widest">
                           {item.selected_size.name}
                         </span>
-                        {item.menu_item.name}
-                      </p>
-                      <%= for modifier <- modifiers do %>
-                        <p class="text-[11px] font-medium text-on-surface-variant lowercase italic">
-                          + {modifier.name}
+                        <p class="font-headline font-black text-on-surface text-base leading-tight">
+                          {item.menu_item.name}
                         </p>
-                      <% end %>
+                      </div>
+                      <div class="flex flex-wrap gap-x-3 gap-y-1 mt-1">
+                        <%= for modifier <- modifiers do %>
+                          <p class="text-[11px] font-black text-on-surface-variant uppercase tracking-tight opacity-60">
+                            + {modifier.name}
+                          </p>
+                        <% end %>
+                      </div>
                     </div>
-                    <div class="flex items-center gap-1.5 shrink-0 pt-0.5">
-                      <span class="text-sm font-bold text-primary">
-                        {basket_item_price(item, modifiers)}
-                      </span>
-                      <span class="text-xs text-on-surface-variant bg-surface-container px-2 py-0.5 rounded-full font-medium">
-                        ×{item.quantity}
-                      </span>
-                      <.link
-                        navigate={"/menu/#{@org.slug}/item/#{item.menu_item_id}"}
-                        phx-click="toggle_basket"
-                        class="w-7 h-7 flex items-center justify-center rounded-full hover:bg-surface-container-high transition-colors text-on-surface-variant"
-                        aria-label="Edit item"
-                      >
-                        <span class="material-symbols-outlined" style="font-size: 16px;">edit</span>
-                      </.link>
-                      <button
-                        phx-click="remove_cart_item"
-                        phx-value-cart_item_id={item.id}
-                        class="w-7 h-7 flex items-center justify-center rounded-full hover:bg-error/10 transition-colors text-on-surface-variant hover:text-error"
-                        aria-label="Remove item"
-                      >
-                        <span class="material-symbols-outlined" style="font-size: 16px;">delete</span>
-                      </button>
+                    <div class="flex items-center gap-3 shrink-0 pt-0.5">
+                      <div class="flex flex-col items-end">
+                        <span class="text-base font-black text-primary">
+                          {basket_item_price(item, modifiers)}
+                        </span>
+                        <span class="text-[10px] font-black text-on-surface-variant opacity-60 uppercase">
+                          Qty: {item.quantity}
+                        </span>
+                      </div>
+                      
+                      <div class="flex flex-col gap-2">
+                        <button
+                          phx-click="remove_cart_item"
+                          phx-value-cart_item_id={item.id}
+                          class="w-9 h-9 flex items-center justify-center rounded-lg bg-error/5 hover:bg-error hover:text-on-error transition-all active:scale-90 text-error/60"
+                          aria-label="Remove item"
+                        >
+                          <span class="material-symbols-outlined !text-[18px]">delete</span>
+                        </button>
+                      </div>
                     </div>
                   </div>
                 <% end %>
@@ -599,28 +604,31 @@ defmodule SupervisedSlicesWeb.CoreComponents do
           </div>
 
           <%= if not is_nil(@cart) and not Enum.empty?(@cart.cart_items) do %>
-            <div class="bg-surface-container-low rounded-t-2xl px-6 pb-8 pt-5 shrink-0 space-y-4">
-              <div class="space-y-1.5">
-                <div class="flex justify-between items-center text-sm text-on-surface-variant">
+            <div class="bg-surface-container-low/50 backdrop-blur-md rounded-t-[2.5rem] px-8 pb-10 pt-8 shrink-0 space-y-6 shadow-[0px_-8px_32px_rgba(0,0,0,0.05)]">
+              <div class="space-y-3">
+                <div class="flex justify-between items-center text-sm font-black text-on-surface-variant uppercase tracking-widest opacity-60">
                   <span>Subtotal</span>
                   <span>{basket_subtotal_string(@cart)}</span>
                 </div>
                 <%= if basket_has_tax?(@tax_rate) do %>
-                  <div class="flex justify-between items-center text-sm text-on-surface-variant">
+                  <div class="flex justify-between items-center text-sm font-black text-on-surface-variant uppercase tracking-widest opacity-60">
                     <span>Tax ({basket_tax_percent_label(@tax_rate)}%)</span>
                     <span>{basket_tax_string(@cart, @tax_rate)}</span>
                   </div>
                 <% end %>
-                <div class="flex justify-between items-center pt-1">
-                  <span class="font-bold text-on-surface">Total</span>
-                  <span class="text-lg font-extrabold text-primary">{basket_total(@cart, @tax_rate)}</span>
+                <div class="flex justify-between items-center pt-2 border-t border-on-surface/[0.05]">
+                  <span class="font-headline text-xl font-black text-on-surface uppercase tracking-tight">Total</span>
+                  <span class="font-headline text-3xl font-black text-primary leading-none">
+                    {basket_total(@cart, @tax_rate)}
+                  </span>
                 </div>
               </div>
+
               <button
                 phx-click="start_checkout"
-                class="w-full bg-gradient-to-r from-primary to-primary-container text-white font-bold py-4 rounded-full text-sm uppercase tracking-widest hover:scale-[1.02] transition-all active:scale-95 shadow-[0px_8px_24px_rgba(185,0,39,0.25)]"
+                class="w-full bg-gradient-to-r from-primary to-primary-container text-on-primary font-black text-lg rounded-xl px-8 py-5 shadow-[0px_16px_32px_rgba(185,0,39,0.3)] hover:scale-[1.02] hover:shadow-[0px_20px_40px_rgba(185,0,39,0.4)] transition-all active:scale-95"
               >
-                Place Order
+                PROCEED TO CHECKOUT
               </button>
             </div>
           <% end %>
@@ -628,11 +636,11 @@ defmodule SupervisedSlicesWeb.CoreComponents do
           <.form
             for={%{}}
             phx-submit="place_order"
-            class="overflow-y-auto flex-1 flex flex-col"
+            class="overflow-y-auto flex-1 flex flex-col no-scrollbar"
           >
-            <div class="flex-1 px-6 py-4 space-y-4">
+            <div class="flex-1 px-8 py-8 space-y-8">
               <div>
-                <label class="font-body block text-xs font-bold uppercase tracking-widest text-on-surface-variant mb-1.5">
+                <label class="font-headline block text-xs font-black uppercase tracking-[0.15em] text-on-surface-variant/70 mb-3 px-1">
                   Your Name <span class="text-primary">*</span>
                 </label>
                 <input
@@ -640,56 +648,60 @@ defmodule SupervisedSlicesWeb.CoreComponents do
                   name="customer_name"
                   required
                   placeholder="e.g. Alex Smith"
-                  class="w-full px-4 py-3 rounded-xl bg-surface-container-low border-0 text-on-surface placeholder-on-surface-variant/50 text-sm font-medium focus:outline-none focus:ring-2 focus:ring-primary/40"
+                  class="w-full px-6 py-5 rounded-xl bg-surface-container-low border-0 text-on-surface placeholder-on-surface-variant/30 text-base font-black focus:outline-none focus:ring-4 focus:ring-primary/10 transition-all shadow-inner"
                 />
               </div>
               <div>
-                <label class="font-body block text-xs font-bold uppercase tracking-widest text-on-surface-variant mb-1.5">
+                <label class="font-headline block text-xs font-black uppercase tracking-[0.15em] text-on-surface-variant/70 mb-3 px-1">
                   Phone
-                  <span class="text-on-surface-variant/50 normal-case font-normal">(optional)</span>
+                  <span class="text-on-surface-variant/40 normal-case font-medium lowercase italic">(optional)</span>
                 </label>
                 <input
                   type="tel"
                   name="customer_phone"
                   placeholder="e.g. 555-1234"
-                  class="w-full px-4 py-3 rounded-xl bg-surface-container-low border-0 text-on-surface placeholder-on-surface-variant/50 text-sm font-medium focus:outline-none focus:ring-2 focus:ring-primary/40"
+                  class="w-full px-6 py-5 rounded-xl bg-surface-container-low border-0 text-on-surface placeholder-on-surface-variant/30 text-base font-black focus:outline-none focus:ring-4 focus:ring-primary/10 transition-all shadow-inner"
                 />
               </div>
               <div>
-                <label class="font-body block text-xs font-bold uppercase tracking-widest text-on-surface-variant mb-1.5">
+                <label class="font-headline block text-xs font-black uppercase tracking-[0.15em] text-on-surface-variant/70 mb-3 px-1">
                   Notes
-                  <span class="text-on-surface-variant/50 normal-case font-normal">(optional)</span>
+                  <span class="text-on-surface-variant/40 normal-case font-medium lowercase italic">(optional)</span>
                 </label>
                 <textarea
                   name="notes"
-                  rows="2"
+                  rows="3"
                   placeholder="Allergies, special requests…"
-                  class="w-full px-4 py-3 rounded-xl bg-surface-container-low border-0 text-on-surface placeholder-on-surface-variant/50 text-sm font-medium focus:outline-none focus:ring-2 focus:ring-primary/40 resize-none"
+                  class="w-full px-6 py-5 rounded-xl bg-surface-container-low border-0 text-on-surface placeholder-on-surface-variant/30 text-base font-black focus:outline-none focus:ring-4 focus:ring-primary/10 transition-all resize-none shadow-inner"
                 />
               </div>
             </div>
-            <div class="bg-surface-container-low rounded-t-2xl px-6 pb-8 pt-5 shrink-0 space-y-4">
-              <div class="space-y-1.5">
-                <div class="flex justify-between items-center text-sm text-on-surface-variant">
+            
+            <div class="bg-surface-container-low/50 backdrop-blur-md rounded-t-[2.5rem] px-8 pb-10 pt-8 shrink-0 space-y-6 shadow-[0px_-8px_32px_rgba(0,0,0,0.05)]">
+              <div class="space-y-3">
+                <div class="flex justify-between items-center text-sm font-black text-on-surface-variant uppercase tracking-widest opacity-60">
                   <span>Subtotal</span>
                   <span>{basket_subtotal_string(@cart)}</span>
                 </div>
                 <%= if basket_has_tax?(@tax_rate) do %>
-                  <div class="flex justify-between items-center text-sm text-on-surface-variant">
+                  <div class="flex justify-between items-center text-sm font-black text-on-surface-variant uppercase tracking-widest opacity-60">
                     <span>Tax ({basket_tax_percent_label(@tax_rate)}%)</span>
                     <span>{basket_tax_string(@cart, @tax_rate)}</span>
                   </div>
                 <% end %>
-                <div class="flex justify-between items-center pt-1">
-                  <span class="font-bold text-on-surface">Total</span>
-                  <span class="text-lg font-extrabold text-primary">{basket_total(@cart, @tax_rate)}</span>
+                <div class="flex justify-between items-center pt-2 border-t border-on-surface/[0.05]">
+                  <span class="font-headline text-xl font-black text-on-surface uppercase tracking-tight">Total</span>
+                  <span class="font-headline text-3xl font-black text-primary leading-none">
+                    {basket_total(@cart, @tax_rate)}
+                  </span>
                 </div>
               </div>
+
               <button
                 type="submit"
-                class="w-full bg-gradient-to-r from-primary to-primary-container text-white font-bold py-4 rounded-full text-sm uppercase tracking-widest hover:scale-[1.02] transition-all active:scale-95 shadow-[0px_8px_24px_rgba(185,0,39,0.25)]"
+                class="w-full bg-gradient-to-r from-primary to-primary-container text-on-primary font-black text-lg rounded-xl px-8 py-5 shadow-[0px_16px_32px_rgba(185,0,39,0.3)] hover:scale-[1.02] hover:shadow-[0px_20px_40px_rgba(185,0,39,0.4)] transition-all active:scale-95"
               >
-                Confirm Order
+                PLACE ORDER
               </button>
             </div>
           </.form>
@@ -731,7 +743,7 @@ defmodule SupervisedSlicesWeb.CoreComponents do
     _ -> ""
   end
 
-  defp basket_subtotal_money(cart) do
+  def basket_subtotal_money(cart) do
     cart.cart_items
     |> Enum.reduce(nil, fn item, acc ->
       modifiers = basket_find_modifiers(item)
@@ -767,7 +779,7 @@ defmodule SupervisedSlicesWeb.CoreComponents do
     end)
   end
 
-  defp basket_subtotal_string(cart) do
+  def basket_subtotal_string(cart) do
     case basket_subtotal_money(cart) do
       nil -> ""
       total -> Money.to_string!(total)

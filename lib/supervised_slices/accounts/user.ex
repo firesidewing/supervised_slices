@@ -36,6 +36,7 @@ defmodule SupervisedSlices.Accounts.User do
         identity_field :email
         hash_provider AshAuthentication.BcryptProvider
         register_action_name :register_with_password
+        register_action_accept [:organization_name]
 
         resettable do
           sender SupervisedSlices.Accounts.User.Senders.SendPasswordResetEmail
