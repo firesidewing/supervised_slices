@@ -35,6 +35,7 @@ defmodule SupervisedSlices.Accounts.User do
       password :password do
         identity_field :email
         hash_provider AshAuthentication.BcryptProvider
+        register_action_name :register_with_password
 
         resettable do
           sender SupervisedSlices.Accounts.User.Senders.SendPasswordResetEmail
@@ -51,6 +52,10 @@ defmodule SupervisedSlices.Accounts.User do
   postgres do
     table "users"
     repo SupervisedSlices.Repo
+  end
+
+  relationships do
+    has_many :memberships, SupervisedSlices.Orgs.Membership
   end
 
   actions do
@@ -144,6 +149,12 @@ defmodule SupervisedSlices.Accounts.User do
         allow_nil? false
       end
 
+      argument :organization_name, :string do
+        allow_nil? false
+        public? true
+        constraints min_length: 2
+      end
+
       argument :password, :string do
         description "The proposed password for the user, in plain text."
         allow_nil? false
@@ -168,6 +179,29 @@ defmodule SupervisedSlices.Accounts.User do
 
       # validates that the password matches the confirmation
       validate AshAuthentication.Strategy.Password.PasswordConfirmationValidation
+
+      change fn changeset, _context ->
+        Ash.Changeset.after_action(changeset, fn _changeset, user ->
+          org_name = Ash.Changeset.get_argument(changeset, :organization_name)
+
+          # Create organization
+          org =
+            SupervisedSlices.Orgs.Organization
+            |> Ash.Changeset.for_create(:create, %{name: org_name})
+            |> Ash.create!(authorize?: false)
+
+          # Create membership as admin
+          SupervisedSlices.Orgs.Membership
+          |> Ash.Changeset.for_create(:create, %{
+            user_id: user.id,
+            organization_id: org.id,
+            role: :admin
+          })
+          |> Ash.create!(authorize?: false)
+
+          {:ok, user}
+        end)
+      end
 
       metadata :token, :string do
         description "A JWT that can be used to authenticate the user."

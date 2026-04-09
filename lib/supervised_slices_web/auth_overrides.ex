@@ -9,6 +9,16 @@ defmodule SupervisedSlicesWeb.AuthOverrides do
 
   # For a complete reference, see https://hexdocs.pm/ash_authentication_phoenix/ui-overrides.html
 
+  override AshAuthentication.Phoenix.Components.Register do
+    set :extra_fields, [
+      organization_name: [
+        label: "Organization Name",
+        placeholder: "Enter your organization name",
+        input_type: :text
+      ]
+    ]
+  end
+
   # override AshAuthentication.Phoenix.Components.Banner do
   #   set :image_url, "https://media.giphy.com/media/g7GKcSzwQfugw/giphy.gif"
   #   set :text_class, "bg-red-500"

@@ -35,6 +35,27 @@ defmodule SupervisedSlices.Orgs.Organization do
 
     create :create do
       accept [:name, :slug]
+
+      change fn changeset, _ ->
+        if Ash.Changeset.get_attribute(changeset, :slug) do
+          changeset
+        else
+          case Ash.Changeset.get_attribute(changeset, :name) do
+            nil ->
+              changeset
+
+            name ->
+              slug =
+                name
+                |> String.downcase()
+                |> String.replace(~r/[^a-z0-9]/, "-")
+                |> String.replace(~r/-+/, "-")
+                |> String.trim("-")
+
+              Ash.Changeset.force_change_attribute(changeset, :slug, slug)
+          end
+        end
+      end
     end
 
     update :update do
@@ -93,6 +114,7 @@ defmodule SupervisedSlices.Orgs.Organization do
     attribute :name, :string do
       allow_nil? false
       public? true
+      constraints min_length: 2
     end
 
     attribute :slug, :string do
