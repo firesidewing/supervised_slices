@@ -193,13 +193,25 @@ defmodule SupervisedSlicesWeb.OrderTrackingLive do
         <h3 class="font-body text-xs font-bold uppercase tracking-widest text-on-surface-variant mb-4">
           Your order
         </h3>
-        <div class="space-y-2 mb-4">
+        <div class="space-y-3 mb-4">
           <%= for item <- (@order.order_items || []) do %>
-            <div class="flex items-center justify-between">
-              <span class="font-body text-sm text-on-surface">
-                <span class="font-bold text-primary">{item.quantity}×</span> {item.item_name}
-              </span>
-              <span class="font-body text-sm font-bold text-on-surface">
+            <div class="flex items-start justify-between">
+              <div class="flex flex-col gap-0.5 min-w-0">
+                <span class="font-body text-sm text-on-surface">
+                  <span class="font-bold text-primary">{item.quantity}×</span> {item.item_name}
+                </span>
+                <%= if item.size_snapshot do %>
+                  <span class="font-body text-[11px] font-bold text-secondary uppercase tracking-widest pl-5">
+                    {item.size_snapshot["name"]}
+                  </span>
+                <% end %>
+                <%= for mod <- (item.modifiers_snapshot || []) do %>
+                  <span class="font-body text-[11px] font-medium text-on-surface-variant lowercase italic pl-5">
+                    + {mod["name"]}
+                  </span>
+                <% end %>
+              </div>
+              <span class="font-body text-sm font-bold text-on-surface shrink-0 pt-0.5">
                 {format_money(Money.mult!(item.price_at_time, item.quantity))}
               </span>
             </div>
@@ -211,6 +223,11 @@ defmodule SupervisedSlicesWeb.OrderTrackingLive do
             {format_money(@order.total_price)}
           </span>
         </div>
+        <%= if @order.notes && @order.notes != "" do %>
+          <div class="mt-4 pt-4 border-t border-surface-container-low italic text-xs text-on-surface-variant">
+            <p>Notes: "{@order.notes}"</p>
+          </div>
+        <% end %>
       </div>
 
       <%!-- Back to menu --%>

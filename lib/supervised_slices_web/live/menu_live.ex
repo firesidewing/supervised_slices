@@ -34,7 +34,7 @@ defmodule SupervisedSlicesWeb.MenuLive do
     {:ok,
      socket
      |> assign(:categories, categories)
-     |> assign(:cart, cart
+     |> assign(:cart, cart)
      |> assign(:cart_items_map, cart_items_map)
      |> assign(:cart_count, cart_count)
      |> assign(:show_basket, false)
@@ -112,13 +112,13 @@ defmodule SupervisedSlicesWeb.MenuLive do
       )
 
     Enum.each(cart.cart_items, fn item ->
-      modifier = order_find_modifier(item)
-      price = order_item_price(item, modifier)
+      modifiers = order_find_modifiers(item)
+      price = order_item_price(item, modifiers)
 
       modifiers_snapshot =
-        if modifier,
-          do: [%{"name" => modifier.name, "price" => Money.to_string!(price)}],
-          else: []
+        Enum.map(modifiers, fn mod ->
+          %{"name" => mod.name, "price" => Money.to_string!(mod.price_delta || Money.new!(0, price.currency))}
+        end)
 
       size_snapshot =
         case item.selected_size do
@@ -246,26 +246,22 @@ defmodule SupervisedSlicesWeb.MenuLive do
     refresh_cart(socket, cart)
   end
 
-  defp do_update_quantity(socket, cart_item_id, key, new_qty) do
-    %{ash_scope: scope, cart_items_map: map} = socket.assigns
+  defp do_update_quantity(socket, cart_item_id, _key, new_qty) do
+    %{ash_scope: scope, cart: cart} = socket.assigns
 
     cart_item = CartItem.get!(cart_item_id, scope: scope)
     CartItem.update_quantity!(cart_item, %{quantity: new_qty}, scope: scope)
 
-    new_map = Map.update!(map, key, &%{&1 | quantity: new_qty})
-    cart_count = count_cart_items(new_map)
-    assign(socket, cart_items_map: new_map, cart_count: cart_count)
+    refresh_cart(socket, cart)
   end
 
-  defp do_remove_item(socket, cart_item_id, key) do
-    %{ash_scope: scope, cart_items_map: map} = socket.assigns
+  defp do_remove_item(socket, cart_item_id, _key) do
+    %{ash_scope: scope, cart: cart} = socket.assigns
 
     CartItem.get!(cart_item_id, scope: scope)
     |> CartItem.destroy!(scope: scope)
 
-    new_map = Map.delete(map, key)
-    cart_count = count_cart_items(new_map)
-    assign(socket, cart_items_map: new_map, cart_count: cart_count)
+    refresh_cart(socket, cart)
   end
 
   defp refresh_cart(socket, cart) do
@@ -345,37 +341,37 @@ defmodule SupervisedSlicesWeb.MenuLive do
 
   defp cart_key(item_id, size_id, modifier_id), do: {item_id, size_id, modifier_id}
 
-  defp order_find_modifier(cart_item) do
-    modifier_id = List.first(cart_item.selected_modifier_ids)
+  defp order_find_modifiers(cart_item) do
+    modifier_ids = MapSet.new(Enum.map(cart_item.selected_modifier_ids || [], &to_string/1))
 
-    if modifier_id do
-      Enum.find_value(cart_item.menu_item.modifier_groups || [], fn group ->
-        Enum.find(group.modifiers || [], &(&1.id == modifier_id))
-      end)
-    end
+    Enum.flat_map(cart_item.menu_item.modifier_groups || [], fn group ->
+      Enum.filter(group.modifiers || [], &MapSet.member?(modifier_ids, to_string(&1.id)))
+    end)
   end
 
-  defp order_item_price(cart_item, modifier) do
+  defp order_item_price(cart_item, modifiers) do
     base =
       case cart_item.selected_size do
         %{price: size_price} -> size_price
         _ -> cart_item.menu_item.price
       end
 
-    if modifier && modifier.price_delta do
-      case Money.add(base, modifier.price_delta) do
-        {:ok, p} -> p
-        _ -> base
+    Enum.reduce(modifiers, base, fn modifier, acc ->
+      if modifier.price_delta do
+        case Money.add(acc, modifier.price_delta) do
+          {:ok, p} -> p
+          _ -> acc
+        end
+      else
+        acc
       end
-    else
-      base
-    end
+    end)
   end
 
   defp order_subtotal(cart) do
     Enum.reduce(cart.cart_items, nil, fn item, acc ->
-      modifier = order_find_modifier(item)
-      line = Money.mult!(order_item_price(item, modifier), item.quantity)
+      modifiers = order_find_modifiers(item)
+      line = Money.mult!(order_item_price(item, modifiers), item.quantity)
       if is_nil(acc), do: line, else: elem(Money.add(acc, line), 1)
     end)
   end

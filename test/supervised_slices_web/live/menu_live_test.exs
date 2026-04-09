@@ -320,5 +320,43 @@ defmodule SupervisedSlicesWeb.MenuLiveTest do
       assert order != nil
       assert Money.compare!(order.total_price, Money.new!(:USD, "9.00")) == :eq
     end
+
+    test "placing an order with modifiers and sizes stores snapshots correctly", %{conn: conn, org: org, item: item} do
+      alias SupervisedSlices.Accounts.GuestSession
+      alias SupervisedSlices.Cart.{Cart, CartItem}
+      alias SupervisedSlices.Menu.{MenuItemModifierGroup, MenuItemModifier, MenuItemModifierGroupLink, MenuItemSize}
+      alias SupervisedSlices.Orders.Order
+
+      session_id = Ash.UUIDv7.generate()
+      scope = %SupervisedSlices.Scope{
+        current_user: %GuestSession{id: session_id},
+        current_tenant: org.id,
+        guest_session_id: session_id
+      }
+
+      size = MenuItemSize.create!(%{name: "Large", price: Money.new!(:USD, "12.00"), menu_item_id: item.id}, scope: scope, authorize?: false)
+      group = MenuItemModifierGroup.create!(%{name: "Toppings", sort_order: 0}, scope: scope, authorize?: false)
+      mod1 = MenuItemModifier.create!(%{name: "Pepperoni", sort_order: 0, modifier_group_id: group.id, price_delta: Money.new!(:USD, "1.50")}, scope: scope, authorize?: false)
+      MenuItemModifierGroupLink.assign(%{menu_item_id: item.id, modifier_group_id: group.id}, scope: scope, authorize?: false)
+
+      cart = Cart.create!(scope: scope)
+      CartItem.add_to_cart!(%{cart_id: cart.id, menu_item_id: item.id, quantity: 1, selected_modifier_ids: [mod1.id], selected_size_id: size.id}, scope: scope, authorize?: false)
+
+      conn = Plug.Test.init_test_session(conn, %{"guest_session_id" => session_id})
+      {:ok, lv, _html} = live(conn, ~p"/menu/#{org.slug}")
+
+      lv |> element("nav button[phx-click='toggle_basket']") |> render_click()
+      lv |> element("button[phx-click='start_checkout']") |> render_click()
+      lv |> form("form[phx-submit='place_order']", %{customer_name: "Test Customer"}) |> render_submit()
+
+      order = Order.active!(scope: scope, authorize?: false, load: [:order_items]) |> List.first()
+      assert [item] = order.order_items
+      # Size 12.00 + 1.50 = 13.50
+      assert Money.compare!(item.price_at_time, Money.new!(:USD, "13.50")) == :eq
+      
+      assert item.size_snapshot["name"] == "Large"
+      assert [mod] = item.modifiers_snapshot
+      assert mod["name"] == "Pepperoni"
+    end
   end
 end

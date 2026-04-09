@@ -53,35 +53,55 @@ defmodule SupervisedSlices.Orders.Order do
 
     update :update_status do
       accept [:status]
+      require_atomic? false
 
-      after_action(fn _changeset, order, _context ->
-        SupervisedSlices.Orders.OrderUpdate.create!(
-          %{order_id: order.id, status: order.status},
-          tenant: order.organization_id,
-          authorize?: false
-        )
-
-        SupervisedSlices.PubSubNotifier.broadcast_order_status(order)
-        {:ok, order}
-      end)
-    end
-
-    update :send_update do
-      argument :message, :string, allow_nil?: false
-
-      after_action(fn changeset, order, _context ->
-        message = Ash.Changeset.get_argument(changeset, :message)
-
-        {:ok, update} =
-          SupervisedSlices.Orders.OrderUpdate.create(
-            %{order_id: order.id, message: message},
+      change fn changeset, _context ->
+        Ash.Changeset.after_action(changeset, fn _changeset, order ->
+          SupervisedSlices.Orders.OrderUpdate
+          |> Ash.Changeset.for_create(:create, %{order_id: order.id, status: order.status})
+          |> Ash.create!(
             tenant: order.organization_id,
             authorize?: false
           )
 
-        SupervisedSlices.PubSubNotifier.broadcast_order_update(update)
-        {:ok, order}
-      end)
+          {:ok, order}
+        end)
+      end
+
+      change fn changeset, _context ->
+        Ash.Changeset.after_transaction(changeset, fn _changeset, result ->
+          case result do
+            {:ok, order} ->
+              SupervisedSlices.PubSubNotifier.broadcast_order_status(order)
+              {:ok, order}
+
+            other ->
+              other
+          end
+        end)
+      end
+    end
+
+    update :send_update do
+      argument :message, :string, allow_nil?: false
+      require_atomic? false
+
+      change fn changeset, _context ->
+        Ash.Changeset.after_action(changeset, fn changeset, order ->
+          message = Ash.Changeset.get_argument(changeset, :message)
+
+          {:ok, update} =
+            SupervisedSlices.Orders.OrderUpdate
+            |> Ash.Changeset.for_create(:create, %{order_id: order.id, message: message})
+            |> Ash.create(
+              tenant: order.organization_id,
+              authorize?: false
+            )
+
+          SupervisedSlices.PubSubNotifier.broadcast_order_update(update)
+          {:ok, order}
+        end)
+      end
     end
 
     read :all do
@@ -181,6 +201,8 @@ defmodule SupervisedSlices.Orders.Order do
     end
 
     has_many :order_items, SupervisedSlices.Orders.OrderItem
-    has_many :order_updates, SupervisedSlices.Orders.OrderUpdate
+    has_many :order_updates, SupervisedSlices.Orders.OrderUpdate do
+      sort inserted_at: :asc
+    end
   end
 end

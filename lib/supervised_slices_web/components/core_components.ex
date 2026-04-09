@@ -500,6 +500,7 @@ defmodule SupervisedSlicesWeb.CoreComponents do
   attr :show, :boolean, required: true
   attr :checkout_step, :atom, required: true
   attr :tax_rate, :any, required: true
+  attr :org, :any, required: true
 
   def basket_drawer(assigns) do
     ~H"""
@@ -554,13 +555,15 @@ defmodule SupervisedSlicesWeb.CoreComponents do
                 <%= for item <- @cart.cart_items do %>
                   <% modifiers = basket_find_modifiers(item) %>
                   <div class="flex items-start justify-between py-2.5 px-3 bg-surface-container-low rounded-xl gap-2">
-                    <div class="flex-1 min-w-0">
+                    <div class="flex-1 min-w-0 flex flex-col gap-0.5">
                       <p class="font-semibold text-on-surface text-sm">{item.menu_item.name}</p>
-                      <p :if={item.selected_size} class="text-xs text-on-surface-variant mt-0.5">
+                      <p :if={item.selected_size} class="text-[10px] font-bold text-secondary uppercase tracking-widest">
                         {item.selected_size.name}
                       </p>
                       <%= for modifier <- modifiers do %>
-                        <p class="text-xs text-on-surface-variant mt-0.5">{modifier.name}</p>
+                        <p class="text-[11px] font-medium text-on-surface-variant lowercase italic">
+                          + {modifier.name}
+                        </p>
                       <% end %>
                     </div>
                     <div class="flex items-center gap-1.5 shrink-0 pt-0.5">

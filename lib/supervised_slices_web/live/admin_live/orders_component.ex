@@ -117,9 +117,21 @@ defmodule SupervisedSlicesWeb.AdminLive.OrdersComponent do
               <div class="flex-1 px-2 min-w-0">
                 <div class="flex flex-wrap gap-2">
                   <%= for item <- (order.order_items || []) do %>
-                    <span class="font-body bg-surface-container px-3 py-1 rounded-full text-xs font-bold text-on-surface uppercase tracking-wider">
-                      {item.quantity}x {item.item_name}
-                    </span>
+                    <div class="bg-surface-container px-3 py-2 rounded-xl flex flex-col gap-0.5 border border-surface-container-high min-w-[120px]">
+                      <div class="font-body text-xs font-bold text-on-surface uppercase tracking-wider">
+                        {item.quantity}x {item.item_name}
+                      </div>
+                      <%= if item.size_snapshot do %>
+                        <div class="font-body text-[10px] font-bold text-primary uppercase tracking-widest">
+                          {item.size_snapshot["name"]}
+                        </div>
+                      <% end %>
+                      <%= for mod <- (item.modifiers_snapshot || []) do %>
+                        <div class="font-body text-[10px] font-medium text-on-surface-variant lowercase italic">
+                          + {mod["name"]}
+                        </div>
+                      <% end %>
+                    </div>
                   <% end %>
                 </div>
                 <div class="mt-2 text-sm font-bold text-primary">

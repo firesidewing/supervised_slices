@@ -19,6 +19,9 @@ defmodule SupervisedSlices.Orgs.Organization do
         queue :cart_cleanup
         action :cleanup_stale_carts
         where expr(active == true)
+        worker_module_name SupervisedSlices.Orgs.Organization.AshOban.Worker.CleanupStaleCarts
+
+        scheduler_module_name SupervisedSlices.Orgs.Organization.AshOban.Scheduler.CleanupStaleCarts
       end
     end
   end
@@ -52,15 +55,15 @@ defmodule SupervisedSlices.Orgs.Organization do
       accept []
       require_atomic? false
 
-      change fn changeset, _context ->
-        Ash.Changeset.after_action(changeset, fn _changeset, org ->
-          SupervisedSlices.Cart.Cart
-          |> Ash.Query.filter(status == :active and updated_at < ago(24, :hour))
-          |> Ash.bulk_update!(:abandon, %{}, authorize?: false, tenant: org.id)
+      # change fn changeset, _context ->
+      #   Ash.Changeset.after_action(changeset, fn _changeset, org ->
+      #     SupervisedSlices.Cart.Cart
+      #     |> Ash.Query.filter(status == true and updated_at < ago(24, :hour))
+      #     |> Ash.bulk_update!(:abandon, %{}, authorize?: false, tenant: org.id)
 
-          {:ok, org}
-        end)
-      end
+      #     {:ok, org}
+      #   end)
+      # end
     end
   end
 
