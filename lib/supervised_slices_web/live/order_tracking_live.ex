@@ -198,13 +198,14 @@ defmodule SupervisedSlicesWeb.OrderTrackingLive do
             <div class="flex items-start justify-between">
               <div class="flex flex-col gap-0.5 min-w-0">
                 <span class="font-body text-sm text-on-surface">
-                  <span class="font-bold text-primary">{item.quantity}×</span> {item.item_name}
+                  <span class="font-bold text-primary">{item.quantity}×</span>
+                  <%= if item.size_snapshot do %>
+                    <span class="text-sm font-bold text-secondary uppercase tracking-widest ml-1.5 mr-1.5">
+                      {item.size_snapshot["name"]}
+                    </span>
+                  <% end %>
+                  {item.item_name}
                 </span>
-                <%= if item.size_snapshot do %>
-                  <span class="font-body text-[11px] font-bold text-secondary uppercase tracking-widest pl-5">
-                    {item.size_snapshot["name"]}
-                  </span>
-                <% end %>
                 <%= for mod <- (item.modifiers_snapshot || []) do %>
                   <span class="font-body text-[11px] font-medium text-on-surface-variant lowercase italic pl-5">
                     + {mod["name"]}

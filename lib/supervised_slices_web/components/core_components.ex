@@ -556,9 +556,11 @@ defmodule SupervisedSlicesWeb.CoreComponents do
                   <% modifiers = basket_find_modifiers(item) %>
                   <div class="flex items-start justify-between py-2.5 px-3 bg-surface-container-low rounded-xl gap-2">
                     <div class="flex-1 min-w-0 flex flex-col gap-0.5">
-                      <p class="font-semibold text-on-surface text-sm">{item.menu_item.name}</p>
-                      <p :if={item.selected_size} class="text-[10px] font-bold text-secondary uppercase tracking-widest">
-                        {item.selected_size.name}
+                      <p class="font-semibold text-on-surface text-sm">
+                        <span :if={item.selected_size} class="text-sm font-bold text-secondary uppercase tracking-widest mr-1.5">
+                          {item.selected_size.name}
+                        </span>
+                        {item.menu_item.name}
                       </p>
                       <%= for modifier <- modifiers do %>
                         <p class="text-[11px] font-medium text-on-surface-variant lowercase italic">

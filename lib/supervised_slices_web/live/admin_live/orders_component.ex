@@ -91,82 +91,86 @@ defmodule SupervisedSlicesWeb.AdminLive.OrdersComponent do
           <span class="text-sm text-on-surface-variant">Oldest first</span>
         </div>
 
-        <div id="orders" phx-update="stream" class="space-y-3">
+        <div id="orders" phx-update="stream" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
           <%= for {dom_id, order} <- @streams.orders do %>
             <div
               id={dom_id}
-              class="bg-surface-container-lowest rounded-xl p-6 flex flex-col lg:flex-row lg:items-center justify-between gap-6 hover:scale-[1.005] transition-transform duration-200"
+              class="bg-surface-container-lowest rounded-2xl flex flex-col hover:translate-y-[-2px] transition-all duration-300 shadow-[0_4px_20px_rgba(0,0,0,0.03)] border border-surface-container/10"
             >
-              <div class="flex items-start gap-5 min-w-0">
-                <div class="bg-surface-container-low w-16 h-16 shrink-0 rounded-xl flex items-center justify-center">
-                  <span class="font-headline text-lg font-black text-on-surface">
+              <%!-- Header --%>
+              <div class="px-5 py-4 bg-surface-container-low/50 rounded-t-2xl flex items-center justify-between">
+                <div class="flex items-center gap-3">
+                  <div class="bg-primary text-white w-9 h-9 rounded-lg flex items-center justify-center font-headline text-sm font-black italic">
                     #{order_number(order)}
-                  </span>
+                  </div>
+                  <div class="min-w-0">
+                    <h3 class="font-headline text-sm font-bold text-on-surface truncate leading-tight">
+                      {order.customer_name}
+                    </h3>
+                    <p class="text-[10px] text-on-surface-variant font-medium tracking-wide">
+                      {time_ago(order.inserted_at)}
+                    </p>
+                  </div>
                 </div>
-                <div class="min-w-0">
-                  <h3 class="font-headline text-base font-bold text-on-surface truncate">
-                    {order.customer_name}
-                  </h3>
-                  <p class="text-sm text-on-surface-variant">{time_ago(order.inserted_at)}</p>
-                  <%= if order.notes && order.notes != "" do %>
-                    <p class="text-xs text-on-surface-variant mt-1 italic">"{order.notes}"</p>
-                  <% end %>
+                <div class={[
+                  "px-2.5 py-1 rounded-full text-[10px] font-bold uppercase tracking-widest",
+                  status_badge_class(order.status)
+                ]}>
+                  {status_label(order.status)}
                 </div>
               </div>
 
-              <div class="flex-1 px-2 min-w-0">
-                <div class="flex flex-wrap gap-2">
+              <%!-- Items --%>
+              <div class="flex-1 p-5 space-y-4">
+                <div class="space-y-3">
                   <%= for item <- (order.order_items || []) do %>
-                    <div class="bg-surface-container px-3 py-2 rounded-xl flex flex-col gap-0.5 border border-surface-container-high min-w-[120px]">
-                      <div class="font-body text-xs font-bold text-on-surface uppercase tracking-wider">
-                        {item.quantity}x {item.item_name}
+                    <div class="flex flex-col gap-0.5">
+                      <div class="font-body text-sm font-bold text-on-surface leading-tight">
+                        <span class="text-primary tabular-nums font-black mr-0.5">{item.quantity}</span>x
+                        <%= if item.size_snapshot do %>
+                          <span class="text-sm font-bold text-secondary uppercase tracking-widest ml-1.5 mr-1.5">
+                            {item.size_snapshot["name"]}
+                          </span>
+                        <% end %>
+                        {item.item_name}
                       </div>
-                      <%= if item.size_snapshot do %>
-                        <div class="font-body text-[10px] font-bold text-primary uppercase tracking-widest">
-                          {item.size_snapshot["name"]}
-                        </div>
-                      <% end %>
                       <%= for mod <- (item.modifiers_snapshot || []) do %>
-                        <div class="font-body text-[10px] font-medium text-on-surface-variant lowercase italic">
+                        <div class="text-[11px] text-on-surface-variant italic pl-6 opacity-75">
                           + {mod["name"]}
                         </div>
                       <% end %>
                     </div>
                   <% end %>
                 </div>
-                <div class="mt-2 text-sm font-bold text-primary">
-                  {format_money(order.total_price)}
-                  <%= if order.tax_amount && Money.compare!(order.tax_amount, Money.new!(0, order.tax_amount.currency)) != :eq do %>
-                    <span class="text-xs font-normal text-on-surface-variant ml-1">
-                      incl. {format_money(order.tax_amount)} tax
-                    </span>
-                  <% end %>
-                </div>
+
+                <%= if order.notes && order.notes != "" do %>
+                  <div class="pt-3 border-t border-surface-container-low border-dashed">
+                    <p class="text-[11px] text-on-surface-variant italic bg-surface-container-lowest p-2 rounded-lg">
+                      <span class="font-bold text-[9px] uppercase tracking-widest block mb-1 opacity-50">Notes:</span>
+                      "{order.notes}"
+                    </p>
+                  </div>
+                <% end %>
               </div>
 
-              <div class="flex flex-col items-end gap-3 shrink-0">
-                <div class="flex items-center gap-4">
-                  <div class={[
-                    "flex items-center gap-2 px-4 py-2 rounded-full text-xs font-bold uppercase tracking-widest",
-                    status_badge_class(order.status)
-                  ]}>
-                    <%= if order.status == :pending do %>
-                      <span class="w-1.5 h-1.5 rounded-full bg-primary animate-pulse"></span>
-                    <% end %>
-                    {status_label(order.status)}
-                  </div>
+              <%!-- Actions --%>
+              <div class="px-5 pb-5 pt-2 space-y-4">
+                <div class="flex items-center justify-between text-on-surface pt-3 border-t border-surface-container-low border-dashed">
+                  <span class="text-[10px] font-bold text-on-surface-variant uppercase tracking-widest">Total</span>
+                  <span class="text-base font-black italic tracking-tight">{format_money(order.total_price)}</span>
+                </div>
 
+                <div class="grid grid-cols-1 gap-2">
                   <%= if next_status_label(order.status) do %>
                     <button
                       phx-click="advance_order"
                       phx-value-id={order.id}
                       phx-target={@myself}
                       class={[
-                        "font-headline px-6 py-2.5 rounded-xl font-bold transition-all active:scale-95 duration-150",
+                        "w-full font-headline py-2.5 rounded-xl text-sm font-bold transition-all active:scale-[0.98] duration-150",
                         if(order.status == :ready,
                           do: "bg-primary text-white hover:opacity-90 shadow-lg shadow-primary/20",
-                          else:
-                            "bg-surface-container-highest text-on-surface hover:bg-surface-container-high"
+                          else: "bg-surface-container-highest text-on-surface hover:bg-surface-container-high"
                         )
                       ]}
                     >
@@ -174,35 +178,35 @@ defmodule SupervisedSlicesWeb.AdminLive.OrdersComponent do
                     </button>
                   <% end %>
 
-                  <%= if order.status not in [:completed, :cancelled] do %>
-                    <button
-                      phx-click="cancel_order"
-                      phx-value-id={order.id}
-                      phx-target={@myself}
-                      class="w-9 h-9 flex items-center justify-center rounded-full text-on-surface-variant hover:bg-error-container hover:text-error transition-colors"
-                      title="Cancel order"
-                    >
-                      <span class="material-symbols-outlined text-lg">close</span>
-                    </button>
-                  <% end %>
-                </div>
-
-                <%!-- Quick update chips (kitchen → customer) --%>
-                <%= if order.status in [:confirmed, :preparing] do %>
-                  <div class="flex flex-wrap gap-2 justify-end">
-                    <%= for msg <- ["Running a bit behind", "Ready in ~5 min", "Coming right up!"] do %>
+                  <div class="flex items-center gap-2">
+                    <%= if order.status not in [:completed, :cancelled] do %>
                       <button
-                        phx-click="send_preset_update"
+                        phx-click="cancel_order"
                         phx-value-id={order.id}
-                        phx-value-message={msg}
                         phx-target={@myself}
-                        class="font-body text-xs px-3 py-1.5 rounded-full bg-surface-container text-on-surface-variant hover:bg-secondary-container hover:text-on-secondary-container transition-colors active:scale-95"
+                        class="flex-1 flex items-center justify-center gap-1.5 py-2 text-[10px] font-bold uppercase tracking-widest text-on-surface-variant hover:bg-error-container/20 hover:text-error transition-colors rounded-lg"
                       >
-                        {msg}
+                        <span class="material-symbols-outlined text-[16px]">close</span> Cancel
                       </button>
                     <% end %>
+
+                    <%= if order.status in [:confirmed, :preparing] do %>
+                      <div class="flex gap-1">
+                        <%= for msg <- ["Behind", "5min"] do %>
+                          <button
+                            phx-click="send_preset_update"
+                            phx-value-id={order.id}
+                            phx-value-message={msg}
+                            phx-target={@myself}
+                            class="px-2 py-2 rounded-lg bg-surface-container-low text-on-surface-variant text-[9px] font-black uppercase tracking-widest hover:bg-secondary-container hover:text-on-secondary-container transition-colors"
+                          >
+                            {msg}
+                          </button>
+                        <% end %>
+                      </div>
+                    <% end %>
                   </div>
-                <% end %>
+                </div>
               </div>
             </div>
           <% end %>
