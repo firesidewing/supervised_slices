@@ -41,16 +41,6 @@ defmodule SupervisedSlicesWeb.MenuLive.ItemComponent do
     {:noreply, assign(socket, :selected_modifiers, new_mods)}
   end
 
-  def handle_event("add_to_cart", _params, socket) do
-    send(self(), {
-      :item_component_add_to_cart,
-      socket.assigns.selected_item.id,
-      socket.assigns[:selected_size_id],
-      MapSet.to_list(socket.assigns.selected_modifiers)
-    })
-
-    {:noreply, socket}
-  end
 
   def render(assigns) do
     item = assigns.selected_item
@@ -125,7 +115,7 @@ defmodule SupervisedSlicesWeb.MenuLive.ItemComponent do
 
           <div :if={not @has_customization}>
             <div class={[
-              "flex items-center justify-between py-6 px-8 rounded-xl bg-surface-container-lowest",
+              "flex items-center justify-between py-4 px-6 rounded-xl bg-surface-container-lowest",
               "shadow-[0px_12px_32px_rgba(93,63,62,0.08)]",
               "transition-all duration-300"
             ]}>
@@ -138,7 +128,7 @@ defmodule SupervisedSlicesWeb.MenuLive.ItemComponent do
                   phx-value-item_id={@selected_item.id}
                   phx-value-delta="-1"
                   class={[
-                    "w-10 h-10 flex items-center justify-center rounded-full transition-all active:scale-90",
+                    "w-10 h-10 flex items-center justify-center rounded-full transition-all active:scale-90 [&.phx-click-loading]:opacity-50 [&.phx-click-loading]:cursor-wait",
                     if(get_item_qty(@cart_items_map, @selected_item.id) > 0,
                       do: "bg-primary text-on-primary shadow-lg shadow-primary/20",
                       else: "text-on-surface-variant hover:bg-surface-container-high"
@@ -146,7 +136,11 @@ defmodule SupervisedSlicesWeb.MenuLive.ItemComponent do
                   ]}
                   aria-label="Remove one"
                 >
-                  <span class="material-symbols-outlined text-xl font-bold">remove</span>
+                  <span class="material-symbols-outlined text-xl font-bold [.phx-click-loading]:hidden">remove</span>
+                  <svg class="animate-spin h-5 w-5 text-current hidden [.phx-click-loading]:block" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                    <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                    <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                  </svg>
                 </button>
                 <span class="px-4 text-base font-black min-w-[2.5rem] text-center text-on-surface">
                   {get_item_qty(@cart_items_map, @selected_item.id)}
@@ -155,10 +149,14 @@ defmodule SupervisedSlicesWeb.MenuLive.ItemComponent do
                   phx-click="update_quantity"
                   phx-value-item_id={@selected_item.id}
                   phx-value-delta="1"
-                  class="w-10 h-10 flex items-center justify-center rounded-full bg-primary text-on-primary shadow-lg shadow-primary/20 hover:scale-105 transition-all active:scale-90"
+                  class="w-10 h-10 flex items-center justify-center rounded-full bg-primary text-on-primary shadow-lg shadow-primary/20 hover:scale-105 transition-all active:scale-90 [&.phx-click-loading]:opacity-50 [&.phx-click-loading]:cursor-wait"
                   aria-label="Add one"
                 >
-                  <span class="material-symbols-outlined text-xl font-bold">add</span>
+                  <span class="material-symbols-outlined text-xl font-bold [.phx-click-loading]:hidden">add</span>
+                  <svg class="animate-spin h-5 w-5 text-current hidden [.phx-click-loading]:block" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                    <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                    <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                  </svg>
                 </button>
               </div>
             </div>
@@ -166,15 +164,24 @@ defmodule SupervisedSlicesWeb.MenuLive.ItemComponent do
         </div>
       </div>
 
-    <div :if={@has_customization} class="fixed bottom-24 left-0 right-0 px-6 z-40 md:left-auto md:right-12 md:bottom-12 md:w-[450px]">
+    <div :if={@has_customization} class="fixed bottom-8 left-0 right-0 px-6 z-40 md:left-auto md:right-12 md:bottom-12 md:w-[450px]">
         <div>
           <button
             phx-click="add_to_cart"
-            phx-target={@myself}
-            class="w-full flex items-center justify-between bg-gradient-to-r from-primary to-primary-container text-on-primary font-black text-lg rounded-2xl px-8 py-6 shadow-[0px_24px_48px_rgba(185,0,39,0.35)] hover:scale-[1.03] hover:shadow-[0px_32px_64px_rgba(185,0,39,0.45)] transition-all active:scale-95 group [&.phx-click-loading]:opacity-75 [&.phx-click-loading]:scale-95 [&.phx-click-loading]:cursor-wait [&.phx-click-loading]:pointer-events-none"
+            phx-value-item_id={@selected_item.id}
+            phx-value-size_id={@selected_size_id}
+            phx-value-modifier_ids={Enum.join(MapSet.to_list(@selected_modifiers), ",")}
+            class="w-full flex items-center justify-between bg-gradient-to-r from-primary to-primary-container text-on-primary font-black text-lg rounded-2xl px-6 py-4 shadow-[0px_24px_48px_rgba(185,0,39,0.35)] hover:scale-[1.03] hover:shadow-[0px_32px_64px_rgba(185,0,39,0.45)] transition-all active:scale-95 group [&.phx-click-loading]:opacity-75 [&.phx-click-loading]:scale-95 [&.phx-click-loading]:cursor-wait [&.phx-click-loading]:pointer-events-none"
           >
-            <span class="tracking-tight uppercase">Add to Basket</span>
-            <span :if={@total_price} class="font-headline text-3xl group-hover:scale-110 transition-transform">{format_money(@total_price)}</span>
+            <div class="flex items-center gap-3">
+              <svg class="animate-spin h-5 w-5 text-current hidden group-[.phx-click-loading]:block" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+              </svg>
+              <span class="tracking-tight uppercase group-[.phx-click-loading]:hidden">Add to Basket</span>
+              <span class="tracking-tight uppercase hidden group-[.phx-click-loading]:inline">Adding to Basket...</span>
+            </div>
+            <span :if={@total_price} class="font-headline text-3xl group-hover:scale-110 transition-transform group-[.phx-click-loading]:hidden">{format_money(@total_price)}</span>
           </button>
         </div>
       </div>
@@ -194,7 +201,7 @@ defmodule SupervisedSlicesWeb.MenuLive.ItemComponent do
       phx-value-size_id={@size.id}
       phx-target={@myself}
       data-selected={to_string(@selected)}
-      class="size-option group w-full flex items-center justify-between px-6 py-5 rounded-xl transition-all duration-300 text-left data-[selected=true]:bg-primary/5 data-[selected=true]:shadow-[0px_8px_24px_rgba(185,0,39,0.06)] data-[selected=true]:translate-x-1 data-[selected=false]:bg-surface-container-lowest data-[selected=false]:shadow-[0px_4px_12px_rgba(93,63,62,0.04)] data-[selected=false]:hover:bg-surface-container-low data-[selected=false]:hover:-translate-y-0.5"
+      class="size-option group w-full flex items-center justify-between px-5 py-3.5 rounded-xl transition-all duration-300 text-left data-[selected=true]:bg-primary/5 data-[selected=true]:shadow-[0px_8px_24px_rgba(185,0,39,0.06)] data-[selected=true]:translate-x-1 data-[selected=false]:bg-surface-container-lowest data-[selected=false]:shadow-[0px_4px_12px_rgba(93,63,62,0.04)] data-[selected=false]:hover:bg-surface-container-low data-[selected=false]:hover:-translate-y-0.5"
     >
       <div class="flex items-center gap-4">
         <div class="w-6 h-6 rounded-full border-2 flex items-center justify-center shrink-0 transition-all duration-300 border-on-surface-variant/30 group-hover:border-primary/50 group-data-[selected=true]:border-primary group-data-[selected=true]:bg-primary group-data-[selected=true]:scale-110">
@@ -222,7 +229,7 @@ defmodule SupervisedSlicesWeb.MenuLive.ItemComponent do
       phx-value-modifier_id={@modifier.id}
       phx-target={@myself}
       data-selected={to_string(@selected)}
-      class="group w-full flex items-center justify-between px-6 py-5 rounded-xl transition-all duration-300 text-left data-[selected=true]:bg-primary/5 data-[selected=true]:shadow-[0px_8px_24px_rgba(185,0,39,0.06)] data-[selected=true]:translate-x-1 data-[selected=false]:bg-surface-container-lowest data-[selected=false]:shadow-[0px_4px_12px_rgba(93,63,62,0.04)] data-[selected=false]:hover:bg-surface-container-low data-[selected=false]:hover:-translate-y-0.5"
+      class="group w-full flex items-center justify-between px-5 py-3.5 rounded-xl transition-all duration-300 text-left data-[selected=true]:bg-primary/5 data-[selected=true]:shadow-[0px_8px_24px_rgba(185,0,39,0.06)] data-[selected=true]:translate-x-1 data-[selected=false]:bg-surface-container-lowest data-[selected=false]:shadow-[0px_4px_12px_rgba(93,63,62,0.04)] data-[selected=false]:hover:bg-surface-container-low data-[selected=false]:hover:-translate-y-0.5"
     >
       <div class="flex-1 min-w-0 pr-4">
         <div class="text-base font-headline font-black transition-colors group-data-[selected=true]:text-primary group-data-[selected=false]:text-on-surface">

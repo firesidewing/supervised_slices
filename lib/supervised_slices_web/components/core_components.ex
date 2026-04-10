@@ -527,7 +527,7 @@ defmodule SupervisedSlicesWeb.CoreComponents do
           if(@show, do: "translate-y-0 md:translate-x-0", else: "translate-y-full md:translate-x-full")
         ]}
       >
-        <div class="flex items-center justify-between px-8 py-7 shrink-0 border-b border-on-surface/[0.03]">
+        <div class="flex items-center justify-between px-6 py-4 shrink-0 border-b border-on-surface/[0.03]">
           <div class="flex items-center gap-3">
             <button
               :if={@checkout_step == :confirm}
@@ -552,7 +552,7 @@ defmodule SupervisedSlicesWeb.CoreComponents do
         </div>
 
         <%= if @checkout_step == :review do %>
-          <div class="overflow-y-auto flex-1 px-6 py-6 scroll-smooth no-scrollbar">
+          <div class="overflow-y-auto flex-1 px-4 py-4 scroll-smooth no-scrollbar">
             <%= if is_nil(@cart) or Enum.empty?(@cart.cart_items) do %>
               <div class="text-center py-24 text-on-surface-variant flex flex-col items-center">
                 <div class="w-24 h-24 rounded-full bg-surface-container-low flex items-center justify-center mb-6">
@@ -565,7 +565,7 @@ defmodule SupervisedSlicesWeb.CoreComponents do
               <div class="grid grid-cols-1 gap-3">
                 <%= for item <- @cart.cart_items do %>
                   <% modifiers = basket_find_modifiers(item) %>
-                  <div class="flex items-start justify-between p-4 bg-surface-container-lowest rounded-xl shadow-sm border border-on-surface/[0.03] gap-4 group hover:shadow-md transition-all duration-300">
+                  <div class="flex items-start justify-between p-3 bg-surface-container-lowest rounded-xl shadow-sm border border-on-surface/[0.03] gap-4 group hover:shadow-md transition-all duration-300">
                     <div class="flex-1 min-w-0 flex flex-col gap-1">
                       <div class="flex items-center gap-2">
                          <span :if={item.selected_size} class="text-[10px] font-black bg-secondary/10 text-secondary px-2 py-0.5 rounded-md uppercase tracking-widest">
@@ -611,7 +611,7 @@ defmodule SupervisedSlicesWeb.CoreComponents do
           </div>
 
           <%= if not is_nil(@cart) and not Enum.empty?(@cart.cart_items) do %>
-            <div class="bg-surface-container-low/50 backdrop-blur-md rounded-t-[2.5rem] px-8 pb-10 pt-8 shrink-0 space-y-6 shadow-[0px_-8px_32px_rgba(0,0,0,0.05)]">
+            <div class="bg-surface-container-low/50 backdrop-blur-md rounded-t-[2.5rem] px-6 pb-8 pt-6 shrink-0 space-y-6 shadow-[0px_-8px_32px_rgba(0,0,0,0.05)]">
               <div class="space-y-3">
                 <div class="flex justify-between items-center text-sm font-black text-on-surface-variant uppercase tracking-widest opacity-60">
                   <span>Subtotal</span>
@@ -633,7 +633,7 @@ defmodule SupervisedSlicesWeb.CoreComponents do
 
               <button
                 phx-click="start_checkout"
-                class="w-full bg-gradient-to-r from-primary to-primary-container text-on-primary font-black text-lg rounded-xl px-8 py-5 shadow-[0px_16px_32px_rgba(185,0,39,0.3)] hover:scale-[1.02] hover:shadow-[0px_20px_40px_rgba(185,0,39,0.4)] transition-all active:scale-95"
+                class="w-full bg-gradient-to-r from-primary to-primary-container text-on-primary font-black text-lg rounded-xl px-6 py-4 shadow-[0px_16px_32px_rgba(185,0,39,0.3)] hover:scale-[1.02] hover:shadow-[0px_20px_40px_rgba(185,0,39,0.4)] transition-all active:scale-95"
               >
                 PROCEED TO CHECKOUT
               </button>
@@ -645,7 +645,7 @@ defmodule SupervisedSlicesWeb.CoreComponents do
             phx-submit="place_order"
             class="overflow-y-auto flex-1 flex flex-col no-scrollbar"
           >
-            <div class="flex-1 px-8 py-8 space-y-8">
+            <div class="flex-1 px-6 py-6 space-y-6">
               <div>
                 <label class="font-headline block text-xs font-black uppercase tracking-[0.15em] text-on-surface-variant/70 mb-3 px-1">
                   Your Name <span class="text-primary">*</span>
@@ -655,7 +655,7 @@ defmodule SupervisedSlicesWeb.CoreComponents do
                   name="customer_name"
                   required
                   placeholder="e.g. Alex Smith"
-                  class="w-full px-6 py-5 rounded-xl bg-surface-container-low border-0 text-on-surface placeholder-on-surface-variant/30 text-base font-black focus:outline-none focus:ring-4 focus:ring-primary/10 transition-all shadow-inner"
+                  class="w-full px-5 py-3.5 rounded-xl bg-surface-container-low border-0 text-on-surface placeholder-on-surface-variant/30 text-base font-black focus:outline-none focus:ring-4 focus:ring-primary/10 transition-all shadow-inner"
                 />
               </div>
               <div>
@@ -667,7 +667,7 @@ defmodule SupervisedSlicesWeb.CoreComponents do
                   type="tel"
                   name="customer_phone"
                   placeholder="e.g. 555-1234"
-                  class="w-full px-6 py-5 rounded-xl bg-surface-container-low border-0 text-on-surface placeholder-on-surface-variant/30 text-base font-black focus:outline-none focus:ring-4 focus:ring-primary/10 transition-all shadow-inner"
+                  class="w-full px-5 py-3.5 rounded-xl bg-surface-container-low border-0 text-on-surface placeholder-on-surface-variant/30 text-base font-black focus:outline-none focus:ring-4 focus:ring-primary/10 transition-all shadow-inner"
                 />
               </div>
               <div>
@@ -679,12 +679,12 @@ defmodule SupervisedSlicesWeb.CoreComponents do
                   name="notes"
                   rows="3"
                   placeholder="Allergies, special requests…"
-                  class="w-full px-6 py-5 rounded-xl bg-surface-container-low border-0 text-on-surface placeholder-on-surface-variant/30 text-base font-black focus:outline-none focus:ring-4 focus:ring-primary/10 transition-all resize-none shadow-inner"
+                  class="w-full px-5 py-3.5 rounded-xl bg-surface-container-low border-0 text-on-surface placeholder-on-surface-variant/30 text-base font-black focus:outline-none focus:ring-4 focus:ring-primary/10 transition-all resize-none shadow-inner"
                 />
               </div>
             </div>
             
-            <div class="bg-surface-container-low/50 backdrop-blur-md rounded-t-[2.5rem] px-8 pb-10 pt-8 shrink-0 space-y-6 shadow-[0px_-8px_32px_rgba(0,0,0,0.05)]">
+            <div class="bg-surface-container-low/50 backdrop-blur-md rounded-t-[2.5rem] px-6 pb-8 pt-6 shrink-0 space-y-6 shadow-[0px_-8px_32px_rgba(0,0,0,0.05)]">
               <div class="space-y-3">
                 <div class="flex justify-between items-center text-sm font-black text-on-surface-variant uppercase tracking-widest opacity-60">
                   <span>Subtotal</span>
@@ -706,7 +706,7 @@ defmodule SupervisedSlicesWeb.CoreComponents do
 
               <button
                 type="submit"
-                class="w-full bg-gradient-to-r from-primary to-primary-container text-on-primary font-black text-lg rounded-xl px-8 py-5 shadow-[0px_16px_32px_rgba(185,0,39,0.3)] hover:scale-[1.02] hover:shadow-[0px_20px_40px_rgba(185,0,39,0.4)] transition-all active:scale-95"
+                class="w-full bg-gradient-to-r from-primary to-primary-container text-on-primary font-black text-lg rounded-xl px-6 py-4 shadow-[0px_16px_32px_rgba(185,0,39,0.3)] hover:scale-[1.02] hover:shadow-[0px_20px_40px_rgba(185,0,39,0.4)] transition-all active:scale-95"
               >
                 PLACE ORDER
               </button>
