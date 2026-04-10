@@ -46,7 +46,7 @@ defmodule SupervisedSlicesWeb.MenuLive.MenuComponent do
     <div class={[
       "bg-surface-container-lowest rounded-xl p-5 transition-all duration-300",
       "shadow-[0px_12px_32px_rgba(93,63,62,0.08)] hover:shadow-[0px_16px_48px_rgba(93,63,62,0.12)]",
-      "hover:scale-[1.02] active:scale-[0.98] group"
+      "hover:scale-[1.02] group"
     ]}>
       <div class="flex gap-5 items-start">
         <.link
@@ -95,21 +95,19 @@ defmodule SupervisedSlicesWeb.MenuLive.MenuComponent do
               :if={@customizable?}
               id={"customize-#{@item.id}"}
               navigate={~p"/menu/#{@org.slug}/item/#{@item.id}"}
-              phx-click={
-                JS.add_class("opacity-40 scale-90", to: "#customize-#{@item.id}")
-                |> JS.add_class("cursor-wait", to: "body")
-              }
-              class="flex items-center gap-2 bg-gradient-to-r from-primary to-primary-container text-on-primary text-xs font-black px-5 py-2.5 rounded-lg hover:shadow-lg hover:shadow-primary/20 transition-all active:scale-90 active:brightness-90 shadow-sm"
+              phx-click={JS.add_class("phx-click-loading", to: "self")}
+              class="flex items-center gap-2 bg-gradient-to-r from-primary to-primary-container text-on-primary text-xs font-black px-5 py-2.5 rounded-lg hover:shadow-lg hover:shadow-primary/20 transition-all active:scale-90 active:brightness-75 phx-click-loading:scale-90 phx-click-loading:opacity-80 phx-click-loading:brightness-75 shadow-sm"
             >
               CUSTOMIZE
               <span class="relative flex items-center justify-center w-4 h-4">
-                <span class="material-symbols-outlined !text-[16px] phx-click-loading:hidden">
-                  arrow_forward
+                <span class="phx-click-loading:!hidden">
+                  <span class="material-symbols-outlined !text-[16px]">
+                    arrow_forward
+                  </span>
                 </span>
-                <.icon
-                  name="hero-arrow-path"
-                  class="hidden phx-click-loading:block size-4 animate-spin"
-                />
+                <span class="hidden phx-click-loading:!flex absolute inset-0 items-center justify-center">
+                  <.icon name="hero-arrow-path" class="size-4 animate-spin" />
+                </span>
               </span>
             </.link>
 
@@ -119,74 +117,30 @@ defmodule SupervisedSlicesWeb.MenuLive.MenuComponent do
                 phx-click="update_quantity"
                 phx-value-item_id={@item.id}
                 phx-value-delta="-1"
-                class="w-9 h-9 rounded-full bg-surface-container flex items-center justify-center hover:bg-surface-container-high transition-all active:scale-90 [&.phx-click-loading]:opacity-50 [&.phx-click-loading]:cursor-wait"
+                class="w-9 h-9 rounded-full bg-surface-container flex items-center justify-center hover:bg-surface-container-high transition-all active:scale-90 phx-click-loading:opacity-40 phx-click-loading:scale-95"
                 aria-label="Remove one"
               >
                 <span
-                  class="material-symbols-outlined text-on-surface [.phx-click-loading]:hidden"
+                  class="material-symbols-outlined text-on-surface"
                   style="font-size: 20px;"
                 >
                   remove
                 </span>
-                <svg
-                  class="animate-spin h-4 w-4 text-on-surface hidden [.phx-click-loading]:block"
-                  xmlns="http://www.w3.org/2000/svg"
-                  fill="none"
-                  viewBox="0 0 24 24"
-                >
-                  <circle
-                    class="opacity-25"
-                    cx="12"
-                    cy="12"
-                    r="10"
-                    stroke="currentColor"
-                    stroke-width="4"
-                  >
-                  </circle>
-                  <path
-                    class="opacity-75"
-                    fill="currentColor"
-                    d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
-                  >
-                  </path>
-                </svg>
               </button>
 
               <button
                 phx-click="update_quantity"
                 phx-value-item_id={@item.id}
                 phx-value-delta="1"
-                class="w-9 h-9 rounded-full bg-gradient-to-r from-primary to-primary-container text-on-primary flex items-center justify-center hover:shadow-lg hover:shadow-primary/20 transition-all active:scale-90 [&.phx-click-loading]:opacity-50 [&.phx-click-loading]:cursor-wait"
+                class="w-9 h-9 rounded-full bg-gradient-to-r from-primary to-primary-container text-on-primary flex items-center justify-center hover:shadow-lg hover:shadow-primary/20 transition-all active:scale-90 phx-click-loading:opacity-40 phx-click-loading:scale-95"
                 aria-label="Add one"
               >
                 <span
-                  class="material-symbols-outlined [.phx-click-loading]:hidden"
+                  class="material-symbols-outlined"
                   style="font-size: 20px;"
                 >
                   add
                 </span>
-                <svg
-                  class="animate-spin h-4 w-4 text-on-primary hidden [.phx-click-loading]:block"
-                  xmlns="http://www.w3.org/2000/svg"
-                  fill="none"
-                  viewBox="0 0 24 24"
-                >
-                  <circle
-                    class="opacity-25"
-                    cx="12"
-                    cy="12"
-                    r="10"
-                    stroke="currentColor"
-                    stroke-width="4"
-                  >
-                  </circle>
-                  <path
-                    class="opacity-75"
-                    fill="currentColor"
-                    d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
-                  >
-                  </path>
-                </svg>
               </button>
             </div>
           </div>

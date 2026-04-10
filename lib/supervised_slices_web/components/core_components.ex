@@ -540,17 +540,20 @@ defmodule SupervisedSlicesWeb.CoreComponents do
           <div class="flex items-center gap-3">
             <button
               :if={@checkout_step == :confirm}
-              phx-click="start_checkout"
+              phx-click={JS.add_class("phx-click-loading", to: "self") |> JS.push("start_checkout")}
               phx-value-step="review"
-              class="w-11 h-11 flex items-center justify-center rounded-full bg-surface-container-low hover:bg-surface-container transition-all active:scale-90 phx-click-loading:opacity-60"
+              class="w-11 h-11 flex items-center justify-center rounded-full bg-surface-container-low hover:bg-surface-container transition-all active:scale-90 phx-click-loading:scale-90 phx-click-loading:opacity-60 phx-click-loading:bg-surface-container-highest shadow-sm"
             >
-              <span class="material-symbols-outlined font-black phx-click-loading:hidden">
-                arrow_back
+              <span class="relative flex items-center justify-center w-5 h-5">
+                <span class="phx-click-loading:!hidden">
+                  <span class="material-symbols-outlined font-black">
+                    arrow_back
+                  </span>
+                </span>
+                <span class="hidden phx-click-loading:!flex absolute inset-0 items-center justify-center">
+                  <.icon name="hero-arrow-path" class="size-5 animate-spin" />
+                </span>
               </span>
-              <.icon
-                name="hero-arrow-path"
-                class="hidden phx-click-loading:block size-5 animate-spin"
-              />
             </button>
             <div class="flex flex-col">
               <h2 class="font-headline text-2xl font-black tracking-tighter text-on-surface uppercase italic">
@@ -620,16 +623,12 @@ defmodule SupervisedSlicesWeb.CoreComponents do
                         <button
                           phx-click="remove_cart_item"
                           phx-value-cart_item_id={item.id}
-                          class="w-9 h-9 flex items-center justify-center rounded-lg bg-error/5 hover:bg-error hover:text-on-error transition-all active:scale-90 text-error/60 phx-click-loading:opacity-50"
+                          class="w-9 h-9 flex items-center justify-center rounded-lg bg-error/5 hover:bg-error hover:text-on-error transition-all active:scale-90 text-error/60 phx-click-loading:opacity-40 phx-click-loading:scale-95"
                           aria-label="Remove item"
                         >
-                          <span class="material-symbols-outlined !text-[18px] phx-click-loading:hidden">
+                          <span class="material-symbols-outlined !text-[18px]">
                             delete
                           </span>
-                          <.icon
-                            name="hero-arrow-path"
-                            class="hidden phx-click-loading:block size-4 animate-spin"
-                          />
                         </button>
                       </div>
                     </div>
@@ -664,10 +663,10 @@ defmodule SupervisedSlicesWeb.CoreComponents do
 
               <button
                 phx-click="start_checkout"
-                class="w-full bg-gradient-to-r from-primary to-primary-container text-on-primary font-black text-lg rounded-xl px-6 py-4 shadow-[0px_16px_32px_rgba(185,0,39,0.3)] hover:scale-[1.02] hover:shadow-[0px_20px_40px_rgba(185,0,39,0.4)] transition-all active:scale-95 phx-click-loading:opacity-80 group"
+                class="w-full bg-gradient-to-r from-primary to-primary-container text-on-primary font-black text-lg rounded-xl px-6 py-4 shadow-[0px_16px_32px_rgba(185,0,39,0.3)] hover:scale-[1.02] hover:shadow-[0px_20px_40px_rgba(185,0,39,0.4)] transition-all active:scale-95 phx-click-loading:opacity-80"
               >
-                <span class="phx-click-loading:hidden">PROCEED TO CHECKOUT</span>
-                <span class="hidden phx-click-loading:flex items-center justify-center gap-3">
+                <span class="phx-click-loading:!hidden">PROCEED TO CHECKOUT</span>
+                <span class="hidden phx-click-loading:!flex items-center justify-center gap-3">
                   PREPARING... <.icon name="hero-arrow-path" class="size-6 animate-spin" />
                 </span>
               </button>
@@ -744,10 +743,10 @@ defmodule SupervisedSlicesWeb.CoreComponents do
 
               <button
                 type="submit"
-                class="w-full bg-gradient-to-r from-primary to-primary-container text-on-primary font-black text-lg rounded-xl px-6 py-4 shadow-[0px_16px_32px_rgba(185,0,39,0.3)] hover:scale-[1.02] hover:shadow-[0px_20px_40px_rgba(185,0,39,0.4)] transition-all active:scale-95 phx-submit-loading:opacity-80 group"
+                class="w-full bg-gradient-to-r from-primary to-primary-container text-on-primary font-black text-lg rounded-xl px-6 py-4 shadow-[0px_16px_32px_rgba(185,0,39,0.3)] hover:scale-[1.02] hover:shadow-[0px_20px_40px_rgba(185,0,39,0.4)] transition-all active:scale-95 phx-submit-loading:opacity-80"
               >
-                <span class="phx-submit-loading:hidden">PLACE ORDER</span>
-                <span class="hidden phx-submit-loading:flex items-center justify-center gap-3">
+                <span class="phx-submit-loading:!hidden">PLACE ORDER</span>
+                <span class="hidden phx-submit-loading:!flex items-center justify-center gap-3">
                   PLACING ORDER... <.icon name="hero-arrow-path" class="size-6 animate-spin" />
                 </span>
               </button>

@@ -53,6 +53,9 @@ if ("serviceWorker" in navigator) {
 // View Transitions API – wrap LiveView page navigations in startViewTransition
 // so that shared `view-transition-name` elements animate between pages.
 // Falls back gracefully when the API is not supported (e.g. Firefox < 125).
+// NOTE: We've disabled the full-page wrap because it captures a static snapshot
+// which freezes local loading animations (spinners).
+/*
 if (document.startViewTransition) {
   window.addEventListener("phx:page-loading-start", () => {
     document.startViewTransition(() => {
@@ -62,6 +65,7 @@ if (document.startViewTransition) {
     })
   })
 }
+*/
 
 // expose liveSocket on window for web console debug logs and latency simulation:
 // >> liveSocket.enableDebug()

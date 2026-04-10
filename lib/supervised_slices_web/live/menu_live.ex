@@ -429,17 +429,20 @@ defmodule SupervisedSlicesWeb.MenuLive do
         :if={@live_action == :show}
         id="back-button"
         navigate={~p"/menu/#{@org.slug}"}
-        phx-click={
-          JS.add_class("opacity-40 scale-90", to: "#back-button")
-          |> JS.add_class("cursor-wait", to: "body")
-        }
-        class="flex items-center justify-center w-11 h-11 rounded-full bg-surface-container-low hover:bg-surface-container transition-all text-on-surface active:scale-90 active:bg-surface-container-high shadow-sm"
+        phx-click={JS.add_class("phx-click-loading", to: "self")}
+        class="flex items-center justify-center w-11 h-11 rounded-full bg-surface-container-low hover:bg-surface-container transition-all text-on-surface active:scale-90 active:bg-surface-container-highest phx-click-loading:scale-90 phx-click-loading:opacity-60 phx-click-loading:bg-surface-container-highest shadow-sm"
         aria-label="Back to menu"
       >
-        <span class="material-symbols-outlined !text-[20px] font-black phx-click-loading:hidden">
-          arrow_back
+        <span class="relative flex items-center justify-center w-5 h-5">
+          <span class="phx-click-loading:!hidden">
+            <span class="material-symbols-outlined !text-[20px] font-black">
+              arrow_back
+            </span>
+          </span>
+          <span class="hidden phx-click-loading:!flex absolute inset-0 items-center justify-center">
+            <.icon name="hero-arrow-path" class="size-5 animate-spin" />
+          </span>
         </span>
-        <.icon name="hero-arrow-path" class="hidden phx-click-loading:block size-5 animate-spin" />
       </.link>
       <div class="flex items-center gap-3">
         <img
