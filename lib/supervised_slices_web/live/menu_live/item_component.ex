@@ -164,7 +164,7 @@ defmodule SupervisedSlicesWeb.MenuLive.ItemComponent do
         </div>
       </div>
 
-    <div :if={@has_customization} class="fixed bottom-8 left-0 right-0 px-6 z-40 md:left-auto md:right-12 md:bottom-12 md:w-[450px]">
+    <div class="fixed bottom-8 left-0 right-0 px-6 z-50 md:left-auto md:right-12 md:bottom-12 md:w-[450px]">
         <div>
           <button
             phx-click="add_to_cart"

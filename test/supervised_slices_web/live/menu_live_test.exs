@@ -137,6 +137,7 @@ defmodule SupervisedSlicesWeb.MenuLiveTest do
       {:ok, lv, _html} = live(conn, ~p"/menu/#{org.slug}/item/#{item.id}")
 
       lv |> element("button[phx-click='update_quantity'][phx-value-delta='1']") |> render_click()
+      lv |> render_patch(~p"/menu/#{org.slug}")
 
       html = lv |> element("nav button", "View Basket") |> render_click()
 
@@ -157,6 +158,7 @@ defmodule SupervisedSlicesWeb.MenuLiveTest do
       {:ok, lv, _html} = live(conn, ~p"/menu/#{taxed_org.slug}/item/#{taxed_item.id}")
 
       lv |> element("button[phx-click='update_quantity'][phx-value-delta='1']") |> render_click()
+      lv |> render_patch(~p"/menu/#{taxed_org.slug}")
 
       html = lv |> element("nav button", "View Basket") |> render_click()
 
@@ -174,6 +176,7 @@ defmodule SupervisedSlicesWeb.MenuLiveTest do
       {:ok, lv, _html} = live(conn, ~p"/menu/#{taxed_org.slug}/item/#{taxed_item.id}")
 
       lv |> element("button[phx-click='update_quantity'][phx-value-delta='1']") |> render_click()
+      lv |> render_patch(~p"/menu/#{taxed_org.slug}")
 
       html = lv |> element("nav button", "View Basket") |> render_click()
 
@@ -192,6 +195,7 @@ defmodule SupervisedSlicesWeb.MenuLiveTest do
       {:ok, lv, _html} = live(conn, ~p"/menu/#{org.slug}/item/#{item.id}")
       lv |> element("button[phx-click='update_quantity'][phx-value-delta='1']") |> render_click()
 
+      lv |> render_patch(~p"/menu/#{org.slug}")
       html = lv |> element("nav button", "View Basket") |> render_click()
       assert html =~ "Subtotal"
       assert html =~ "remove_cart_item"
@@ -209,6 +213,7 @@ defmodule SupervisedSlicesWeb.MenuLiveTest do
       {:ok, lv, _html} = live(conn, ~p"/menu/#{org.slug}/item/#{item.id}")
       lv |> element("button[phx-click='update_quantity'][phx-value-delta='1']") |> render_click()
 
+      lv |> render_patch(~p"/menu/#{org.slug}")
       html = lv |> element("nav button", "View Basket") |> render_click()
 
       assert html =~ "/menu/#{org.slug}/item/#{item.id}"
@@ -284,6 +289,7 @@ defmodule SupervisedSlicesWeb.MenuLiveTest do
       {:ok, lv, _html} = live(conn, ~p"/menu/#{taxed_org.slug}/item/#{taxed_item.id}")
 
       lv |> element("button[phx-click='update_quantity'][phx-value-delta='1']") |> render_click()
+      lv |> render_patch(~p"/menu/#{taxed_org.slug}")
       lv |> element("nav button", "View Basket") |> render_click()
       lv |> element("button[phx-click='start_checkout']") |> render_click()
 
@@ -310,6 +316,7 @@ defmodule SupervisedSlicesWeb.MenuLiveTest do
       {:ok, lv, _html} = live(conn, ~p"/menu/#{org.slug}/item/#{item.id}")
 
       lv |> element("button[phx-click='update_quantity'][phx-value-delta='1']") |> render_click()
+      lv |> render_patch(~p"/menu/#{org.slug}")
       lv |> element("nav button", "View Basket") |> render_click()
       lv |> element("button[phx-click='start_checkout']") |> render_click()
 
@@ -366,6 +373,7 @@ defmodule SupervisedSlicesWeb.MenuLiveTest do
       {:ok, lv, _html} = live(conn, ~p"/menu/#{org.slug}/item/#{item.id}")
 
       lv |> element("button[phx-click='update_quantity'][phx-value-delta='1']") |> render_click()
+      lv |> render_patch(~p"/menu/#{org.slug}")
       lv |> element("nav button", "View Basket") |> render_click()
       html = lv |> element("button[phx-click='start_checkout']") |> render_click()
 

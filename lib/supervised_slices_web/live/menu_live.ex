@@ -424,8 +424,8 @@ defmodule SupervisedSlicesWeb.MenuLive do
         :if={@live_action == :show}
         id="back-button"
         navigate={~p"/menu/#{@org.slug}"}
-        phx-click={JS.add_class("opacity-20 scale-90", to: "#back-button") |> JS.add_class("cursor-wait", to: "body")}
-        class="flex items-center justify-center w-11 h-11 rounded-full bg-surface-container-low hover:bg-surface-container transition-all text-on-surface active:scale-90 shadow-sm"
+        phx-click={JS.add_class("opacity-40 scale-90", to: "#back-button") |> JS.add_class("cursor-wait", to: "body")}
+        class="flex items-center justify-center w-11 h-11 rounded-full bg-surface-container-low hover:bg-surface-container transition-all text-on-surface active:scale-90 active:bg-surface-container-high shadow-sm"
         aria-label="Back to menu"
       >
         <span class="material-symbols-outlined !text-[20px] font-black">arrow_back</span>
@@ -461,7 +461,7 @@ defmodule SupervisedSlicesWeb.MenuLive do
       org={@org}
     />
 
-    <.menu_nav cart_count={@cart_count} org={@org} cart={@cart} />
+    <.menu_nav :if={@live_action != :show} cart_count={@cart_count} org={@org} cart={@cart} />
 
     <.basket_drawer
       cart={@cart}

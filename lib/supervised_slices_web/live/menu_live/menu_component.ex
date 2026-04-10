@@ -92,8 +92,8 @@ defmodule SupervisedSlicesWeb.MenuLive.MenuComponent do
               :if={@customizable?}
               id={"customize-#{@item.id}"}
               navigate={~p"/menu/#{@org.slug}/item/#{@item.id}"}
-              phx-click={JS.add_class("opacity-40 scale-95", to: "#customize-#{@item.id}") |> JS.add_class("cursor-wait", to: "body")}
-              class="flex items-center gap-2 bg-gradient-to-r from-primary to-primary-container text-on-primary text-xs font-black px-5 py-2.5 rounded-lg hover:shadow-lg hover:shadow-primary/20 transition-all active:scale-95"
+              phx-click={JS.add_class("opacity-40 scale-90", to: "#customize-#{@item.id}") |> JS.add_class("cursor-wait", to: "body")}
+              class="flex items-center gap-2 bg-gradient-to-r from-primary to-primary-container text-on-primary text-xs font-black px-5 py-2.5 rounded-lg hover:shadow-lg hover:shadow-primary/20 transition-all active:scale-90 active:brightness-90 shadow-sm"
             >
               CUSTOMIZE
               <span class="material-symbols-outlined !text-[16px]">arrow_forward</span>
