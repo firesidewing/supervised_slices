@@ -41,6 +41,15 @@ window.addEventListener("phx:page-loading-stop", _info => topbar.hide())
 // connect if there are any LiveViews on the page
 liveSocket.connect()
 
+// Register service worker for more robust notifications on mobile
+if ("serviceWorker" in navigator) {
+  window.addEventListener("load", () => {
+    navigator.serviceWorker.register("/sw.js").catch(error => {
+      console.error("Service Worker registration failed:", error)
+    })
+  })
+}
+
 // View Transitions API – wrap LiveView page navigations in startViewTransition
 // so that shared `view-transition-name` elements animate between pages.
 // Falls back gracefully when the API is not supported (e.g. Firefox < 125).

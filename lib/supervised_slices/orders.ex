@@ -11,5 +11,6 @@ defmodule SupervisedSlices.Orders do
     resource SupervisedSlices.Orders.Order
     resource SupervisedSlices.Orders.OrderItem
     resource SupervisedSlices.Orders.OrderUpdate
+    resource SupervisedSlices.Orders.PushSubscription
   end
 end

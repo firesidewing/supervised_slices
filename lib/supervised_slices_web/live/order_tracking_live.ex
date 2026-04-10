@@ -30,11 +30,13 @@ defmodule SupervisedSlicesWeb.OrderTrackingLive do
     end
 
     estimated_at = DateTime.add(order.inserted_at, org.default_prep_time * 60, :second)
+    vapid_public_key = Application.get_env(:supervised_slices, :vapid)[:public_key]
 
     {:ok,
      socket
      |> assign(:order, order)
      |> assign(:estimated_at, estimated_at)
+     |> assign(:vapid_public_key, vapid_public_key)
      |> assign(:page_title, "Order ##{order_number(order)}")}
   end
 
@@ -71,6 +73,33 @@ defmodule SupervisedSlicesWeb.OrderTrackingLive do
        status: order.status,
        message: "Update from the kitchen: #{update.message}"
      })}
+  end
+
+  def handle_event("save_subscription", %{"endpoint" => endpoint, "p256dh" => p256dh, "auth" => auth}, socket) do
+    %{org: org} = socket.assigns
+    actor = socket.assigns[:actor]
+
+    user_id = case actor do
+      %SupervisedSlices.Accounts.User{id: id} -> id
+      _ -> nil
+    end
+
+    session_id = case actor do
+      %SupervisedSlices.Accounts.GuestSession{id: id} -> id
+      _ -> nil
+    end
+
+    SupervisedSlices.Orders.PushSubscription
+    |> Ash.Changeset.for_create(:upsert, %{
+      endpoint: endpoint,
+      p256dh: p256dh,
+      auth: auth,
+      user_id: user_id,
+      session_id: session_id
+    })
+    |> Ash.create(tenant: org.id, authorize?: false)
+
+    {:noreply, socket}
   end
 
   def render(assigns) do
@@ -124,7 +153,8 @@ defmodule SupervisedSlicesWeb.OrderTrackingLive do
         :if={@order.status not in [:completed, :cancelled]}
         id="notification-prompt"
         phx-hook="OrderNotifications"
-        class="bg-surface-container-low rounded-xl px-5 py-4 flex items-center justify-between mb-8"
+        data-public-key={@vapid_public_key}
+        class="hidden bg-surface-container-low rounded-xl px-5 py-4 flex items-center justify-between mb-8"
       >
         <div>
           <p class="font-body text-sm font-bold text-on-surface">Get notified</p>

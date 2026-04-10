@@ -11,6 +11,15 @@ defmodule SupervisedSlices.PubSubNotifier do
 
   @pubsub SupervisedSlices.PubSub
 
+  @status_messages %{
+    pending: "Your order has been received!",
+    confirmed: "Your order has been confirmed!",
+    preparing: "The kitchen has started preparing your order.",
+    ready: "Your order is ready!",
+    completed: "Order complete. Enjoy!",
+    cancelled: "This order has been cancelled."
+  }
+
   # ---------------------------------------------------------------------------
   # Broadcasts
   # ---------------------------------------------------------------------------
@@ -27,6 +36,10 @@ defmodule SupervisedSlices.PubSubNotifier do
   def broadcast_order_status(%{organization_id: org_id, id: order_id} = order) do
     Phoenix.PubSub.broadcast(@pubsub, "orders:#{org_id}:#{order_id}", {:order_status, order})
     Phoenix.PubSub.broadcast(@pubsub, "orders:#{org_id}", {:order_updated, order})
+
+    # Send push notification
+    status_message = Map.get(@status_messages, order.status, "Order updated.")
+    send_push_notification(order, status_message)
   end
 
   @doc "Broadcast a cart snapshot after an item is added, updated, or removed."
@@ -37,6 +50,59 @@ defmodule SupervisedSlices.PubSubNotifier do
   @doc "Broadcast a kitchen update message for a specific order (customer tracking)."
   def broadcast_order_update(%{organization_id: org_id, order_id: order_id} = update) do
     Phoenix.PubSub.broadcast(@pubsub, "orders:#{org_id}:#{order_id}", {:order_update, update})
+
+    # Send push notification for manual update
+    order = SupervisedSlices.Orders.Order.get!(update.order_id, tenant: org_id, authorize?: false)
+    send_push_notification(order, "Update from the kitchen: #{update.message}")
+  end
+
+  # ---------------------------------------------------------------------------
+  # Push Notifications
+  # ---------------------------------------------------------------------------
+
+  defp send_push_notification(order, message) do
+    subscriptions = find_subscriptions(order)
+
+    if subscriptions != [] do
+      payload = Jason.encode!(%{
+        title: "Supervised Slices",
+        body: message,
+        url: "/orders/#{order.id}"
+      })
+
+      vapid_config = Application.get_env(:supervised_slices, :vapid)
+
+      Enum.each(subscriptions, fn sub ->
+        push_sub = %ExNudge.Subscription{
+          endpoint: sub.endpoint,
+          keys: %{
+            p256dh: sub.p256dh,
+            auth: sub.auth
+          }
+        }
+
+        ExNudge.send_notification(push_sub, payload, vapid: [
+          subject: vapid_config[:subject],
+          public_key: vapid_config[:public_key],
+          private_key: vapid_config[:private_key]
+        ])
+      end)
+    end
+  end
+
+  defp find_subscriptions(order) do
+    import Ash.Query
+
+    query = SupervisedSlices.Orders.PushSubscription
+    |> Ash.Query.for_read(:read, %{}, tenant: order.organization_id, authorize?: false)
+
+    query = if order.user_id do
+      filter(query, user_id == ^order.user_id)
+    else
+      filter(query, session_id == ^order.session_id)
+    end
+
+    Ash.read!(query, authorize?: false)
   end
 
   # ---------------------------------------------------------------------------

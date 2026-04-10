@@ -62,34 +62,76 @@ export const Countdown = {
 export const OrderNotifications = {
   mounted() {
     const btn = document.getElementById("notification-btn")
+    const publicKey = this.el.dataset.publicKey
 
-    // Hide the whole prompt if notifications aren't supported or already granted
-    if (!("Notification" in window)) {
-      this.el.style.display = "none"
-      return
-    }
+    // If notifications aren't supported, just leave it hidden
+    if (!("Notification" in window)) return
 
-    if (Notification.permission === "granted") {
-      this.el.style.display = "none"
+    // Only show the prompt if we haven't granted yet (and haven't explicitly denied)
+    if (Notification.permission === "default") {
+      this.el.classList.remove("hidden")
+      this.el.classList.add("flex")
     }
 
     if (btn) {
       btn.addEventListener("click", () => {
         Notification.requestPermission().then((permission) => {
           if (permission === "granted") {
-            this.el.style.display = "none"
-            new Notification("Notifications enabled!", {
-              body: "We'll let you know when your order is ready.",
-            })
+            this.el.classList.remove("flex")
+            this.el.classList.add("hidden")
+            this.showNotification("Notifications enabled!", "We'll let you know when your order is ready.")
+            this.subscribeToPush(publicKey)
           }
         })
       })
     }
 
-    this.handleEvent("order_status_changed", ({ status, message }) => {
+    this.handleEvent("order_status_changed", ({ message }) => {
       if (Notification.permission === "granted") {
-        new Notification(message)
+        this.showNotification(message)
       }
     })
+  },
+
+  subscribeToPush(publicKey) {
+    if (!("serviceWorker" in navigator)) return
+
+    navigator.serviceWorker.ready.then((registration) => {
+      registration.pushManager.subscribe({
+        userVisibleOnly: true,
+        applicationServerKey: publicKey
+      }).then((subscription) => {
+        // subscription.toJSON() gives us the keys and endpoint
+        const sub = subscription.toJSON()
+        this.pushEvent("save_subscription", {
+          endpoint: sub.endpoint,
+          p256dh: sub.keys.p256dh,
+          auth: sub.keys.auth
+        })
+      }).catch((error) => {
+        console.error("Push subscription failed:", error)
+      })
+    })
+  },
+
+  showNotification(title, body) {
+    const options = {
+      body,
+      icon: "/favicon.ico",
+      badge: "/favicon.ico",
+      vibrate: [200, 100, 200]
+    }
+
+    // On mobile, showNotification from the service worker is much more reliable
+    // as it can often display even when the browser is backgrounded.
+    if ("serviceWorker" in navigator) {
+      navigator.serviceWorker.ready.then((registration) => {
+        registration.showNotification(title, options)
+      }).catch(() => {
+        new Notification(title, options)
+      })
+    } else {
+      new Notification(title, options)
+    }
   }
 }
