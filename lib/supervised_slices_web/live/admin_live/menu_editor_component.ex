@@ -330,9 +330,7 @@ defmodule SupervisedSlicesWeb.AdminLive.MenuEditorComponent do
     <section class="p-8 space-y-8">
       <div class="flex items-center justify-between">
         <div>
-          <h2
-            class="text-xl font-bold text-on-surface"
-          >
+          <h2 class="text-xl font-bold text-on-surface">
             Menu Editor
           </h2>
           <p class="text-sm text-on-surface-variant mt-1">
@@ -350,9 +348,7 @@ defmodule SupervisedSlicesWeb.AdminLive.MenuEditorComponent do
 
       <div class="bg-surface-container-lowest rounded-xl p-5 space-y-3">
         <div class="flex items-center justify-between">
-          <p
-            class="text-xs font-bold text-on-surface-variant uppercase tracking-wider"
-          >
+          <p class="text-xs font-bold text-on-surface-variant uppercase tracking-wider">
             Modifier Groups
           </p>
           <button
@@ -418,9 +414,7 @@ defmodule SupervisedSlicesWeb.AdminLive.MenuEditorComponent do
             <%= for group <- @modifier_groups do %>
               <div class="bg-surface-container-low rounded-lg p-3 space-y-2">
                 <div class="flex items-center gap-2">
-                  <span
-                    class="flex-1 text-sm font-bold text-on-surface"
-                  >
+                  <span class="flex-1 text-sm font-bold text-on-surface">
                     {group.name}
                   </span>
                   <%= if group.required do %>
@@ -602,9 +596,7 @@ defmodule SupervisedSlicesWeb.AdminLive.MenuEditorComponent do
           <% else %>
             <div class="flex items-center gap-3 px-2 group">
               <div class="h-7 w-1 rounded-full bg-primary shrink-0"></div>
-              <h3
-                class="text-xl font-extrabold text-on-surface flex-1"
-              >
+              <h3 class="text-xl font-extrabold text-on-surface flex-1">
                 {category.name}
               </h3>
               <button
@@ -627,9 +619,7 @@ defmodule SupervisedSlicesWeb.AdminLive.MenuEditorComponent do
                     <input type="hidden" name="item[id]" value={item.id} />
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                       <div>
-                        <label
-                          class="block text-xs font-bold text-on-surface-variant uppercase tracking-wider mb-1"
-                        >
+                        <label class="block text-xs font-bold text-on-surface-variant uppercase tracking-wider mb-1">
                           Name
                         </label>
                         <input
@@ -641,9 +631,7 @@ defmodule SupervisedSlicesWeb.AdminLive.MenuEditorComponent do
                         />
                       </div>
                       <div>
-                        <label
-                          class="block text-xs font-bold text-on-surface-variant uppercase tracking-wider mb-1"
-                        >
+                        <label class="block text-xs font-bold text-on-surface-variant uppercase tracking-wider mb-1">
                           Base Price (CAD) — leave blank if using sizes
                         </label>
                         <input
@@ -656,9 +644,7 @@ defmodule SupervisedSlicesWeb.AdminLive.MenuEditorComponent do
                         />
                       </div>
                       <div class="md:col-span-2">
-                        <label
-                          class="block text-xs font-bold text-on-surface-variant uppercase tracking-wider mb-1"
-                        >
+                        <label class="block text-xs font-bold text-on-surface-variant uppercase tracking-wider mb-1">
                           Description
                         </label>
                         <textarea
@@ -668,9 +654,7 @@ defmodule SupervisedSlicesWeb.AdminLive.MenuEditorComponent do
                         >{item.description}</textarea>
                       </div>
                       <div>
-                        <label
-                          class="block text-xs font-bold text-on-surface-variant uppercase tracking-wider mb-1"
-                        >
+                        <label class="block text-xs font-bold text-on-surface-variant uppercase tracking-wider mb-1">
                           Image URL
                         </label>
                         <input
@@ -681,9 +665,7 @@ defmodule SupervisedSlicesWeb.AdminLive.MenuEditorComponent do
                         />
                       </div>
                       <div>
-                        <label
-                          class="block text-xs font-bold text-on-surface-variant uppercase tracking-wider mb-1"
-                        >
+                        <label class="block text-xs font-bold text-on-surface-variant uppercase tracking-wider mb-1">
                           Sort Order
                         </label>
                         <input
@@ -713,9 +695,7 @@ defmodule SupervisedSlicesWeb.AdminLive.MenuEditorComponent do
                   </form>
 
                   <div class="border-t border-surface-container-low pt-4 space-y-3">
-                    <p
-                      class="text-xs font-bold text-on-surface-variant uppercase tracking-wider"
-                    >
+                    <p class="text-xs font-bold text-on-surface-variant uppercase tracking-wider">
                       Modifier Groups
                     </p>
                     <p class="text-xs text-on-surface-variant">
@@ -778,9 +758,7 @@ defmodule SupervisedSlicesWeb.AdminLive.MenuEditorComponent do
 
                   <div class="border-t border-surface-container-low pt-4 space-y-3">
                     <div class="flex items-center justify-between">
-                      <p
-                        class="text-xs font-bold text-on-surface-variant uppercase tracking-wider"
-                      >
+                      <p class="text-xs font-bold text-on-surface-variant uppercase tracking-wider">
                         Sizes
                       </p>
                       <%= if @adding_size_to_item_id != item.id do %>
@@ -886,9 +864,7 @@ defmodule SupervisedSlicesWeb.AdminLive.MenuEditorComponent do
 
                   <div class="flex-1 min-w-0">
                     <div class="flex items-center gap-2">
-                      <span
-                        class="font-bold text-on-surface text-sm truncate"
-                      >
+                      <span class="font-bold text-on-surface text-sm truncate">
                         {item.name}
                       </span>
                       <%= if not item.available do %>
@@ -962,9 +938,7 @@ defmodule SupervisedSlicesWeb.AdminLive.MenuEditorComponent do
                 class="bg-white rounded-xl border-2 border-primary/20 p-5 space-y-4"
               >
                 <input type="hidden" name="item[category_id]" value={category.id} />
-                <h4
-                  class="text-sm font-bold text-on-surface"
-                >
+                <h4 class="text-sm font-bold text-on-surface">
                   New Item
                 </h4>
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-4">

@@ -74,7 +74,9 @@ defmodule SupervisedSlicesWeb.MenuLive do
 
   def handle_info({:cart_refreshed, loaded_cart}, socket) do
     {cart_items_map, cart_count} = build_cart_state(loaded_cart)
-    {:noreply, assign(socket, cart: loaded_cart, cart_items_map: cart_items_map, cart_count: cart_count)}
+
+    {:noreply,
+     assign(socket, cart: loaded_cart, cart_items_map: cart_items_map, cart_count: cart_count)}
   end
 
   def handle_event("toggle_basket", _params, socket) do
@@ -110,7 +112,10 @@ defmodule SupervisedSlicesWeb.MenuLive do
 
       modifiers_snapshot =
         Enum.map(modifiers, fn mod ->
-          %{"name" => mod.name, "price" => Money.to_string!(mod.price_delta || Money.new!(0, price.currency))}
+          %{
+            "name" => mod.name,
+            "price" => Money.to_string!(mod.price_delta || Money.new!(0, price.currency))
+          }
         end)
 
       size_snapshot =
@@ -424,11 +429,17 @@ defmodule SupervisedSlicesWeb.MenuLive do
         :if={@live_action == :show}
         id="back-button"
         navigate={~p"/menu/#{@org.slug}"}
-        phx-click={JS.add_class("opacity-40 scale-90", to: "#back-button") |> JS.add_class("cursor-wait", to: "body")}
+        phx-click={
+          JS.add_class("opacity-40 scale-90", to: "#back-button")
+          |> JS.add_class("cursor-wait", to: "body")
+        }
         class="flex items-center justify-center w-11 h-11 rounded-full bg-surface-container-low hover:bg-surface-container transition-all text-on-surface active:scale-90 active:bg-surface-container-high shadow-sm"
         aria-label="Back to menu"
       >
-        <span class="material-symbols-outlined !text-[20px] font-black">arrow_back</span>
+        <span class="material-symbols-outlined !text-[20px] font-black phx-click-loading:hidden">
+          arrow_back
+        </span>
+        <.icon name="hero-arrow-path" class="hidden phx-click-loading:block size-5 animate-spin" />
       </.link>
       <div class="flex items-center gap-3">
         <img
@@ -483,7 +494,11 @@ defmodule SupervisedSlicesWeb.MenuLive do
     <div class="fixed bottom-[10%] right-[-10px] opacity-[0.03] pointer-events-none transform -rotate-[20deg] select-none hidden lg:block text-on-surface">
       <span class="material-symbols-outlined" style="font-size: 160px;">skillet</span>
     </div>
-    <div class="fixed inset-0 pointer-events-none opacity-[0.02] mix-blend-multiply z-[-1]" style="background-image: url('https://www.transparenttextures.com/patterns/handmade-paper.png');"></div>
+    <div
+      class="fixed inset-0 pointer-events-none opacity-[0.02] mix-blend-multiply z-[-1]"
+      style="background-image: url('https://www.transparenttextures.com/patterns/handmade-paper.png');"
+    >
+    </div>
     <div class="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 pointer-events-none opacity-[0.015] font-headline text-[25vw] font-black tracking-tighter leading-none select-none z-[-1] whitespace-nowrap italic -rotate-12">
       SUPERVISED SLICES
     </div>
@@ -505,17 +520,27 @@ defmodule SupervisedSlicesWeb.MenuLive do
           <div class="flex items-center gap-4">
             <div class="relative">
               <span class="material-symbols-outlined font-black !text-[26px]">shopping_bag</span>
-              <div :if={@cart_count > 0} class="absolute -top-1.5 -right-1.5 w-5 h-5 bg-white text-primary rounded-full flex items-center justify-center text-[10px] font-black shadow-sm group-hover:scale-110 transition-transform">
+              <div
+                :if={@cart_count > 0}
+                class="absolute -top-1.5 -right-1.5 w-5 h-5 bg-white text-primary rounded-full flex items-center justify-center text-[10px] font-black shadow-sm group-hover:scale-110 transition-transform"
+              >
                 {@cart_count}
               </div>
             </div>
-            <span class="font-headline text-base font-black tracking-tight uppercase">View Basket</span>
+            <span class="font-headline text-base font-black tracking-tight uppercase">
+              View Basket
+            </span>
           </div>
           <div class="flex items-center gap-3">
-            <span :if={@cart_count > 0} class="font-headline text-xl font-black opacity-90 group-hover:scale-110 transition-transform">
+            <span
+              :if={@cart_count > 0}
+              class="font-headline text-xl font-black opacity-90 group-hover:scale-110 transition-transform"
+            >
               {basket_subtotal_string(@cart)}
             </span>
-            <span class="material-symbols-outlined !text-[24px] font-black group-hover:translate-x-1 transition-transform">chevron_right</span>
+            <span class="material-symbols-outlined !text-[24px] font-black group-hover:translate-x-1 transition-transform">
+              chevron_right
+            </span>
           </div>
         </button>
       </div>

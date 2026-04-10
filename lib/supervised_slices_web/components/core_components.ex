@@ -27,10 +27,12 @@ defmodule SupervisedSlicesWeb.CoreComponents do
 
   """
   use Phoenix.Component
+
   use Phoenix.VerifiedRoutes,
     endpoint: SupervisedSlicesWeb.Endpoint,
     router: SupervisedSlicesWeb.Router,
     statics: SupervisedSlicesWeb.static_paths()
+
   use Gettext, backend: SupervisedSlicesWeb.Gettext
 
   alias Phoenix.LiveView.JS
@@ -528,7 +530,10 @@ defmodule SupervisedSlicesWeb.CoreComponents do
         class={[
           "absolute bottom-0 md:top-0 left-0 right-0 md:left-auto md:w-[480px] bg-background rounded-t-[3rem] md:rounded-l-[3.5rem] md:rounded-tr-none max-h-[90vh] md:max-h-screen flex flex-col transition-transform duration-500 ease-[cubic-bezier(0.34,1.56,0.64,1)]",
           "shadow-[0px_-16px_48px_rgba(0,0,0,0.15)] md:shadow-[-24px_0px_64px_rgba(0,0,0,0.1)]",
-          if(@show, do: "translate-y-0 md:translate-x-0", else: "translate-y-full md:translate-x-full")
+          if(@show,
+            do: "translate-y-0 md:translate-x-0",
+            else: "translate-y-full md:translate-x-full"
+          )
         ]}
       >
         <div class="flex items-center justify-between px-6 py-4 shrink-0 border-b border-on-surface/[0.03]">
@@ -537,9 +542,15 @@ defmodule SupervisedSlicesWeb.CoreComponents do
               :if={@checkout_step == :confirm}
               phx-click="start_checkout"
               phx-value-step="review"
-              class="w-11 h-11 flex items-center justify-center rounded-full bg-surface-container-low hover:bg-surface-container transition-all active:scale-90"
+              class="w-11 h-11 flex items-center justify-center rounded-full bg-surface-container-low hover:bg-surface-container transition-all active:scale-90 phx-click-loading:opacity-60"
             >
-              <span class="material-symbols-outlined font-black">arrow_back</span>
+              <span class="material-symbols-outlined font-black phx-click-loading:hidden">
+                arrow_back
+              </span>
+              <.icon
+                name="hero-arrow-path"
+                class="hidden phx-click-loading:block size-5 animate-spin"
+              />
             </button>
             <div class="flex flex-col">
               <h2 class="font-headline text-2xl font-black tracking-tighter text-on-surface uppercase italic">
@@ -562,7 +573,9 @@ defmodule SupervisedSlicesWeb.CoreComponents do
                 <div class="w-24 h-24 rounded-full bg-surface-container-low flex items-center justify-center mb-6">
                   <span class="material-symbols-outlined opacity-30 !text-5xl">shopping_cart</span>
                 </div>
-                <p class="text-xl font-black tracking-tight text-on-surface uppercase opacity-50">Empty Kitchen</p>
+                <p class="text-xl font-black tracking-tight text-on-surface uppercase opacity-50">
+                  Empty Kitchen
+                </p>
                 <p class="mt-2 font-medium opacity-60">Add some slices to your tray</p>
               </div>
             <% else %>
@@ -572,7 +585,10 @@ defmodule SupervisedSlicesWeb.CoreComponents do
                   <div class="flex items-start justify-between p-3 bg-surface-container-lowest rounded-xl shadow-sm border border-on-surface/[0.03] gap-4 group hover:shadow-md transition-all duration-300">
                     <div class="flex-1 min-w-0 flex flex-col gap-1">
                       <div class="flex items-center gap-2">
-                         <span :if={item.selected_size} class="text-[10px] font-black bg-secondary/10 text-secondary px-2 py-0.5 rounded-md uppercase tracking-widest">
+                        <span
+                          :if={item.selected_size}
+                          class="text-[10px] font-black bg-secondary/10 text-secondary px-2 py-0.5 rounded-md uppercase tracking-widest"
+                        >
                           {item.selected_size.name}
                         </span>
                         <.link
@@ -599,15 +615,21 @@ defmodule SupervisedSlicesWeb.CoreComponents do
                           Qty: {item.quantity}
                         </span>
                       </div>
-                      
+
                       <div class="flex flex-col gap-2">
                         <button
                           phx-click="remove_cart_item"
                           phx-value-cart_item_id={item.id}
-                          class="w-9 h-9 flex items-center justify-center rounded-lg bg-error/5 hover:bg-error hover:text-on-error transition-all active:scale-90 text-error/60"
+                          class="w-9 h-9 flex items-center justify-center rounded-lg bg-error/5 hover:bg-error hover:text-on-error transition-all active:scale-90 text-error/60 phx-click-loading:opacity-50"
                           aria-label="Remove item"
                         >
-                          <span class="material-symbols-outlined !text-[18px]">delete</span>
+                          <span class="material-symbols-outlined !text-[18px] phx-click-loading:hidden">
+                            delete
+                          </span>
+                          <.icon
+                            name="hero-arrow-path"
+                            class="hidden phx-click-loading:block size-4 animate-spin"
+                          />
                         </button>
                       </div>
                     </div>
@@ -631,7 +653,9 @@ defmodule SupervisedSlicesWeb.CoreComponents do
                   </div>
                 <% end %>
                 <div class="flex justify-between items-center pt-2 border-t border-on-surface/[0.05]">
-                  <span class="font-headline text-xl font-black text-on-surface uppercase tracking-tight">Total</span>
+                  <span class="font-headline text-xl font-black text-on-surface uppercase tracking-tight">
+                    Total
+                  </span>
                   <span class="font-headline text-3xl font-black text-primary leading-none">
                     {basket_total(@cart, @tax_rate)}
                   </span>
@@ -640,9 +664,12 @@ defmodule SupervisedSlicesWeb.CoreComponents do
 
               <button
                 phx-click="start_checkout"
-                class="w-full bg-gradient-to-r from-primary to-primary-container text-on-primary font-black text-lg rounded-xl px-6 py-4 shadow-[0px_16px_32px_rgba(185,0,39,0.3)] hover:scale-[1.02] hover:shadow-[0px_20px_40px_rgba(185,0,39,0.4)] transition-all active:scale-95"
+                class="w-full bg-gradient-to-r from-primary to-primary-container text-on-primary font-black text-lg rounded-xl px-6 py-4 shadow-[0px_16px_32px_rgba(185,0,39,0.3)] hover:scale-[1.02] hover:shadow-[0px_20px_40px_rgba(185,0,39,0.4)] transition-all active:scale-95 phx-click-loading:opacity-80 group"
               >
-                PROCEED TO CHECKOUT
+                <span class="phx-click-loading:hidden">PROCEED TO CHECKOUT</span>
+                <span class="hidden phx-click-loading:flex items-center justify-center gap-3">
+                  PREPARING... <.icon name="hero-arrow-path" class="size-6 animate-spin" />
+                </span>
               </button>
             </div>
           <% end %>
@@ -680,7 +707,9 @@ defmodule SupervisedSlicesWeb.CoreComponents do
               <div>
                 <label class="font-headline block text-xs font-black uppercase tracking-[0.15em] text-on-surface-variant/70 mb-3 px-1">
                   Notes
-                  <span class="text-on-surface-variant/40 normal-case font-medium lowercase italic">(optional)</span>
+                  <span class="text-on-surface-variant/40 normal-case font-medium lowercase italic">
+                    (optional)
+                  </span>
                 </label>
                 <textarea
                   name="notes"
@@ -690,7 +719,7 @@ defmodule SupervisedSlicesWeb.CoreComponents do
                 />
               </div>
             </div>
-            
+
             <div class="bg-surface-container-low/50 backdrop-blur-md rounded-t-[2.5rem] px-6 pb-8 pt-6 shrink-0 space-y-6 shadow-[0px_-8px_32px_rgba(0,0,0,0.05)]">
               <div class="space-y-3">
                 <div class="flex justify-between items-center text-sm font-black text-on-surface-variant uppercase tracking-widest opacity-60">
@@ -704,7 +733,9 @@ defmodule SupervisedSlicesWeb.CoreComponents do
                   </div>
                 <% end %>
                 <div class="flex justify-between items-center pt-2 border-t border-on-surface/[0.05]">
-                  <span class="font-headline text-xl font-black text-on-surface uppercase tracking-tight">Total</span>
+                  <span class="font-headline text-xl font-black text-on-surface uppercase tracking-tight">
+                    Total
+                  </span>
                   <span class="font-headline text-3xl font-black text-primary leading-none">
                     {basket_total(@cart, @tax_rate)}
                   </span>
@@ -713,9 +744,12 @@ defmodule SupervisedSlicesWeb.CoreComponents do
 
               <button
                 type="submit"
-                class="w-full bg-gradient-to-r from-primary to-primary-container text-on-primary font-black text-lg rounded-xl px-6 py-4 shadow-[0px_16px_32px_rgba(185,0,39,0.3)] hover:scale-[1.02] hover:shadow-[0px_20px_40px_rgba(185,0,39,0.4)] transition-all active:scale-95"
+                class="w-full bg-gradient-to-r from-primary to-primary-container text-on-primary font-black text-lg rounded-xl px-6 py-4 shadow-[0px_16px_32px_rgba(185,0,39,0.3)] hover:scale-[1.02] hover:shadow-[0px_20px_40px_rgba(185,0,39,0.4)] transition-all active:scale-95 phx-submit-loading:opacity-80 group"
               >
-                PLACE ORDER
+                <span class="phx-submit-loading:hidden">PLACE ORDER</span>
+                <span class="hidden phx-submit-loading:flex items-center justify-center gap-3">
+                  PLACING ORDER... <.icon name="hero-arrow-path" class="size-6 animate-spin" />
+                </span>
               </button>
             </div>
           </.form>

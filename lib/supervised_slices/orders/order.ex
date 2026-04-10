@@ -203,6 +203,7 @@ defmodule SupervisedSlices.Orders.Order do
     end
 
     has_many :order_items, SupervisedSlices.Orders.OrderItem
+
     has_many :order_updates, SupervisedSlices.Orders.OrderUpdate do
       sort inserted_at: :asc
     end

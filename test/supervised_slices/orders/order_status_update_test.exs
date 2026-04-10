@@ -45,8 +45,12 @@ defmodule SupervisedSlices.Orders.OrderStatusUpdateTest do
     end
 
     test "multiple status transitions create multiple OrderUpdates", %{org: org, order: order} do
-      order = Order.update_status!(order, %{status: :confirmed}, tenant: org.id, authorize?: false)
-      order = Order.update_status!(order, %{status: :preparing}, tenant: org.id, authorize?: false)
+      order =
+        Order.update_status!(order, %{status: :confirmed}, tenant: org.id, authorize?: false)
+
+      order =
+        Order.update_status!(order, %{status: :preparing}, tenant: org.id, authorize?: false)
+
       Order.update_status!(order, %{status: :ready}, tenant: org.id, authorize?: false)
 
       updates = OrderUpdate.for_order!(order.id, tenant: org.id, authorize?: false)

@@ -91,7 +91,11 @@ defmodule SupervisedSlicesWeb.AdminLive.OrdersComponent do
           <span class="text-sm text-on-surface-variant">Oldest first</span>
         </div>
 
-        <div id="orders" phx-update="stream" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+        <div
+          id="orders"
+          phx-update="stream"
+          class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6"
+        >
           <%= for {dom_id, order} <- @streams.orders do %>
             <div
               id={dom_id}
@@ -146,7 +150,9 @@ defmodule SupervisedSlicesWeb.AdminLive.OrdersComponent do
                 <%= if order.notes && order.notes != "" do %>
                   <div class="pt-3 border-t border-surface-container-low border-dashed">
                     <p class="text-[11px] text-on-surface-variant italic bg-surface-container-lowest p-2 rounded-lg">
-                      <span class="font-bold text-[9px] uppercase tracking-widest block mb-1 opacity-50">Notes:</span>
+                      <span class="font-bold text-[9px] uppercase tracking-widest block mb-1 opacity-50">
+                        Notes:
+                      </span>
                       "{order.notes}"
                     </p>
                   </div>
@@ -156,8 +162,12 @@ defmodule SupervisedSlicesWeb.AdminLive.OrdersComponent do
               <%!-- Actions --%>
               <div class="px-5 pb-5 pt-2 space-y-4">
                 <div class="flex items-center justify-between text-on-surface pt-3 border-t border-surface-container-low border-dashed">
-                  <span class="text-[10px] font-bold text-on-surface-variant uppercase tracking-widest">Total</span>
-                  <span class="text-base font-black italic tracking-tight">{format_money(order.total_price)}</span>
+                  <span class="text-[10px] font-bold text-on-surface-variant uppercase tracking-widest">
+                    Total
+                  </span>
+                  <span class="text-base font-black italic tracking-tight">
+                    {format_money(order.total_price)}
+                  </span>
                 </div>
 
                 <div class="grid grid-cols-1 gap-2">
@@ -170,7 +180,8 @@ defmodule SupervisedSlicesWeb.AdminLive.OrdersComponent do
                         "w-full font-headline py-2.5 rounded-xl text-sm font-bold transition-all active:scale-[0.98] duration-150",
                         if(order.status == :ready,
                           do: "bg-primary text-white hover:opacity-90 shadow-lg shadow-primary/20",
-                          else: "bg-surface-container-highest text-on-surface hover:bg-surface-container-high"
+                          else:
+                            "bg-surface-container-highest text-on-surface hover:bg-surface-container-high"
                         )
                       ]}
                     >

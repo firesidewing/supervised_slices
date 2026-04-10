@@ -14,15 +14,18 @@ defmodule SupervisedSlicesWeb.AdminLive.SettingsComponent do
      |> assign(:save_status, nil)
      |> assign(:branding_status, nil)
      |> allow_upload(:logo,
-          accept: ~w(.jpg .jpeg .png .gif .webp .svg),
-          max_entries: 1,
-          max_file_size: 5_000_000)}
+       accept: ~w(.jpg .jpeg .png .gif .webp .svg),
+       max_entries: 1,
+       max_file_size: 5_000_000
+     )}
   end
 
   def handle_event("save_settings", %{"tax_rate" => raw_tax, "prep_time" => raw_prep}, socket) do
     with {:ok, rate} <- parse_tax_rate(raw_tax),
          {:ok, prep_time} <- parse_prep_time(raw_prep) do
-      Organization.update_settings!(socket.assigns.org, %{tax_rate: rate, default_prep_time: prep_time},
+      Organization.update_settings!(
+        socket.assigns.org,
+        %{tax_rate: rate, default_prep_time: prep_time},
         authorize?: false
       )
 

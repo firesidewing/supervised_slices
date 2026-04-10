@@ -25,8 +25,7 @@ config :ex_aws,
     region: "auto"
   ]
 
-config :supervised_slices, :tigris_bucket,
-  System.get_env("TIGRIS_BUCKET", "supervised-slices")
+config :supervised_slices, :tigris_bucket, System.get_env("TIGRIS_BUCKET", "supervised-slices")
 
 if System.get_env("PHX_SERVER") do
   config :supervised_slices, SupervisedSlicesWeb.Endpoint, server: true

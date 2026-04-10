@@ -54,13 +54,16 @@ defmodule SupervisedSlices.Orders.EmailsTest do
   test "send_order_confirmation/1 delivers an email with correct content", %{order: order} do
     # Reload order to ensure everything is ready
     order = Ash.get!(Order, order.id, tenant: order.organization_id, authorize?: false)
-    
+
     Emails.send_order_confirmation(order)
 
     assert_receive {:email, email}
     assert email.from == {"Supervised Slices", "noreply@supervisedslices.com"}
     assert email.to == [{"", "john@example.com"}]
-    assert email.subject == "Order Confirmation ##{String.slice(order.id, -4, 4) |> String.upcase()} - Pizza Heaven"
+
+    assert email.subject ==
+             "Order Confirmation ##{String.slice(order.id, -4, 4) |> String.upcase()} - Pizza Heaven"
+
     assert email.html_body =~ "Pizza Heaven"
     assert email.html_body =~ "Order Received!"
     assert email.html_body =~ "Margherita Pizza"

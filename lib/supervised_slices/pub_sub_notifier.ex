@@ -64,11 +64,12 @@ defmodule SupervisedSlices.PubSubNotifier do
     subscriptions = find_subscriptions(order)
 
     if subscriptions != [] do
-      payload = Jason.encode!(%{
-        title: "Supervised Slices",
-        body: message,
-        url: "/orders/#{order.id}"
-      })
+      payload =
+        Jason.encode!(%{
+          title: "Supervised Slices",
+          body: message,
+          url: "/orders/#{order.id}"
+        })
 
       vapid_config = Application.get_env(:supervised_slices, :vapid)
 
@@ -81,11 +82,13 @@ defmodule SupervisedSlices.PubSubNotifier do
           }
         }
 
-        ExNudge.send_notification(push_sub, payload, vapid: [
-          subject: vapid_config[:subject],
-          public_key: vapid_config[:public_key],
-          private_key: vapid_config[:private_key]
-        ])
+        ExNudge.send_notification(push_sub, payload,
+          vapid: [
+            subject: vapid_config[:subject],
+            public_key: vapid_config[:public_key],
+            private_key: vapid_config[:private_key]
+          ]
+        )
       end)
     end
   end
@@ -93,14 +96,16 @@ defmodule SupervisedSlices.PubSubNotifier do
   defp find_subscriptions(order) do
     import Ash.Query
 
-    query = SupervisedSlices.Orders.PushSubscription
-    |> Ash.Query.for_read(:read, %{}, tenant: order.organization_id, authorize?: false)
+    query =
+      SupervisedSlices.Orders.PushSubscription
+      |> Ash.Query.for_read(:read, %{}, tenant: order.organization_id, authorize?: false)
 
-    query = if order.user_id do
-      filter(query, user_id == ^order.user_id)
-    else
-      filter(query, session_id == ^order.session_id)
-    end
+    query =
+      if order.user_id do
+        filter(query, user_id == ^order.user_id)
+      else
+        filter(query, session_id == ^order.session_id)
+      end
 
     Ash.read!(query, authorize?: false)
   end
@@ -123,5 +128,4 @@ defmodule SupervisedSlices.PubSubNotifier do
   def subscribe_to_org_carts(org_id) do
     Phoenix.PubSub.subscribe(@pubsub, "carts:#{org_id}")
   end
-
 end

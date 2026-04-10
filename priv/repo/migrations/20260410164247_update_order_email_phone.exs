@@ -9,6 +9,7 @@ defmodule SupervisedSlices.Repo.Migrations.UpdateOrderEmailPhone do
 
   def up do
     execute "UPDATE orders SET customer_email = 'customer@example.com' WHERE customer_email IS NULL"
+
     alter table(:orders) do
       modify :customer_email, :text, null: false
     end

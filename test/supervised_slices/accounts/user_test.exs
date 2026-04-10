@@ -26,7 +26,9 @@ defmodule SupervisedSlices.Accounts.UserTest do
       assert user.email == Ash.CiString.new(email)
 
       # Verify organization
-      org = Organization |> Ash.Query.filter(name == ^org_name) |> Ash.read_one!(authorize?: false)
+      org =
+        Organization |> Ash.Query.filter(name == ^org_name) |> Ash.read_one!(authorize?: false)
+
       assert org.name == org_name
       assert org.slug == "test-org"
 

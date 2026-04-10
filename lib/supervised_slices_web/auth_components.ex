@@ -5,7 +5,12 @@ defmodule SupervisedSlicesWeb.AuthComponents.RegisterExtra do
   def render(assigns) do
     ~H"""
     <div class="mt-4">
-      <.input field={@form[:organization_name]} label="Organization Name" placeholder="Enter your organization name" required />
+      <.input
+        field={@form[:organization_name]}
+        label="Organization Name"
+        placeholder="Enter your organization name"
+        required
+      />
     </div>
     """
   end

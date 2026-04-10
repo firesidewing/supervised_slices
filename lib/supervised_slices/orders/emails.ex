@@ -6,9 +6,9 @@ defmodule SupervisedSlices.Orders.Emails do
   def send_order_confirmation(order) do
     # Ensure order items and organization are loaded
     order = Ash.load!(order, [:order_items, :organization], authorize?: false)
-    
+
     new()
-    |> from({"Supervised Slices", "noreply@supervisedslices.com"})
+    |> from({"Supervised Slices", "onboarding@resend.dev"})
     |> to(to_string(order.customer_email))
     |> subject("Order Confirmation ##{order_number(order)} - #{order.organization.name}")
     |> html_body(order_confirmation_html(order))
@@ -21,12 +21,12 @@ defmodule SupervisedSlices.Orders.Emails do
 
   defp order_confirmation_html(order) do
     tracking_url = url(~p"/orders/#{order.organization.slug}/#{order.id}")
-    
+
     primary = "#b90027"
     surface = "#faf9f6"
     surface_container_low = "#f4f3f1"
     on_surface_variant = "#5d3f3e"
-    
+
     """
     <!DOCTYPE html>
     <html>
@@ -48,7 +48,7 @@ defmodule SupervisedSlices.Orders.Emails do
               </td>
             </tr>
           </table>
-          
+
           <!-- Status Hero -->
           <div style="padding: 48px 40px; text-align: center; background-color: #{primary}; color: #ffffff;">
             <div style="margin-bottom: 16px; font-size: 48px;">🍕</div>
@@ -66,11 +66,11 @@ defmodule SupervisedSlices.Orders.Emails do
           <div style="padding: 0 40px 48px 40px;">
             <div style="background-color: #{surface}; border-radius: 32px; padding: 32px;">
               <h3 style="font-size: 12px; text-transform: uppercase; color: #{on_surface_variant}; margin: 0 0 24px 0; letter-spacing: 0.15em; font-weight: 800; opacity: 0.6;">Your Selection</h3>
-              
+
               <div style="margin-bottom: 24px;">
                 #{render_items(order.order_items)}
               </div>
-              
+
               <table width="100%" cellpadding="0" cellspacing="0" style="border-top: 2px solid #{surface_container_low}; padding-top: 24px;">
                 <tr>
                   <td>
@@ -85,7 +85,7 @@ defmodule SupervisedSlices.Orders.Emails do
               #{if order.notes && order.notes != "", do: "<div style='margin-top: 24px; padding: 20px; background-color: #ffffff; border-radius: 16px; font-style: italic; font-size: 13px; color: #{on_surface_variant}; line-height: 1.6;'><strong>Notes:</strong> \"#{order.notes}\"</div>", else: ""}
             </div>
           </div>
-          
+
           <!-- Footer -->
           <div style="padding: 0 40px 40px 40px; text-align: center;">
             <p style="font-size: 12px; color: #{on_surface_variant}; opacity: 0.4; line-height: 1.6;">
@@ -101,7 +101,7 @@ defmodule SupervisedSlices.Orders.Emails do
 
   defp render_items(items) do
     primary = "#b90027"
-    
+
     items
     |> Enum.map(fn item ->
       """
@@ -127,6 +127,7 @@ defmodule SupervisedSlices.Orders.Emails do
 
   defp render_modifiers(modifiers) do
     on_surface_variant = "#5d3f3e"
+
     if modifiers && modifiers != [] do
       "<div style='margin-left: 28px; font-size: 11px; color: #{on_surface_variant}; opacity: 0.6; font-style: italic; font-weight: 500;'>" <>
         (Enum.map(modifiers, fn mod -> "+ #{mod["name"]}" end) |> Enum.join(", ")) <>

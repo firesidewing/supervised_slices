@@ -57,7 +57,8 @@ defmodule SupervisedSlices.Orders.OrderUpdateTest do
     end
 
     test "creates an update with both status and message", %{org: org, order: order} do
-      update = create_update(%{order_id: order.id, status: :preparing, message: "Starting now"}, org)
+      update =
+        create_update(%{order_id: order.id, status: :preparing, message: "Starting now"}, org)
 
       assert update.status == :preparing
       assert update.message == "Starting now"

@@ -75,19 +75,25 @@ defmodule SupervisedSlicesWeb.OrderTrackingLive do
      })}
   end
 
-  def handle_event("save_subscription", %{"endpoint" => endpoint, "p256dh" => p256dh, "auth" => auth}, socket) do
+  def handle_event(
+        "save_subscription",
+        %{"endpoint" => endpoint, "p256dh" => p256dh, "auth" => auth},
+        socket
+      ) do
     %{org: org} = socket.assigns
     actor = socket.assigns[:actor]
 
-    user_id = case actor do
-      %SupervisedSlices.Accounts.User{id: id} -> id
-      _ -> nil
-    end
+    user_id =
+      case actor do
+        %SupervisedSlices.Accounts.User{id: id} -> id
+        _ -> nil
+      end
 
-    session_id = case actor do
-      %SupervisedSlices.Accounts.GuestSession{id: id} -> id
-      _ -> nil
-    end
+    session_id =
+      case actor do
+        %SupervisedSlices.Accounts.GuestSession{id: id} -> id
+        _ -> nil
+      end
 
     SupervisedSlices.Orders.PushSubscription
     |> Ash.Changeset.for_create(:upsert, %{

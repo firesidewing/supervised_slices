@@ -10,11 +10,6 @@ defmodule SupervisedSlices.Orders.OrderUpdate do
     repo SupervisedSlices.Repo
   end
 
-  multitenancy do
-    strategy :attribute
-    attribute :organization_id
-  end
-
   code_interface do
     define :for_order, args: [:order_id]
   end
@@ -43,6 +38,11 @@ defmodule SupervisedSlices.Orders.OrderUpdate do
     policy action(:create) do
       forbid_if always()
     end
+  end
+
+  multitenancy do
+    strategy :attribute
+    attribute :organization_id
   end
 
   attributes do

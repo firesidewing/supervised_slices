@@ -55,10 +55,6 @@ defmodule SupervisedSlices.Accounts.User do
     repo SupervisedSlices.Repo
   end
 
-  relationships do
-    has_many :memberships, SupervisedSlices.Orgs.Membership
-  end
-
   actions do
     defaults [:read]
 
@@ -285,6 +281,10 @@ defmodule SupervisedSlices.Accounts.User do
       allow_nil? false
       public? false
     end
+  end
+
+  relationships do
+    has_many :memberships, SupervisedSlices.Orgs.Membership
   end
 
   identities do

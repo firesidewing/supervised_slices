@@ -25,7 +25,9 @@ defmodule SupervisedSlices.Orgs.OrganizationSettingsTest do
       org = create_org()
 
       updated =
-        Organization.update_settings!(org, %{tax_rate: Decimal.new("0.08"), default_prep_time: 15},
+        Organization.update_settings!(
+          org,
+          %{tax_rate: Decimal.new("0.08"), default_prep_time: 15},
           authorize?: false
         )
 

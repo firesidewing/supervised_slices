@@ -124,7 +124,8 @@ config :logger, :default_formatter,
 config :phoenix, :json_library, Jason
 
 config :supervised_slices, :vapid,
-  public_key: "BM5Xgt6mnKHmtNOinlRSnh3KZ_0Ce_a5fGr8yMllSBFx9FmPd2V00Kdr5RhCgh3-33NVan6Eg4ydfJWl4LKUlgo",
+  public_key:
+    "BM5Xgt6mnKHmtNOinlRSnh3KZ_0Ce_a5fGr8yMllSBFx9FmPd2V00Kdr5RhCgh3-33NVan6Eg4ydfJWl4LKUlgo",
   private_key: "xxQWv3c1HWTx-KG-Y8apdTsCCQW6FEdwpCNfvTwMTqE",
   subject: "mailto:support@supervisedslices.com"
 

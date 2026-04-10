@@ -41,7 +41,6 @@ defmodule SupervisedSlicesWeb.MenuLive.ItemComponent do
     {:noreply, assign(socket, :selected_modifiers, new_mods)}
   end
 
-
   def render(assigns) do
     item = assigns.selected_item
     selected_size_id = assigns[:selected_size_id]
@@ -136,10 +135,30 @@ defmodule SupervisedSlicesWeb.MenuLive.ItemComponent do
                   ]}
                   aria-label="Remove one"
                 >
-                  <span class="material-symbols-outlined text-xl font-bold [.phx-click-loading]:hidden">remove</span>
-                  <svg class="animate-spin h-5 w-5 text-current hidden [.phx-click-loading]:block" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                    <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-                    <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                  <span class="material-symbols-outlined text-xl font-bold [.phx-click-loading]:hidden">
+                    remove
+                  </span>
+                  <svg
+                    class="animate-spin h-5 w-5 text-current hidden [.phx-click-loading]:block"
+                    xmlns="http://www.w3.org/2000/svg"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                  >
+                    <circle
+                      class="opacity-25"
+                      cx="12"
+                      cy="12"
+                      r="10"
+                      stroke="currentColor"
+                      stroke-width="4"
+                    >
+                    </circle>
+                    <path
+                      class="opacity-75"
+                      fill="currentColor"
+                      d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                    >
+                    </path>
                   </svg>
                 </button>
                 <span class="px-4 text-base font-black min-w-[2.5rem] text-center text-on-surface">
@@ -152,10 +171,30 @@ defmodule SupervisedSlicesWeb.MenuLive.ItemComponent do
                   class="w-10 h-10 flex items-center justify-center rounded-full bg-primary text-on-primary shadow-lg shadow-primary/20 hover:scale-105 transition-all active:scale-90 [&.phx-click-loading]:opacity-50 [&.phx-click-loading]:cursor-wait"
                   aria-label="Add one"
                 >
-                  <span class="material-symbols-outlined text-xl font-bold [.phx-click-loading]:hidden">add</span>
-                  <svg class="animate-spin h-5 w-5 text-current hidden [.phx-click-loading]:block" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                    <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-                    <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                  <span class="material-symbols-outlined text-xl font-bold [.phx-click-loading]:hidden">
+                    add
+                  </span>
+                  <svg
+                    class="animate-spin h-5 w-5 text-current hidden [.phx-click-loading]:block"
+                    xmlns="http://www.w3.org/2000/svg"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                  >
+                    <circle
+                      class="opacity-25"
+                      cx="12"
+                      cy="12"
+                      r="10"
+                      stroke="currentColor"
+                      stroke-width="4"
+                    >
+                    </circle>
+                    <path
+                      class="opacity-75"
+                      fill="currentColor"
+                      d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                    >
+                    </path>
                   </svg>
                 </button>
               </div>
@@ -164,7 +203,7 @@ defmodule SupervisedSlicesWeb.MenuLive.ItemComponent do
         </div>
       </div>
 
-    <div class="fixed bottom-8 left-0 right-0 px-6 z-50 md:left-auto md:right-12 md:bottom-12 md:w-[450px]">
+      <div class="fixed bottom-8 left-0 right-0 px-6 z-50 md:left-auto md:right-12 md:bottom-12 md:w-[450px]">
         <div>
           <button
             phx-click="add_to_cart"
@@ -174,14 +213,41 @@ defmodule SupervisedSlicesWeb.MenuLive.ItemComponent do
             class="w-full flex items-center justify-between bg-gradient-to-r from-primary to-primary-container text-on-primary font-black text-lg rounded-2xl px-6 py-4 shadow-[0px_24px_48px_rgba(185,0,39,0.35)] hover:scale-[1.03] hover:shadow-[0px_32px_64px_rgba(185,0,39,0.45)] transition-all active:scale-95 group [&.phx-click-loading]:opacity-75 [&.phx-click-loading]:scale-95 [&.phx-click-loading]:cursor-wait [&.phx-click-loading]:pointer-events-none"
           >
             <div class="flex items-center gap-3">
-              <svg class="animate-spin h-5 w-5 text-current hidden group-[.phx-click-loading]:block" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-                <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+              <svg
+                class="animate-spin h-5 w-5 text-current hidden group-[.phx-click-loading]:block"
+                xmlns="http://www.w3.org/2000/svg"
+                fill="none"
+                viewBox="0 0 24 24"
+              >
+                <circle
+                  class="opacity-25"
+                  cx="12"
+                  cy="12"
+                  r="10"
+                  stroke="currentColor"
+                  stroke-width="4"
+                >
+                </circle>
+                <path
+                  class="opacity-75"
+                  fill="currentColor"
+                  d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                >
+                </path>
               </svg>
-              <span class="tracking-tight uppercase group-[.phx-click-loading]:hidden">Add to Basket</span>
-              <span class="tracking-tight uppercase hidden group-[.phx-click-loading]:inline">Adding to Basket...</span>
+              <span class="tracking-tight uppercase group-[.phx-click-loading]:hidden">
+                Add to Basket
+              </span>
+              <span class="tracking-tight uppercase hidden group-[.phx-click-loading]:inline">
+                Adding to Basket...
+              </span>
             </div>
-            <span :if={@total_price} class="font-headline text-3xl group-hover:scale-110 transition-transform group-[.phx-click-loading]:hidden">{format_money(@total_price)}</span>
+            <span
+              :if={@total_price}
+              class="font-headline text-3xl group-hover:scale-110 transition-transform group-[.phx-click-loading]:hidden"
+            >
+              {format_money(@total_price)}
+            </span>
           </button>
         </div>
       </div>
@@ -243,7 +309,9 @@ defmodule SupervisedSlicesWeb.MenuLive.ItemComponent do
         <span
           class="material-symbols-outlined text-on-primary font-black group-data-[selected=false]:hidden"
           style="font-size: 18px;"
-        >check</span>
+        >
+          check
+        </span>
       </div>
     </button>
     """

@@ -26,6 +26,11 @@ defmodule SupervisedSlices.Orders.PushSubscription do
     end
   end
 
+  multitenancy do
+    strategy :attribute
+    attribute :organization_id
+  end
+
   attributes do
     uuid_primary_key :id
 
@@ -64,10 +69,5 @@ defmodule SupervisedSlices.Orders.PushSubscription do
 
   identities do
     identity :endpoint, [:endpoint]
-  end
-
-  multitenancy do
-    strategy :attribute
-    attribute :organization_id
   end
 end
