@@ -76,6 +76,9 @@
     --radius-lg: 2rem;
     --radius-xl: 3rem;
     --radius-full: 9999px;
+
+    /* Shadows */
+    --shadow-soft: 0px 12px 32px rgba(93, 63, 62, 0.08);
 }
 
 /* Material Symbols Outlined icon font */
@@ -142,77 +145,25 @@
     themes: false;
 }
 
-/* daisyUI theme plugin. You can update this file by fetching the latest version with:
-  curl -sLO https://github.com/saadeghi/daisyui/releases/latest/download/daisyui-theme.js
-  We ship with two themes, a light one inspired on Phoenix colors and a dark one inspired
-  on Elixir colors. Build your own at: https://daisyui.com/theme-generator/ */
-@plugin "../vendor/daisyui-theme" {
-    name: "dark";
-    default: false;
-    prefersdark: true;
-    color-scheme: "dark";
-    --color-base-100: oklch(30.33% 0.016 252.42);
-    --color-base-200: oklch(25.26% 0.014 253.1);
-    --color-base-300: oklch(20.15% 0.012 254.09);
-    --color-base-content: oklch(97.807% 0.029 256.847);
-    --color-primary: oklch(58% 0.233 277.117);
-    --color-primary-content: oklch(96% 0.018 272.314);
-    --color-secondary: oklch(58% 0.233 277.117);
-    --color-secondary-content: oklch(96% 0.018 272.314);
-    --color-accent: oklch(60% 0.25 292.717);
-    --color-accent-content: oklch(96% 0.016 293.756);
-    --color-neutral: oklch(37% 0.044 257.287);
-    --color-neutral-content: oklch(98% 0.003 247.858);
-    --color-info: oklch(58% 0.158 241.966);
-    --color-info-content: oklch(97% 0.013 236.62);
-    --color-success: oklch(60% 0.118 184.704);
-    --color-success-content: oklch(98% 0.014 180.72);
-    --color-warning: oklch(66% 0.179 58.318);
-    --color-warning-content: oklch(98% 0.022 95.277);
-    --color-error: oklch(58% 0.253 17.585);
-    --color-error-content: oklch(96% 0.015 12.422);
-    --radius-selector: 0.25rem;
-    --radius-field: 0.25rem;
-    --radius-box: 0.5rem;
-    --size-selector: 0.21875rem;
-    --size-field: 0.21875rem;
-    --border: 1.5px;
-    --depth: 1;
-    --noise: 0;
-}
-
+/* daisyUI theme plugin. We force the light theme from DESIGN.md */
 @plugin "../vendor/daisyui-theme" {
     name: "light";
     default: true;
     prefersdark: false;
     color-scheme: "light";
-    --color-base-100: oklch(98% 0 0);
-    --color-base-200: oklch(96% 0.001 286.375);
-    --color-base-300: oklch(92% 0.004 286.32);
-    --color-base-content: oklch(21% 0.006 285.885);
-    --color-primary: oklch(70% 0.213 47.604);
-    --color-primary-content: oklch(98% 0.016 73.684);
-    --color-secondary: oklch(55% 0.027 264.364);
-    --color-secondary-content: oklch(98% 0.002 247.839);
-    --color-accent: oklch(0% 0 0);
-    --color-accent-content: oklch(100% 0 0);
-    --color-neutral: oklch(44% 0.017 285.786);
-    --color-neutral-content: oklch(98% 0 0);
-    --color-info: oklch(62% 0.214 259.815);
-    --color-info-content: oklch(97% 0.014 254.604);
-    --color-success: oklch(70% 0.14 182.503);
-    --color-success-content: oklch(98% 0.014 180.72);
-    --color-warning: oklch(66% 0.179 58.318);
-    --color-warning-content: oklch(98% 0.022 95.277);
-    --color-error: oklch(58% 0.253 17.585);
-    --color-error-content: oklch(96% 0.015 12.422);
-    --radius-selector: 0.25rem;
-    --radius-field: 0.25rem;
-    --radius-box: 0.5rem;
-    --size-selector: 0.21875rem;
-    --size-field: 0.21875rem;
-    --border: 1.5px;
-    --depth: 1;
+    --color-base-100: #faf9f6;
+    --color-base-200: #f4f3f1;
+    --color-base-300: #efeeeb;
+    --color-base-content: #1a1c1a;
+    --color-primary: #b90027;
+    --color-primary-content: #ffffff;
+    --color-secondary: #3a6843;
+    --color-secondary-content: #ffffff;
+    --radius-selector: 1rem;
+    --radius-field: 1.5rem;
+    --radius-box: 2rem;
+    --border: 0px;
+    --depth: 0;
     --noise: 0;
 }
 
@@ -221,32 +172,55 @@
 @variant phx-submit-loading (&.phx-submit-loading, .phx-submit-loading &);
 @variant phx-change-loading (&.phx-change-loading, .phx-change-loading &);
 
-/* Use the data attribute for dark mode  */
-@variant dark (&:where([data-theme=dark], [data-theme=dark] *));
-
 /* Make LiveView wrapper divs transparent for layout */
 [data-phx-session],
 [data-phx-teleported-src] {
     display: contents;
 }
 
-/* Design system color enforcement — daisyUI theme plugins override @theme variables in the
-   CSS cascade (they come later in the file), so we re-assert the design system palette here.
-   Using !important on custom properties is valid per spec and overrides media-query scoped
-   values (e.g. prefers-color-scheme: dark triggering the daisyUI dark theme). */
+/* Design system color enforcement — we assert the design system palette here. */
 :root {
-    --color-primary: #b90027 !important;
-    --color-primary-container: #e31837 !important;
-    --color-on-primary: #ffffff !important;
-    --color-secondary: #3a6843 !important;
-    --color-secondary-container: #b9ecbd !important;
-    --color-on-secondary: #ffffff !important;
-    --color-surface: #faf9f6 !important;
-    --color-surface-container-lowest: #ffffff !important;
-    --color-surface-container-low: #f4f3f1 !important;
-    --color-surface-container: #efeeeb !important;
-    --color-on-surface: #1a1c1a !important;
-    --color-on-surface-variant: #5d3f3e !important;
+    color-scheme: light;
+    --color-primary: #b90027;
+    --color-primary-container: #e31837;
+    --color-on-primary: #ffffff;
+    --color-secondary: #3a6843;
+    --color-secondary-container: #b9ecbd;
+    --color-on-secondary: #ffffff;
+    --color-surface: #faf9f6;
+    --color-surface-container-lowest: #ffffff;
+    --color-surface-container-low: #f4f3f1;
+    --color-surface-container: #efeeeb;
+    --color-on-surface: #1a1c1a;
+    --color-on-surface-variant: #5d3f3e;
 }
 
 /* This file is for your main application CSS */
+@layer utilities {
+    .auth-card {
+        background-color: var(--color-surface-container-lowest);
+        border-radius: 3rem;
+        box-shadow: 0px 12px 32px rgba(93, 63, 62, 0.08);
+        padding: 3rem;
+        border-width: 0;
+    }
+
+    .btn-tomato {
+        background: linear-gradient(to top right, var(--color-primary), var(--color-primary-container));
+        color: var(--color-on-primary);
+        border-radius: 1rem;
+        font-family: var(--font-headline);
+        font-weight: 900;
+        text-transform: uppercase;
+        letter-spacing: -0.02em;
+        transition: all 0.2s;
+        box-shadow: 0px 8px 16px rgba(185, 0, 39, 0.2);
+    }
+    .btn-tomato:hover {
+        transform: scale(1.02);
+        box-shadow: 0px 12px 24px rgba(185, 0, 39, 0.3);
+    }
+    .btn-tomato:active {
+        transform: scale(0.98);
+    }
+}

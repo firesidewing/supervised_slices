@@ -22,31 +22,12 @@
     <link phx-track-static rel="stylesheet" href={~p"/assets/css/app.css"} />
     <style :if={assigns[:org]}>
       :root {
-        --color-primary: <%= assigns.org.primary_color || "#b90027" %> !important;
-        --color-primary-container: <%= assigns.org.primary_color || "#e31837" %> !important;
-        --color-secondary: <%= assigns.org.secondary_color || "#3a6843" %> !important;
+        --color-primary: <%= assigns.org.primary_color || "#b90027" %>;
+        --color-primary-container: <%= assigns.org.primary_color || "#e31837" %>;
+        --color-secondary: <%= assigns.org.secondary_color || "#3a6843" %>;
       }
     </style>
     <script defer phx-track-static type="text/javascript" src={~p"/assets/js/app.js"}>
-    </script>
-    <script>
-      (() => {
-        const setTheme = (theme) => {
-          if (theme === "system") {
-            localStorage.removeItem("phx:theme");
-            document.documentElement.removeAttribute("data-theme");
-          } else {
-            localStorage.setItem("phx:theme", theme);
-            document.documentElement.setAttribute("data-theme", theme);
-          }
-        };
-        if (!document.documentElement.hasAttribute("data-theme")) {
-          setTheme(localStorage.getItem("phx:theme") || "system");
-        }
-        window.addEventListener("storage", (e) => e.key === "phx:theme" && setTheme(e.newValue || "system"));
-        
-        window.addEventListener("phx:set-theme", (e) => setTheme(e.target.dataset.phxTheme));
-      })();
     </script>
   </head>
   <body class="font-body bg-background text-on-surface min-h-dvh">

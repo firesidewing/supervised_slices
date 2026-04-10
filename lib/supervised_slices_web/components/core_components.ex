@@ -211,8 +211,8 @@ defmodule SupervisedSlicesWeb.CoreComponents do
       end)
 
     ~H"""
-    <div class="fieldset mb-2">
-      <label for={@id}>
+    <div class="fieldset mb-6">
+      <label for={@id} class="flex items-center gap-3 cursor-pointer group">
         <input
           type="hidden"
           name={@name}
@@ -220,16 +220,17 @@ defmodule SupervisedSlicesWeb.CoreComponents do
           disabled={@rest[:disabled]}
           form={@rest[:form]}
         />
-        <span class="label">
-          <input
-            type="checkbox"
-            id={@id}
-            name={@name}
-            value="true"
-            checked={@checked}
-            class={@class || "checkbox checkbox-sm"}
-            {@rest}
-          />{@label}
+        <input
+          type="checkbox"
+          id={@id}
+          name={@name}
+          value="true"
+          checked={@checked}
+          class="checkbox checkbox-primary rounded-lg transition-transform group-active:scale-90"
+          {@rest}
+        />
+        <span class="font-headline text-xs font-black uppercase tracking-widest text-on-surface-variant/60">
+          {@label}
         </span>
       </label>
       <.error :for={msg <- @errors}>{msg}</.error>
@@ -239,13 +240,19 @@ defmodule SupervisedSlicesWeb.CoreComponents do
 
   def input(%{type: "select"} = assigns) do
     ~H"""
-    <div class="fieldset mb-2">
-      <label for={@id}>
-        <span :if={@label} class="label mb-1">{@label}</span>
+    <div class="fieldset mb-6">
+      <label for={@id} class="flex flex-col gap-2">
+        <span :if={@label} class="font-headline text-[10px] font-black uppercase tracking-[0.2em] text-on-surface-variant/40 ml-1">
+          {@label}
+        </span>
         <select
           id={@id}
           name={@name}
-          class={[@class || "w-full select", @errors != [] && (@error_class || "select-error")]}
+          class={[
+            "w-full bg-surface-container-low border-0 rounded-2xl h-14 px-5 focus:outline-none focus:ring-4 focus:ring-primary/10 transition-all font-medium text-on-surface shadow-inner select",
+            @errors != [] && "ring-2 ring-error/20 bg-error/5 shadow-none",
+            @class
+          ]}
           multiple={@multiple}
           {@rest}
         >
@@ -260,15 +267,18 @@ defmodule SupervisedSlicesWeb.CoreComponents do
 
   def input(%{type: "textarea"} = assigns) do
     ~H"""
-    <div class="fieldset mb-2">
-      <label for={@id}>
-        <span :if={@label} class="label mb-1">{@label}</span>
+    <div class="fieldset mb-6">
+      <label for={@id} class="flex flex-col gap-2">
+        <span :if={@label} class="font-headline text-[10px] font-black uppercase tracking-[0.2em] text-on-surface-variant/40 ml-1">
+          {@label}
+        </span>
         <textarea
           id={@id}
           name={@name}
           class={[
-            @class || "w-full textarea",
-            @errors != [] && (@error_class || "textarea-error")
+            "w-full bg-surface-container-low border-0 rounded-2xl p-5 focus:outline-none focus:ring-4 focus:ring-primary/10 transition-all font-medium text-on-surface shadow-inner min-h-[100px] resize-none",
+            @errors != [] && "ring-2 ring-error/20 bg-error/5 shadow-none",
+            @class
           ]}
           {@rest}
         >{Phoenix.HTML.Form.normalize_value("textarea", @value)}</textarea>
@@ -281,17 +291,20 @@ defmodule SupervisedSlicesWeb.CoreComponents do
   # All other inputs text, datetime-local, url, password, etc. are handled here...
   def input(assigns) do
     ~H"""
-    <div class="fieldset mb-2">
-      <label for={@id}>
-        <span :if={@label} class="label mb-1">{@label}</span>
+    <div class="fieldset mb-6">
+      <label for={@id} class="flex flex-col gap-2">
+        <span :if={@label} class="font-headline text-[10px] font-black uppercase tracking-[0.2em] text-on-surface-variant/40 ml-1">
+          {@label}
+        </span>
         <input
           type={@type}
           name={@name}
           id={@id}
           value={Phoenix.HTML.Form.normalize_value(@type, @value)}
           class={[
-            @class || "w-full input",
-            @errors != [] && (@error_class || "input-error")
+            "w-full bg-surface-container-low border-0 rounded-2xl h-14 px-5 focus:outline-none focus:ring-4 focus:ring-primary/10 transition-all font-medium text-on-surface shadow-inner",
+            @errors != [] && "ring-2 ring-error/20 bg-error/5 shadow-none",
+            @class
           ]}
           {@rest}
         />
