@@ -83,6 +83,19 @@ defmodule SupervisedSlicesWeb.MenuLive do
     {:noreply, assign(socket, show_basket: !socket.assigns.show_basket, checkout_step: :review)}
   end
 
+  def handle_event("update_delivery_type", %{"delivery_type" => type}, socket) do
+    %{ash_scope: scope, cart: cart} = socket.assigns
+    type = String.to_existing_atom(type)
+
+    if cart do
+      loaded_cart = Cart.update_delivery_type!(cart, %{delivery_type: type}, scope: scope)
+      PubSubNotifier.broadcast_cart_update(loaded_cart)
+      {:noreply, assign(socket, cart: loaded_cart)}
+    else
+      {:noreply, socket}
+    end
+  end
+
   def handle_event("start_checkout", _params, socket) do
     {:noreply, assign(socket, :checkout_step, :confirm)}
   end
@@ -92,7 +105,10 @@ defmodule SupervisedSlicesWeb.MenuLive do
 
     subtotal = order_subtotal(cart)
     tax_amount = order_tax_amount(subtotal, org.tax_rate)
-    {:ok, total_price} = Money.add(subtotal, tax_amount)
+    delivery_fee = if cart.delivery_type == :delivery, do: org.delivery_fee || Money.new(0, subtotal.currency), else: Money.new(0, subtotal.currency)
+
+    {:ok, total_before_delivery} = Money.add(subtotal, tax_amount)
+    {:ok, total_price} = Money.add(total_before_delivery, delivery_fee)
 
     order =
       Order.place_order!(
@@ -101,7 +117,10 @@ defmodule SupervisedSlicesWeb.MenuLive do
           customer_email: params["customer_email"],
           notes: params["notes"],
           total_price: total_price,
-          tax_amount: tax_amount
+          tax_amount: tax_amount,
+          delivery_type: cart.delivery_type,
+          delivery_fee: delivery_fee,
+          delivery_address: params["delivery_address"]
         },
         scope: scope
       )

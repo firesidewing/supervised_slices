@@ -64,7 +64,11 @@ defmodule SupervisedSlices.Orgs.Organization do
     end
 
     update :update_settings do
-      accept [:tax_rate, :default_prep_time]
+      accept [:tax_rate, :default_prep_time, :delivery_enabled, :pickup_enabled, :delivery_fee, :delivery_min_order]
+
+      argument :delivery_geo_fence, :map
+
+      change set_attribute(:delivery_geo_fence, arg(:delivery_geo_fence))
     end
 
     update :update_branding do
@@ -146,6 +150,30 @@ defmodule SupervisedSlices.Orgs.Organization do
     attribute :default_prep_time, :integer do
       default 20
       allow_nil? false
+      public? true
+    end
+
+    attribute :delivery_enabled, :boolean do
+      default false
+      allow_nil? false
+      public? true
+    end
+
+    attribute :pickup_enabled, :boolean do
+      default true
+      allow_nil? false
+      public? true
+    end
+
+    attribute :delivery_fee, AshMoney.Types.Money do
+      public? true
+    end
+
+    attribute :delivery_min_order, AshMoney.Types.Money do
+      public? true
+    end
+
+    attribute :delivery_geo_fence, SupervisedSlices.Orgs.GeoFence do
       public? true
     end
 

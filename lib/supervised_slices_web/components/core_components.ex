@@ -664,12 +664,16 @@ defmodule SupervisedSlicesWeb.CoreComponents do
                     <span>{basket_tax_string(@cart, @tax_rate)}</span>
                   </div>
                 <% end %>
+                <div :if={fee = basket_delivery_fee_money(@cart, @org)} class="flex justify-between items-center text-sm font-black text-on-surface-variant uppercase tracking-widest opacity-60">
+                  <span>Delivery Fee</span>
+                  <span>{Money.to_string!(fee)}</span>
+                </div>
                 <div class="flex justify-between items-center pt-2 border-t border-on-surface/[0.05]">
                   <span class="font-headline text-xl font-black text-on-surface uppercase tracking-tight">
                     Total
                   </span>
                   <span class="font-headline text-3xl font-black text-primary leading-none">
-                    {basket_total(@cart, @tax_rate)}
+                    {basket_total(@cart, @tax_rate, @org)}
                   </span>
                 </div>
               </div>
@@ -692,6 +696,75 @@ defmodule SupervisedSlicesWeb.CoreComponents do
             class="overflow-y-auto flex-1 flex flex-col no-scrollbar"
           >
             <div class="flex-1 px-6 py-6 space-y-6">
+              <div :if={@org.delivery_enabled and @org.pickup_enabled} class="bg-surface-container rounded-2xl p-1 flex gap-1 mb-2">
+                <label class="flex-1">
+                  <input
+                    type="radio"
+                    name="delivery_type"
+                    value="pickup"
+                    checked={is_nil(@cart.delivery_type) or @cart.delivery_type == :pickup}
+                    class="hidden peer"
+                    phx-click="update_delivery_type"
+                    phx-value-delivery_type="pickup"
+                  />
+                  <div class="py-2.5 text-center rounded-xl font-headline text-xs font-black uppercase tracking-widest cursor-pointer transition-all peer-checked:bg-white peer-checked:shadow-sm text-on-surface-variant peer-checked:text-primary">
+                    Pickup
+                  </div>
+                </label>
+                <label class="flex-1">
+                  <input
+                    type="radio"
+                    name="delivery_type"
+                    value="delivery"
+                    checked={@cart.delivery_type == :delivery}
+                    class="hidden peer"
+                    phx-click="update_delivery_type"
+                    phx-value-delivery_type="delivery"
+                  />
+                  <div class="py-2.5 text-center rounded-xl font-headline text-xs font-black uppercase tracking-widest cursor-pointer transition-all peer-checked:bg-white peer-checked:shadow-sm text-on-surface-variant peer-checked:text-primary">
+                    Delivery
+                  </div>
+                </label>
+              </div>
+
+              <div
+                :if={@cart.delivery_type == :delivery}
+                class="space-y-4 animate-in slide-in-from-top-4 duration-300"
+              >
+                <h3 class="font-headline text-[10px] font-black uppercase tracking-[0.15em] text-on-surface-variant/50 px-1">
+                  Delivery Address
+                </h3>
+                <div class="space-y-3">
+                  <input
+                    type="text"
+                    name="delivery_address[street]"
+                    value={@cart.delivery_address && @cart.delivery_address.street}
+                    placeholder="Street Address"
+                    required={@cart.delivery_type == :delivery}
+                    class="w-full px-5 py-3.5 rounded-xl bg-surface-container-low border-0 text-on-surface placeholder-on-surface-variant/30 text-base font-black focus:ring-4 focus:ring-primary/10 transition-all shadow-inner"
+                  />
+                  <div class="grid grid-cols-2 gap-3">
+                    <input
+                      type="text"
+                      name="delivery_address[city]"
+                      value={@cart.delivery_address && @cart.delivery_address.city}
+                      placeholder="City"
+                      required={@cart.delivery_type == :delivery}
+                      class="w-full px-5 py-3.5 rounded-xl bg-surface-container-low border-0 text-on-surface placeholder-on-surface-variant/30 text-base font-black focus:ring-4 focus:ring-primary/10 transition-all shadow-inner"
+                    />
+                    <input
+                      type="text"
+                      name="delivery_address[zip]"
+                      value={@cart.delivery_address && @cart.delivery_address.zip}
+                      placeholder="ZIP"
+                      required={@cart.delivery_type == :delivery}
+                      class="w-full px-5 py-3.5 rounded-xl bg-surface-container-low border-0 text-on-surface placeholder-on-surface-variant/30 text-base font-black focus:ring-4 focus:ring-primary/10 transition-all shadow-inner"
+                    />
+                  </div>
+                </div>
+                <div class="h-px bg-on-surface/[0.05] mx-2" />
+              </div>
+
               <div>
                 <label class="font-headline block text-xs font-black uppercase tracking-[0.15em] text-on-surface-variant/70 mb-3 px-1">
                   Your Name <span class="text-primary">*</span>
@@ -744,12 +817,16 @@ defmodule SupervisedSlicesWeb.CoreComponents do
                     <span>{basket_tax_string(@cart, @tax_rate)}</span>
                   </div>
                 <% end %>
+                <div :if={fee = basket_delivery_fee_money(@cart, @org)} class="flex justify-between items-center text-sm font-black text-on-surface-variant uppercase tracking-widest opacity-60">
+                  <span>Delivery Fee</span>
+                  <span>{Money.to_string!(fee)}</span>
+                </div>
                 <div class="flex justify-between items-center pt-2 border-t border-on-surface/[0.05]">
                   <span class="font-headline text-xl font-black text-on-surface uppercase tracking-tight">
                     Total
                   </span>
                   <span class="font-headline text-3xl font-black text-primary leading-none">
-                    {basket_total(@cart, @tax_rate)}
+                    {basket_total(@cart, @tax_rate, @org)}
                   </span>
                 </div>
               </div>
@@ -876,14 +953,28 @@ defmodule SupervisedSlicesWeb.CoreComponents do
     _ -> ""
   end
 
-  defp basket_total(cart, tax_rate) do
+  defp basket_delivery_fee_money(cart, org) do
+    if cart && cart.delivery_type == :delivery, do: org.delivery_fee, else: nil
+  end
+
+  defp basket_delivery_fee_string(cart, org) do
+    case basket_delivery_fee_money(cart, org) do
+      nil -> ""
+      fee -> Money.to_string!(fee)
+    end
+  end
+
+  defp basket_total(cart, tax_rate, org) do
     case basket_subtotal_money(cart) do
       nil ->
         ""
 
       subtotal ->
         tax = Money.mult!(subtotal, tax_rate)
-        {:ok, total} = Money.add(subtotal, tax)
+        fee = if cart.delivery_type == :delivery, do: org.delivery_fee, else: Money.new(0, subtotal.currency)
+
+        {:ok, sum} = Money.add(subtotal, tax)
+        {:ok, total} = Money.add(sum, fee)
         Money.to_string!(total)
     end
   rescue

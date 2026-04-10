@@ -11,6 +11,13 @@ defmodule SupervisedSlicesWeb.AdminLive.SettingsComponent do
      |> assign(:prep_time_input, to_string(org.default_prep_time))
      |> assign(:primary_color_input, org.primary_color || "#b90027")
      |> assign(:secondary_color_input, org.secondary_color || "#3a6843")
+     |> assign(:delivery_enabled, org.delivery_enabled)
+     |> assign(:pickup_enabled, org.pickup_enabled)
+     |> assign(:delivery_fee_input, format_money(org.delivery_fee))
+     |> assign(:delivery_min_order_input, format_money(org.delivery_min_order))
+     |> assign(:geo_fence_lat, (org.delivery_geo_fence && to_string(org.delivery_geo_fence.center_lat)) || "")
+     |> assign(:geo_fence_lng, (org.delivery_geo_fence && to_string(org.delivery_geo_fence.center_lng)) || "")
+     |> assign(:geo_fence_radius, (org.delivery_geo_fence && to_string(org.delivery_geo_fence.radius_in_miles)) || "")
      |> assign(:save_status, nil)
      |> assign(:branding_status, nil)
      |> allow_upload(:logo,
@@ -20,23 +27,55 @@ defmodule SupervisedSlicesWeb.AdminLive.SettingsComponent do
      )}
   end
 
-  def handle_event("save_settings", %{"tax_rate" => raw_tax, "prep_time" => raw_prep}, socket) do
+  def handle_event("save_settings", params, socket) do
+    %{"tax_rate" => raw_tax, "prep_time" => raw_prep} = params
+
+    delivery_enabled = params["delivery_enabled"] == "true"
+    pickup_enabled = params["pickup_enabled"] == "true"
+    raw_delivery_fee = params["delivery_fee"]
+    raw_delivery_min = params["delivery_min_order"]
+
+    geo_fence = %{
+      center_lat: parse_float(params["geo_fence_lat"]),
+      center_lng: parse_float(params["geo_fence_lng"]),
+      radius_in_miles: parse_float(params["geo_fence_radius"]),
+      type: :circle
+    }
+
     with {:ok, rate} <- parse_tax_rate(raw_tax),
-         {:ok, prep_time} <- parse_prep_time(raw_prep) do
-      Organization.update_settings!(
-        socket.assigns.org,
-        %{tax_rate: rate, default_prep_time: prep_time},
-        authorize?: false
-      )
+         {:ok, prep_time} <- parse_prep_time(raw_prep),
+         {:ok, delivery_fee} <- parse_money(raw_delivery_fee),
+         {:ok, delivery_min} <- parse_money(raw_delivery_min) do
+      updated_org =
+        Organization.update_settings!(
+          socket.assigns.org,
+          %{
+            tax_rate: rate,
+            default_prep_time: prep_time,
+            delivery_enabled: delivery_enabled,
+            pickup_enabled: pickup_enabled,
+            delivery_fee: delivery_fee,
+            delivery_min_order: delivery_min,
+            delivery_geo_fence: geo_fence
+          },
+          authorize?: false
+        )
 
       {:noreply,
        socket
        |> assign(:tax_input, format_tax_rate(rate))
        |> assign(:prep_time_input, to_string(prep_time))
-       |> assign(:org, %{socket.assigns.org | tax_rate: rate, default_prep_time: prep_time})
+       |> assign(:delivery_enabled, delivery_enabled)
+       |> assign(:pickup_enabled, pickup_enabled)
+       |> assign(:delivery_fee_input, format_money(delivery_fee))
+       |> assign(:delivery_min_order_input, format_money(delivery_min))
+       |> assign(:geo_fence_lat, to_string(geo_fence.center_lat))
+       |> assign(:geo_fence_lng, to_string(geo_fence.center_lng))
+       |> assign(:geo_fence_radius, to_string(geo_fence.radius_in_miles))
+       |> assign(:org, updated_org)
        |> assign(:save_status, :ok)}
     else
-      :error ->
+      _ ->
         {:noreply, assign(socket, :save_status, :error)}
     end
   end
@@ -110,6 +149,31 @@ defmodule SupervisedSlicesWeb.AdminLive.SettingsComponent do
     |> Decimal.to_string()
   end
 
+  defp format_money(nil), do: ""
+
+  defp format_money(money) do
+    money.amount
+    |> Decimal.normalize()
+    |> Decimal.to_string()
+  end
+
+  defp parse_money(raw) do
+    case Decimal.parse(String.trim(raw || "0")) do
+      {decimal, ""} -> {:ok, Money.new(decimal, :USD)}
+      _ -> :error
+    end
+  end
+
+  defp parse_float(nil), do: nil
+  defp parse_float(""), do: nil
+
+  defp parse_float(raw) do
+    case Float.parse(raw) do
+      {float, _} -> float
+      _ -> nil
+    end
+  end
+
   def render(assigns) do
     ~H"""
     <div class="max-w-lg mx-auto px-10 py-10 space-y-6">
@@ -164,6 +228,121 @@ defmodule SupervisedSlicesWeb.AdminLive.SettingsComponent do
             <p class="font-body text-xs text-on-surface-variant mt-1.5">
               Applied to every order at checkout. Enter 0 to disable tax.
             </p>
+          </div>
+
+          <div class="pt-6 border-t border-surface-container/50 space-y-6">
+            <div>
+              <h3 class="font-headline text-base font-extrabold text-on-surface">
+                Delivery & Pickup
+              </h3>
+              <p class="font-body text-xs text-on-surface-variant mt-1">
+                Configure delivery area and fees.
+              </p>
+            </div>
+
+            <div class="flex gap-8">
+              <label class="flex items-center gap-3 font-body text-sm font-bold text-on-surface cursor-pointer group">
+                <input
+                  type="checkbox"
+                  name="delivery_enabled"
+                  value="true"
+                  checked={@delivery_enabled}
+                  class="w-5 h-5 rounded-lg border-2 border-surface-container text-primary focus:ring-primary/20 transition-all cursor-pointer"
+                />
+                <span>Delivery</span>
+              </label>
+              <label class="flex items-center gap-3 font-body text-sm font-bold text-on-surface cursor-pointer group">
+                <input
+                  type="checkbox"
+                  name="pickup_enabled"
+                  value="true"
+                  checked={@pickup_enabled}
+                  class="w-5 h-5 rounded-lg border-2 border-surface-container text-primary focus:ring-primary/20 transition-all cursor-pointer"
+                />
+                <span>Pickup</span>
+              </label>
+            </div>
+
+            <div class="grid grid-cols-2 gap-4">
+              <div>
+                <label class="font-body block text-xs font-bold uppercase tracking-widest text-on-surface-variant mb-1.5">
+                  Delivery Fee
+                </label>
+                <div class="relative">
+                  <span class="absolute left-4 top-1/2 -translate-y-1/2 text-on-surface-variant font-bold text-sm">
+                    $
+                  </span>
+                  <input
+                    type="text"
+                    name="delivery_fee"
+                    value={@delivery_fee_input}
+                    placeholder="0.00"
+                    class="w-full pl-8 pr-4 py-3 rounded-xl bg-surface-container-low border-0 text-on-surface placeholder-on-surface-variant/50 text-sm font-medium focus:outline-none focus:ring-2 focus:ring-primary/40"
+                  />
+                </div>
+              </div>
+              <div>
+                <label class="font-body block text-xs font-bold uppercase tracking-widest text-on-surface-variant mb-1.5">
+                  Min. Order
+                </label>
+                <div class="relative">
+                  <span class="absolute left-4 top-1/2 -translate-y-1/2 text-on-surface-variant font-bold text-sm">
+                    $
+                  </span>
+                  <input
+                    type="text"
+                    name="delivery_min_order"
+                    value={@delivery_min_order_input}
+                    placeholder="0.00"
+                    class="w-full pl-8 pr-4 py-3 rounded-xl bg-surface-container-low border-0 text-on-surface placeholder-on-surface-variant/50 text-sm font-medium focus:outline-none focus:ring-2 focus:ring-primary/40"
+                  />
+                </div>
+              </div>
+            </div>
+
+            <div class="space-y-4 p-5 bg-surface-container-lowest/50 rounded-2xl border border-surface-container/30">
+              <label class="font-body block text-[10px] font-black uppercase tracking-[0.15em] text-on-surface-variant">
+                Delivery Geo-fence (Circle)
+              </label>
+              <div class="grid grid-cols-2 gap-4">
+                <div class="space-y-1">
+                  <label class="text-[10px] font-bold uppercase tracking-wider text-on-surface-variant/70 ml-1">
+                    Latitude
+                  </label>
+                  <input
+                    type="text"
+                    name="geo_fence_lat"
+                    value={@geo_fence_lat}
+                    placeholder="e.g. 40.7128"
+                    class="w-full px-4 py-2.5 rounded-xl bg-surface-container-low border-0 text-sm font-medium focus:ring-2 focus:ring-primary/40"
+                  />
+                </div>
+                <div class="space-y-1">
+                  <label class="text-[10px] font-bold uppercase tracking-wider text-on-surface-variant/70 ml-1">
+                    Longitude
+                  </label>
+                  <input
+                    type="text"
+                    name="geo_fence_lng"
+                    value={@geo_fence_lng}
+                    placeholder="e.g. -74.0060"
+                    class="w-full px-4 py-2.5 rounded-xl bg-surface-container-low border-0 text-sm font-medium focus:ring-2 focus:ring-primary/40"
+                  />
+                </div>
+              </div>
+              <div class="space-y-1">
+                <label class="text-[10px] font-bold uppercase tracking-wider text-on-surface-variant/70 ml-1">
+                  Radius (miles)
+                </label>
+                <input
+                  type="text"
+                  name="geo_fence_radius"
+                  value={@geo_fence_radius}
+                  placeholder="e.g. 5.0"
+                  class="w-full px-4 py-2.5 rounded-xl bg-surface-container-low border-0 text-sm font-medium focus:ring-2 focus:ring-primary/40"
+                />
+              </div>
+            </div>
           </div>
 
           <%= if @save_status == :ok do %>

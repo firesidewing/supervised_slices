@@ -29,7 +29,11 @@ defmodule SupervisedSlices.Orders.Order do
     defaults [:read]
 
     create :place_order do
-      accept [:customer_name, :customer_phone, :customer_email, :notes, :total_price, :tax_amount]
+      accept [:customer_name, :customer_phone, :customer_email, :notes, :total_price, :tax_amount, :delivery_type, :delivery_fee]
+
+      argument :delivery_address, :map
+
+      change set_attribute(:delivery_address, arg(:delivery_address))
 
       change fn changeset, context ->
         changeset =
@@ -181,6 +185,21 @@ defmodule SupervisedSlices.Orders.Order do
     end
 
     attribute :notes, :string do
+      public? true
+    end
+
+    attribute :delivery_type, :atom do
+      constraints one_of: [:pickup, :delivery]
+      default :pickup
+      allow_nil? false
+      public? true
+    end
+
+    attribute :delivery_address, SupervisedSlices.Orgs.Address do
+      public? true
+    end
+
+    attribute :delivery_fee, AshMoney.Types.Money do
       public? true
     end
 

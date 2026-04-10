@@ -24,6 +24,8 @@ defmodule SupervisedSlices.Cart.Cart do
     define :active_for_session, action: :active_for_session, args: [:session_id]
     define :active_for_user, action: :active_for_user, args: [:user_id]
     define :active_for_org, action: :active_for_org
+    define :update_delivery_type, action: :update_delivery_type
+    define :update_delivery_address, action: :update_delivery_address
   end
 
   actions do
@@ -84,6 +86,15 @@ defmodule SupervisedSlices.Cart.Cart do
       filter expr(status == :active)
       prepare build(load: [cart_items: [:menu_item]])
     end
+
+    update :update_delivery_type do
+      accept [:delivery_type]
+    end
+
+    update :update_delivery_address do
+      argument :address, :map, allow_nil?: false
+      change set_attribute(:delivery_address, arg(:address))
+    end
   end
 
   policies do
@@ -123,6 +134,17 @@ defmodule SupervisedSlices.Cart.Cart do
       constraints one_of: [:active, :checked_out, :abandoned]
       default :active
       allow_nil? false
+      public? true
+    end
+
+    attribute :delivery_type, :atom do
+      constraints one_of: [:pickup, :delivery]
+      default :pickup
+      allow_nil? false
+      public? true
+    end
+
+    attribute :delivery_address, SupervisedSlices.Orgs.Address do
       public? true
     end
 
