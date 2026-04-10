@@ -16,6 +16,18 @@ import Config
 #
 # Alternatively, you can use `mix phx.gen.release` to generate a `bin/server`
 # script that automatically sets the env var above.
+config :ex_aws,
+  access_key_id: System.get_env("TIGRIS_ACCESS_KEY_ID"),
+  secret_access_key: System.get_env("TIGRIS_SECRET_ACCESS_KEY"),
+  s3: [
+    scheme: "https://",
+    host: "fly.storage.tigris.dev",
+    region: "auto"
+  ]
+
+config :supervised_slices, :tigris_bucket,
+  System.get_env("TIGRIS_BUCKET", "supervised-slices")
+
 if System.get_env("PHX_SERVER") do
   config :supervised_slices, SupervisedSlicesWeb.Endpoint, server: true
 end

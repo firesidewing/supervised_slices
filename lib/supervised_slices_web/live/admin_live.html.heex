@@ -1,8 +1,12 @@
 <aside class="h-screen w-72 fixed left-0 top-0 bg-surface-container-low flex flex-col py-8 gap-2 z-40">
   <div class="px-6 pb-4">
-    <div class="font-headline text-xl font-black text-primary italic">
-      Kitchen Command
-    </div>
+    <%= if @org.logo_url do %>
+      <img src={@org.logo_url} alt={@org.name} class="h-10 max-w-full object-contain mb-1" />
+    <% else %>
+      <div class="font-headline text-xl font-black text-primary italic">
+        Kitchen Command
+      </div>
+    <% end %>
     <div class="font-body text-xs text-on-surface-variant mt-0.5">
       {@org.name}
     </div>
