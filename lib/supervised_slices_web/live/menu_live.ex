@@ -73,15 +73,48 @@ defmodule SupervisedSlicesWeb.MenuLive do
   # ---------------------------------------------------------------------------
 
   def handle_info({:item_component_add_to_cart, item_id, size_id, modifier_ids}, socket) do
-    socket =
-      do_add_complex_item(
-        socket,
-        to_string(item_id),
-        if(size_id, do: to_string(size_id)),
-        modifier_ids
+    lv_pid = self()
+    %{ash_scope: scope, cart: cart, org: org} = socket.assigns
+
+    Task.start(fn ->
+      cart = cart || Cart.create!(scope: scope)
+
+      CartItem.add_to_cart!(
+        %{
+          cart_id: cart.id,
+          menu_item_id: to_string(item_id),
+          quantity: 1,
+          selected_modifier_ids: modifier_ids,
+          selected_size_id: if(size_id, do: to_string(size_id))
+        },
+        scope: scope
       )
 
-    {:noreply, push_navigate(socket, to: ~p"/menu/#{socket.assigns.org.slug}")}
+      loaded_cart =
+        Cart.get!(cart.id,
+          scope: scope,
+          load: [cart_items: [:selected_size, menu_item: [modifier_groups: [:modifiers]]]]
+        )
+
+      PubSubNotifier.broadcast_cart_update(loaded_cart)
+      send(lv_pid, {:item_added_to_cart, loaded_cart, org.slug})
+    end)
+
+    {:noreply, socket}
+  end
+
+  def handle_info({:item_added_to_cart, loaded_cart, org_slug}, socket) do
+    {cart_items_map, cart_count} = build_cart_state(loaded_cart)
+
+    {:noreply,
+     socket
+     |> assign(cart: loaded_cart, cart_items_map: cart_items_map, cart_count: cart_count)
+     |> push_navigate(to: ~p"/menu/#{org_slug}")}
+  end
+
+  def handle_info({:cart_refreshed, loaded_cart}, socket) do
+    {cart_items_map, cart_count} = build_cart_state(loaded_cart)
+    {:noreply, assign(socket, cart: loaded_cart, cart_items_map: cart_items_map, cart_count: cart_count)}
   end
 
   def handle_event("toggle_basket", _params, socket) do
@@ -166,22 +199,85 @@ defmodule SupervisedSlicesWeb.MenuLive do
     delta = String.to_integer(delta_str)
     key = cart_key(item_id, size_id, modifier_id)
 
-    socket =
+    # Determine DB operation and compute optimistic socket state immediately
+    {socket, db_op} =
       case {Map.get(socket.assigns.cart_items_map, key), delta} do
         {nil, 1} ->
-          do_add_item(socket, item_id, size_id, modifier_id)
+          # New item: bump count now; item badge appears after DB confirms
+          {assign(socket, cart_count: socket.assigns.cart_count + 1),
+           {:add, item_id, size_id, modifier_id}}
 
         {%{cart_item_id: cid, quantity: qty}, 1} ->
-          do_update_quantity(socket, cid, key, qty + 1)
+          new_map = put_in(socket.assigns.cart_items_map, [key, :quantity], qty + 1)
+          {assign(socket, cart_items_map: new_map, cart_count: socket.assigns.cart_count + 1),
+           {:update, cid, qty + 1}}
 
         {%{cart_item_id: cid, quantity: 1}, -1} ->
-          do_remove_item(socket, cid, key)
+          new_map = Map.delete(socket.assigns.cart_items_map, key)
+          {assign(socket, cart_items_map: new_map, cart_count: max(0, socket.assigns.cart_count - 1)),
+           {:remove, cid}}
 
         {%{cart_item_id: cid, quantity: qty}, -1} ->
-          do_update_quantity(socket, cid, key, qty - 1)
+          new_map = put_in(socket.assigns.cart_items_map, [key, :quantity], qty - 1)
+          {assign(socket, cart_items_map: new_map, cart_count: socket.assigns.cart_count - 1),
+           {:update, cid, qty - 1}}
 
         _ ->
-          socket
+          {socket, :noop}
+      end
+
+    socket =
+      if db_op == :noop do
+        socket
+      else
+        # Ensure cart exists synchronously (fast INSERT if nil) before spawning Task
+        {socket, cart} =
+          case socket.assigns.cart do
+            nil ->
+              cart = Cart.create!(scope: socket.assigns.ash_scope)
+              {assign(socket, cart: cart), cart}
+
+            cart ->
+              {socket, cart}
+          end
+
+        lv_pid = self()
+        scope = socket.assigns.ash_scope
+
+        Task.start(fn ->
+          case db_op do
+            {:add, iid, sid, mid} ->
+              CartItem.add_to_cart!(
+                %{
+                  cart_id: cart.id,
+                  menu_item_id: iid,
+                  quantity: 1,
+                  selected_modifier_ids: if(mid, do: [mid], else: []),
+                  selected_size_id: sid
+                },
+                scope: scope
+              )
+
+            {:update, cid, new_qty} ->
+              CartItem.get!(cid, scope: scope)
+              |> CartItem.update_quantity!(%{quantity: new_qty}, scope: scope)
+
+            {:remove, cid} ->
+              CartItem.get!(cid, scope: scope)
+              |> CartItem.destroy!(scope: scope)
+          end
+
+          loaded_cart =
+            Cart.get!(cart.id,
+              scope: scope,
+              load: [cart_items: [:selected_size, menu_item: [modifier_groups: [:modifiers]]]]
+            )
+
+          PubSubNotifier.broadcast_cart_update(loaded_cart)
+          send(lv_pid, {:cart_refreshed, loaded_cart})
+        end)
+
+        socket
       end
 
     {:noreply, socket}
@@ -205,55 +301,6 @@ defmodule SupervisedSlicesWeb.MenuLive do
   # ---------------------------------------------------------------------------
   # Cart helpers
   # ---------------------------------------------------------------------------
-
-  defp do_add_complex_item(socket, item_id, size_id, modifier_ids) do
-    %{ash_scope: scope, cart: cart} = socket.assigns
-
-    cart = cart || Cart.create!(scope: scope)
-
-    CartItem.add_to_cart!(
-      %{
-        cart_id: cart.id,
-        menu_item_id: item_id,
-        quantity: 1,
-        selected_modifier_ids: modifier_ids,
-        selected_size_id: size_id
-      },
-      scope: scope
-    )
-
-    refresh_cart(socket, cart)
-  end
-
-  defp do_add_item(socket, item_id, size_id, modifier_id) do
-    %{ash_scope: scope, cart: cart} = socket.assigns
-
-    cart = cart || Cart.create!(scope: scope)
-
-    modifier_ids = if modifier_id, do: [modifier_id], else: []
-
-    CartItem.add_to_cart!(
-      %{
-        cart_id: cart.id,
-        menu_item_id: item_id,
-        quantity: 1,
-        selected_modifier_ids: modifier_ids,
-        selected_size_id: size_id
-      },
-      scope: scope
-    )
-
-    refresh_cart(socket, cart)
-  end
-
-  defp do_update_quantity(socket, cart_item_id, _key, new_qty) do
-    %{ash_scope: scope, cart: cart} = socket.assigns
-
-    cart_item = CartItem.get!(cart_item_id, scope: scope)
-    CartItem.update_quantity!(cart_item, %{quantity: new_qty}, scope: scope)
-
-    refresh_cart(socket, cart)
-  end
 
   defp do_remove_item(socket, cart_item_id, _key) do
     %{ash_scope: scope, cart: cart} = socket.assigns
@@ -464,7 +511,7 @@ defmodule SupervisedSlicesWeb.MenuLive do
     <nav class="fixed bottom-8 left-0 right-0 flex justify-center md:justify-end px-6 md:px-12 z-50 pointer-events-none">
       <div class="pointer-events-auto w-full max-w-lg md:max-w-md">
         <button
-          phx-click="toggle_basket"
+          phx-click={open_basket_js() |> JS.push("toggle_basket")}
           class={[
             "w-full flex items-center justify-between bg-gradient-to-r from-primary to-primary-container text-on-primary rounded-2xl px-8 py-6",
             "shadow-[0px_24px_48px_rgba(185,0,39,0.3)] hover:scale-[1.03] hover:shadow-[0px_32px_64px_rgba(185,0,39,0.4)]",
@@ -490,5 +537,16 @@ defmodule SupervisedSlicesWeb.MenuLive do
       </div>
     </nav>
     """
+  end
+
+  defp open_basket_js do
+    JS.remove_class("invisible pointer-events-none", to: "#basket-wrapper")
+    |> JS.add_class("visible", to: "#basket-wrapper")
+    |> JS.add_class("opacity-100", to: "#basket-backdrop")
+    |> JS.remove_class("opacity-0", to: "#basket-backdrop")
+    |> JS.remove_class("translate-y-full", to: "#basket-panel")
+    |> JS.remove_class("md:translate-x-full", to: "#basket-panel")
+    |> JS.add_class("translate-y-0", to: "#basket-panel")
+    |> JS.add_class("md:translate-x-0", to: "#basket-panel")
   end
 end

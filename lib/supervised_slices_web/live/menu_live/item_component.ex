@@ -171,7 +171,7 @@ defmodule SupervisedSlicesWeb.MenuLive.ItemComponent do
           <button
             phx-click="add_to_cart"
             phx-target={@myself}
-            class="w-full flex items-center justify-between bg-gradient-to-r from-primary to-primary-container text-on-primary font-black text-lg rounded-2xl px-8 py-6 shadow-[0px_24px_48px_rgba(185,0,39,0.35)] hover:scale-[1.03] hover:shadow-[0px_32px_64px_rgba(185,0,39,0.45)] transition-all active:scale-95 group"
+            class="w-full flex items-center justify-between bg-gradient-to-r from-primary to-primary-container text-on-primary font-black text-lg rounded-2xl px-8 py-6 shadow-[0px_24px_48px_rgba(185,0,39,0.35)] hover:scale-[1.03] hover:shadow-[0px_32px_64px_rgba(185,0,39,0.45)] transition-all active:scale-95 group [&.phx-click-loading]:opacity-75 [&.phx-click-loading]:scale-95 [&.phx-click-loading]:cursor-wait [&.phx-click-loading]:pointer-events-none"
           >
             <span class="tracking-tight uppercase">Add to Basket</span>
             <span :if={@total_price} class="font-headline text-3xl group-hover:scale-110 transition-transform">{format_money(@total_price)}</span>
@@ -185,34 +185,26 @@ defmodule SupervisedSlicesWeb.MenuLive.ItemComponent do
   defp size_row(assigns) do
     ~H"""
     <button
-      phx-click="select_size"
+      id={"size-#{@size.id}"}
+      phx-click={
+        JS.set_attribute({"data-selected", "false"}, to: ".size-option")
+        |> JS.set_attribute({"data-selected", "true"}, to: "#size-#{@size.id}")
+        |> JS.push("select_size")
+      }
       phx-value-size_id={@size.id}
       phx-target={@myself}
-      class={[
-        "w-full flex items-center justify-between px-6 py-5 rounded-xl transition-all duration-300 text-left group",
-        if(@selected,
-          do:
-            "bg-primary/5 shadow-[0px_8px_24px_rgba(185,0,39,0.06)] translate-x-1",
-          else:
-            "bg-surface-container-lowest shadow-[0px_4px_12px_rgba(93,63,62,0.04)] hover:bg-surface-container-low hover:-translate-y-0.5"
-        )
-      ]}
+      data-selected={to_string(@selected)}
+      class="size-option group w-full flex items-center justify-between px-6 py-5 rounded-xl transition-all duration-300 text-left data-[selected=true]:bg-primary/5 data-[selected=true]:shadow-[0px_8px_24px_rgba(185,0,39,0.06)] data-[selected=true]:translate-x-1 data-[selected=false]:bg-surface-container-lowest data-[selected=false]:shadow-[0px_4px_12px_rgba(93,63,62,0.04)] data-[selected=false]:hover:bg-surface-container-low data-[selected=false]:hover:-translate-y-0.5"
     >
       <div class="flex items-center gap-4">
-        <div class={[
-          "w-6 h-6 rounded-full border-2 flex items-center justify-center shrink-0 transition-all duration-300",
-          if(@selected, do: "border-primary bg-primary scale-110", else: "border-on-surface-variant/30 group-hover:border-primary/50")
-        ]}>
-          <div :if={@selected} class="w-2.5 h-2.5 rounded-full bg-on-primary" />
+        <div class="w-6 h-6 rounded-full border-2 flex items-center justify-center shrink-0 transition-all duration-300 border-on-surface-variant/30 group-hover:border-primary/50 group-data-[selected=true]:border-primary group-data-[selected=true]:bg-primary group-data-[selected=true]:scale-110">
+          <div class="w-2.5 h-2.5 rounded-full bg-on-primary group-data-[selected=false]:hidden" />
         </div>
-        <span class={["font-headline text-base font-black transition-colors", if(@selected, do: "text-primary", else: "text-on-surface")]}>
+        <span class="font-headline text-base font-black transition-colors group-data-[selected=true]:text-primary group-data-[selected=false]:text-on-surface">
           {@size.name}
         </span>
       </div>
-      <span class={[
-        "font-headline text-base font-black transition-all",
-        if(@selected, do: "text-primary scale-110", else: "text-on-surface-variant")
-      ]}>
+      <span class="font-headline text-base font-black transition-all group-data-[selected=true]:text-primary group-data-[selected=true]:scale-110 group-data-[selected=false]:text-on-surface-variant">
         {format_money(@size.price)}
       </span>
     </button>
@@ -222,37 +214,27 @@ defmodule SupervisedSlicesWeb.MenuLive.ItemComponent do
   defp modifier_row(assigns) do
     ~H"""
     <button
-      phx-click="toggle_modifier"
+      id={"modifier-#{@modifier.id}"}
+      phx-click={
+        JS.toggle_attribute({"data-selected", "true", "false"}, to: "#modifier-#{@modifier.id}")
+        |> JS.push("toggle_modifier")
+      }
       phx-value-modifier_id={@modifier.id}
       phx-target={@myself}
-      class={[
-        "w-full flex items-center justify-between px-6 py-5 rounded-xl transition-all duration-300 text-left group",
-        if(@selected,
-          do:
-            "bg-primary/5 shadow-[0px_8px_24px_rgba(185,0,39,0.06)] translate-x-1",
-          else:
-            "bg-surface-container-lowest shadow-[0px_4px_12px_rgba(93,63,62,0.04)] hover:bg-surface-container-low hover:-translate-y-0.5"
-        )
-      ]}
+      data-selected={to_string(@selected)}
+      class="group w-full flex items-center justify-between px-6 py-5 rounded-xl transition-all duration-300 text-left data-[selected=true]:bg-primary/5 data-[selected=true]:shadow-[0px_8px_24px_rgba(185,0,39,0.06)] data-[selected=true]:translate-x-1 data-[selected=false]:bg-surface-container-lowest data-[selected=false]:shadow-[0px_4px_12px_rgba(93,63,62,0.04)] data-[selected=false]:hover:bg-surface-container-low data-[selected=false]:hover:-translate-y-0.5"
     >
       <div class="flex-1 min-w-0 pr-4">
-        <div class={["text-base font-headline font-black transition-colors", if(@selected, do: "text-primary", else: "text-on-surface")]}>
+        <div class="text-base font-headline font-black transition-colors group-data-[selected=true]:text-primary group-data-[selected=false]:text-on-surface">
           {@modifier.name}
         </div>
-        <div class={[
-          "text-xs font-black mt-1 uppercase tracking-widest transition-colors",
-          if(@selected, do: "text-primary/70", else: "text-on-surface-variant opacity-70")
-        ]}>
+        <div class="text-xs font-black mt-1 uppercase tracking-widest transition-colors group-data-[selected=true]:text-primary/70 group-data-[selected=false]:text-on-surface-variant group-data-[selected=false]:opacity-70">
           {modifier_price_label(@item, @modifier)}
         </div>
       </div>
-      <div class={[
-        "w-7 h-7 rounded-lg border-2 flex items-center justify-center shrink-0 transition-all duration-300",
-        if(@selected, do: "bg-primary border-primary rotate-0 scale-110", else: "border-on-surface-variant/30 group-hover:border-primary/50 rotate-90")
-      ]}>
+      <div class="w-7 h-7 rounded-lg border-2 flex items-center justify-center shrink-0 transition-all duration-300 border-on-surface-variant/30 group-hover:border-primary/50 rotate-90 group-data-[selected=true]:bg-primary group-data-[selected=true]:border-primary group-data-[selected=true]:rotate-0 group-data-[selected=true]:scale-110">
         <span
-          :if={@selected}
-          class="material-symbols-outlined text-on-primary font-black"
+          class="material-symbols-outlined text-on-primary font-black group-data-[selected=false]:hidden"
           style="font-size: 18px;"
         >check</span>
       </div>

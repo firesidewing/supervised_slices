@@ -504,22 +504,29 @@ defmodule SupervisedSlicesWeb.CoreComponents do
 
   def basket_drawer(assigns) do
     ~H"""
-    <div class={[
-      "fixed inset-0 z-50 transition-all duration-300",
-      if(@show, do: "visible", else: "invisible pointer-events-none")
-    ]}>
+    <div
+      id="basket-wrapper"
+      class={[
+        "fixed inset-0 z-50 transition-all duration-300",
+        if(@show, do: "visible", else: "invisible pointer-events-none")
+      ]}
+    >
       <div
+        id="basket-backdrop"
         class={[
           "absolute inset-0 bg-black/40 transition-opacity duration-300",
           if(@show, do: "opacity-100", else: "opacity-0")
         ]}
-        phx-click="toggle_basket"
+        phx-click={close_basket_js() |> JS.push("toggle_basket")}
       />
-      <div class={[
-        "absolute bottom-0 md:top-0 left-0 right-0 md:left-auto md:w-[480px] bg-background rounded-t-[3rem] md:rounded-l-[3.5rem] md:rounded-tr-none max-h-[90vh] md:max-h-screen flex flex-col transition-transform duration-500 ease-[cubic-bezier(0.34,1.56,0.64,1)]",
-        "shadow-[0px_-16px_48px_rgba(0,0,0,0.15)] md:shadow-[-24px_0px_64px_rgba(0,0,0,0.1)]",
-        if(@show, do: "translate-y-0 md:translate-x-0", else: "translate-y-full md:translate-x-full")
-      ]}>
+      <div
+        id="basket-panel"
+        class={[
+          "absolute bottom-0 md:top-0 left-0 right-0 md:left-auto md:w-[480px] bg-background rounded-t-[3rem] md:rounded-l-[3.5rem] md:rounded-tr-none max-h-[90vh] md:max-h-screen flex flex-col transition-transform duration-500 ease-[cubic-bezier(0.34,1.56,0.64,1)]",
+          "shadow-[0px_-16px_48px_rgba(0,0,0,0.15)] md:shadow-[-24px_0px_64px_rgba(0,0,0,0.1)]",
+          if(@show, do: "translate-y-0 md:translate-x-0", else: "translate-y-full md:translate-x-full")
+        ]}
+      >
         <div class="flex items-center justify-between px-8 py-7 shrink-0 border-b border-on-surface/[0.03]">
           <div class="flex items-center gap-3">
             <button
@@ -537,7 +544,7 @@ defmodule SupervisedSlicesWeb.CoreComponents do
             </div>
           </div>
           <button
-            phx-click="toggle_basket"
+            phx-click={close_basket_js() |> JS.push("toggle_basket")}
             class="w-11 h-11 flex items-center justify-center rounded-full bg-surface-container-low hover:bg-surface-container transition-all active:scale-90"
           >
             <span class="material-symbols-outlined font-black">close</span>
@@ -828,5 +835,16 @@ defmodule SupervisedSlicesWeb.CoreComponents do
     end
   rescue
     _ -> ""
+  end
+
+  defp close_basket_js do
+    JS.add_class("invisible pointer-events-none", to: "#basket-wrapper")
+    |> JS.remove_class("visible", to: "#basket-wrapper")
+    |> JS.remove_class("opacity-100", to: "#basket-backdrop")
+    |> JS.add_class("opacity-0", to: "#basket-backdrop")
+    |> JS.add_class("translate-y-full", to: "#basket-panel")
+    |> JS.add_class("md:translate-x-full", to: "#basket-panel")
+    |> JS.remove_class("translate-y-0", to: "#basket-panel")
+    |> JS.remove_class("md:translate-x-0", to: "#basket-panel")
   end
 end
