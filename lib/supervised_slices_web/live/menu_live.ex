@@ -399,7 +399,13 @@ defmodule SupervisedSlicesWeb.MenuLive do
       >
         <span class="material-symbols-outlined !text-[20px] font-black">arrow_back</span>
       </.link>
-      <div class="flex flex-col">
+      <div class="flex items-center gap-3">
+        <img
+          :if={@org.logo_url}
+          src={@org.logo_url}
+          alt={@org.name}
+          class="h-8 max-w-[120px] object-contain"
+        />
         <h1 class="font-headline text-lg font-black tracking-tighter text-primary leading-none uppercase italic">
           {@org.name}
         </h1>

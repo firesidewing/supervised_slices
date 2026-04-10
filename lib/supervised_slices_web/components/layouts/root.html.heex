@@ -20,6 +20,13 @@
       rel="stylesheet"
     />
     <link phx-track-static rel="stylesheet" href={~p"/assets/css/app.css"} />
+    <style :if={assigns[:org]}>
+      :root {
+        <%= if assigns.org.primary_color do %>--color-primary: <%= assigns.org.primary_color %> !important;
+        --color-primary-container: <%= assigns.org.primary_color %> !important;<% end %>
+        <%= if assigns.org.secondary_color do %>--color-secondary: <%= assigns.org.secondary_color %> !important;<% end %>
+      }
+    </style>
     <script defer phx-track-static type="text/javascript" src={~p"/assets/js/app.js"}>
     </script>
     <script>

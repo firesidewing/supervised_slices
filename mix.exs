@@ -41,6 +41,9 @@ defmodule SupervisedSlices.MixProject do
   # Type `mix help deps` for examples and options.
   defp deps do
     [
+      {:ex_aws, "~> 2.5"},
+      {:ex_aws_s3, "~> 2.5"},
+      {:hackney, "~> 1.20"},
       {:ex_money_sql, "~> 1.0"},
       {:ex_cldr, "~> 2.0"},
       {:bcrypt_elixir, "~> 3.0"},

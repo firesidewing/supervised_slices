@@ -28,6 +28,7 @@ defmodule SupervisedSlices.Orgs.Organization do
 
   code_interface do
     define :update_settings, action: :update_settings
+    define :update_branding, action: :update_branding
   end
 
   actions do
@@ -66,6 +67,10 @@ defmodule SupervisedSlices.Orgs.Organization do
       accept [:tax_rate, :default_prep_time]
     end
 
+    update :update_branding do
+      accept [:logo_url, :primary_color, :secondary_color]
+    end
+
     read :by_slug do
       argument :slug, :string, allow_nil?: false
       get? true
@@ -96,6 +101,10 @@ defmodule SupervisedSlices.Orgs.Organization do
     end
 
     bypass action(:update_settings) do
+      authorize_if always()
+    end
+
+    bypass action(:update_branding) do
       authorize_if always()
     end
 
@@ -138,6 +147,23 @@ defmodule SupervisedSlices.Orgs.Organization do
       default 20
       allow_nil? false
       public? true
+    end
+
+    attribute :logo_url, :string do
+      allow_nil? true
+      public? true
+    end
+
+    attribute :primary_color, :string do
+      allow_nil? true
+      public? true
+      constraints match: ~r/^#[0-9a-fA-F]{6}$/
+    end
+
+    attribute :secondary_color, :string do
+      allow_nil? true
+      public? true
+      constraints match: ~r/^#[0-9a-fA-F]{6}$/
     end
 
     create_timestamp :inserted_at
