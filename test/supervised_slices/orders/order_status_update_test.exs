@@ -17,6 +17,7 @@ defmodule SupervisedSlices.Orders.OrderStatusUpdateTest do
     Order.place_order!(
       %{
         customer_name: "Bob",
+        customer_email: "bob@example.com",
         total_price: Money.new!(:USD, "20.00"),
         tax_amount: Money.new!(:USD, "0.00")
       },

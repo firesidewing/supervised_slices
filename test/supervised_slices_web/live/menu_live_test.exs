@@ -2,6 +2,7 @@ defmodule SupervisedSlicesWeb.MenuLiveTest do
   use SupervisedSlicesWeb.ConnCase
 
   import Phoenix.LiveViewTest
+  import Swoosh.TestAssertions
 
   alias SupervisedSlices.Menu.{Category, MenuItem}
   alias SupervisedSlices.Orgs.Organization
@@ -82,7 +83,7 @@ defmodule SupervisedSlicesWeb.MenuLiveTest do
     test "toggling basket makes it visible", %{conn: conn, org: org} do
       {:ok, lv, _html} = live(conn, ~p"/menu/#{org.slug}")
 
-      html = lv |> element("nav button[phx-click='toggle_basket']") |> render_click()
+      html = lv |> element("nav button", "View Basket") |> render_click()
 
       refute html =~ "invisible pointer-events-none"
       assert html =~ "Your Basket"
@@ -137,7 +138,7 @@ defmodule SupervisedSlicesWeb.MenuLiveTest do
 
       lv |> element("button[phx-click='update_quantity'][phx-value-delta='1']") |> render_click()
 
-      html = lv |> element("nav button[phx-click='toggle_basket']") |> render_click()
+      html = lv |> element("nav button", "View Basket") |> render_click()
 
       assert html =~ "Subtotal"
       assert html =~ "Total"
@@ -157,7 +158,7 @@ defmodule SupervisedSlicesWeb.MenuLiveTest do
 
       lv |> element("button[phx-click='update_quantity'][phx-value-delta='1']") |> render_click()
 
-      html = lv |> element("nav button[phx-click='toggle_basket']") |> render_click()
+      html = lv |> element("nav button", "View Basket") |> render_click()
 
       assert html =~ "Subtotal"
       assert html =~ "Tax (8.5%)"
@@ -174,7 +175,7 @@ defmodule SupervisedSlicesWeb.MenuLiveTest do
 
       lv |> element("button[phx-click='update_quantity'][phx-value-delta='1']") |> render_click()
 
-      html = lv |> element("nav button[phx-click='toggle_basket']") |> render_click()
+      html = lv |> element("nav button", "View Basket") |> render_click()
 
       assert html =~ "$9.00"
       assert html =~ "$0.90"
@@ -191,13 +192,13 @@ defmodule SupervisedSlicesWeb.MenuLiveTest do
       {:ok, lv, _html} = live(conn, ~p"/menu/#{org.slug}/item/#{item.id}")
       lv |> element("button[phx-click='update_quantity'][phx-value-delta='1']") |> render_click()
 
-      html = lv |> element("nav button[phx-click='toggle_basket']") |> render_click()
+      html = lv |> element("nav button", "View Basket") |> render_click()
       assert html =~ "Subtotal"
       assert html =~ "remove_cart_item"
 
       html = lv |> element("button[phx-click='remove_cart_item']") |> render_click()
 
-      assert html =~ "Your basket is empty"
+      assert html =~ "Empty Kitchen"
     end
 
     test "basket item row contains an edit link to the item detail page", %{
@@ -208,7 +209,7 @@ defmodule SupervisedSlicesWeb.MenuLiveTest do
       {:ok, lv, _html} = live(conn, ~p"/menu/#{org.slug}/item/#{item.id}")
       lv |> element("button[phx-click='update_quantity'][phx-value-delta='1']") |> render_click()
 
-      html = lv |> element("nav button[phx-click='toggle_basket']") |> render_click()
+      html = lv |> element("nav button", "View Basket") |> render_click()
 
       assert html =~ "/menu/#{org.slug}/item/#{item.id}"
     end
@@ -264,7 +265,7 @@ defmodule SupervisedSlicesWeb.MenuLiveTest do
       conn = Plug.Test.init_test_session(conn, %{"guest_session_id" => session_id})
       {:ok, lv, _html} = live(conn, ~p"/menu/#{org.slug}")
 
-      html = lv |> element("nav button[phx-click='toggle_basket']") |> render_click()
+      html = lv |> element("nav button", "View Basket") |> render_click()
 
       assert html =~ "Extra Cheese"
       assert html =~ "Jalapeños"
@@ -283,12 +284,14 @@ defmodule SupervisedSlicesWeb.MenuLiveTest do
       {:ok, lv, _html} = live(conn, ~p"/menu/#{taxed_org.slug}/item/#{taxed_item.id}")
 
       lv |> element("button[phx-click='update_quantity'][phx-value-delta='1']") |> render_click()
-      lv |> element("nav button[phx-click='toggle_basket']") |> render_click()
+      lv |> element("nav button", "View Basket") |> render_click()
       lv |> element("button[phx-click='start_checkout']") |> render_click()
 
       lv
-      |> form("form[phx-submit='place_order']", %{customer_name: "Test Customer"})
+      |> form("form[phx-submit='place_order']", %{customer_name: "Test Customer", customer_email: "test@example.com"})
       |> render_submit()
+
+      assert_email_sent(to: "test@example.com")
 
       orders = Order.active!(scope: taxed_scope, authorize?: false)
       order = List.first(orders)
@@ -307,11 +310,11 @@ defmodule SupervisedSlicesWeb.MenuLiveTest do
       {:ok, lv, _html} = live(conn, ~p"/menu/#{org.slug}/item/#{item.id}")
 
       lv |> element("button[phx-click='update_quantity'][phx-value-delta='1']") |> render_click()
-      lv |> element("nav button[phx-click='toggle_basket']") |> render_click()
+      lv |> element("nav button", "View Basket") |> render_click()
       lv |> element("button[phx-click='start_checkout']") |> render_click()
 
       lv
-      |> form("form[phx-submit='place_order']", %{customer_name: "Test Customer"})
+      |> form("form[phx-submit='place_order']", %{customer_name: "Test Customer", customer_email: "test@example.com"})
       |> render_submit()
 
       orders = Order.active!(scope: scope, authorize?: false)
@@ -345,9 +348,9 @@ defmodule SupervisedSlicesWeb.MenuLiveTest do
       conn = Plug.Test.init_test_session(conn, %{"guest_session_id" => session_id})
       {:ok, lv, _html} = live(conn, ~p"/menu/#{org.slug}")
 
-      lv |> element("nav button[phx-click='toggle_basket']") |> render_click()
+      lv |> element("nav button", "View Basket") |> render_click()
       lv |> element("button[phx-click='start_checkout']") |> render_click()
-      lv |> form("form[phx-submit='place_order']", %{customer_name: "Test Customer"}) |> render_submit()
+      lv |> form("form[phx-submit='place_order']", %{customer_name: "Test Customer", customer_email: "test@example.com"}) |> render_submit()
 
       order = Order.active!(scope: scope, authorize?: false, load: [:order_items]) |> List.first()
       assert [item] = order.order_items
@@ -357,6 +360,19 @@ defmodule SupervisedSlicesWeb.MenuLiveTest do
       assert item.size_snapshot["name"] == "Large"
       assert [mod] = item.modifiers_snapshot
       assert mod["name"] == "Pepperoni"
+    end
+
+    test "checkout form contains required email field", %{conn: conn, org: org, item: item} do
+      {:ok, lv, _html} = live(conn, ~p"/menu/#{org.slug}/item/#{item.id}")
+
+      lv |> element("button[phx-click='update_quantity'][phx-value-delta='1']") |> render_click()
+      lv |> element("nav button", "View Basket") |> render_click()
+      html = lv |> element("button[phx-click='start_checkout']") |> render_click()
+
+      assert html =~ "Email"
+      assert html =~ "required"
+      assert html =~ "type=\"email\""
+      assert html =~ "name=\"customer_email\""
     end
   end
 end

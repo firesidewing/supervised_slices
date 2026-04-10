@@ -27,6 +27,10 @@ defmodule SupervisedSlicesWeb.CoreComponents do
 
   """
   use Phoenix.Component
+  use Phoenix.VerifiedRoutes,
+    endpoint: SupervisedSlicesWeb.Endpoint,
+    router: SupervisedSlicesWeb.Router,
+    statics: SupervisedSlicesWeb.static_paths()
   use Gettext, backend: SupervisedSlicesWeb.Gettext
 
   alias Phoenix.LiveView.JS
@@ -571,9 +575,12 @@ defmodule SupervisedSlicesWeb.CoreComponents do
                          <span :if={item.selected_size} class="text-[10px] font-black bg-secondary/10 text-secondary px-2 py-0.5 rounded-md uppercase tracking-widest">
                           {item.selected_size.name}
                         </span>
-                        <p class="font-headline font-black text-on-surface text-base leading-tight">
+                        <.link
+                          navigate={~p"/menu/#{@org.slug}/item/#{item.menu_item.id}"}
+                          class="font-headline font-black text-on-surface text-base leading-tight hover:text-primary transition-colors"
+                        >
                           {item.menu_item.name}
-                        </p>
+                        </.link>
                       </div>
                       <div class="flex flex-wrap gap-x-3 gap-y-1 mt-1">
                         <%= for modifier <- modifiers do %>
@@ -660,13 +667,13 @@ defmodule SupervisedSlicesWeb.CoreComponents do
               </div>
               <div>
                 <label class="font-headline block text-xs font-black uppercase tracking-[0.15em] text-on-surface-variant/70 mb-3 px-1">
-                  Phone
-                  <span class="text-on-surface-variant/40 normal-case font-medium lowercase italic">(optional)</span>
+                  Email <span class="text-primary">*</span>
                 </label>
                 <input
-                  type="tel"
-                  name="customer_phone"
-                  placeholder="e.g. 555-1234"
+                  type="email"
+                  name="customer_email"
+                  required
+                  placeholder="e.g. alex@example.com"
                   class="w-full px-5 py-3.5 rounded-xl bg-surface-container-low border-0 text-on-surface placeholder-on-surface-variant/30 text-base font-black focus:outline-none focus:ring-4 focus:ring-primary/10 transition-all shadow-inner"
                 />
               </div>

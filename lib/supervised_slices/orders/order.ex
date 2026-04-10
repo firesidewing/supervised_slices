@@ -171,10 +171,12 @@ defmodule SupervisedSlices.Orders.Order do
     end
 
     attribute :customer_phone, :string do
+      allow_nil? true
       public? true
     end
 
     attribute :customer_email, :string do
+      allow_nil? false
       public? true
     end
 

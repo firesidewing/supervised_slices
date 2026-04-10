@@ -6,7 +6,7 @@ defmodule SupervisedSlicesWeb.MenuLive do
   alias SupervisedSlices.Accounts.{GuestSession, User}
   alias SupervisedSlices.Cart.{Cart, CartItem}
   alias SupervisedSlices.Menu.{Category, MenuItem}
-  alias SupervisedSlices.Orders.{Order, OrderItem}
+  alias SupervisedSlices.Orders.{Order, OrderItem, Emails}
   alias SupervisedSlices.OrgPresence
   alias SupervisedSlices.PubSubNotifier
 
@@ -96,7 +96,7 @@ defmodule SupervisedSlicesWeb.MenuLive do
       Order.place_order!(
         %{
           customer_name: params["customer_name"],
-          customer_phone: params["customer_phone"],
+          customer_email: params["customer_email"],
           notes: params["notes"],
           total_price: total_price,
           tax_amount: tax_amount
@@ -136,6 +136,7 @@ defmodule SupervisedSlicesWeb.MenuLive do
     Cart.checkout!(cart, scope: scope)
 
     PubSubNotifier.broadcast_new_order(order)
+    Emails.send_order_confirmation(order)
 
     {:noreply,
      socket
@@ -460,7 +461,7 @@ defmodule SupervisedSlicesWeb.MenuLive do
       org={@org}
     />
 
-    <.menu_nav :if={@live_action == :index} cart_count={@cart_count} org={@org} cart={@cart} />
+    <.menu_nav cart_count={@cart_count} org={@org} cart={@cart} />
 
     <.basket_drawer
       cart={@cart}
