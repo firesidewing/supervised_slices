@@ -24,7 +24,7 @@ defmodule SupervisedSlices.Orgs.Address do
     end
 
     attribute :country, :string do
-      default "US"
+      default "CA"
       allow_nil? false
       public? true
     end

@@ -15,8 +15,8 @@ defmodule SupervisedSlices.Orders.EmailsTest do
         %{
           customer_name: "John Doe",
           customer_email: "john@example.com",
-          total_price: Money.new!(:USD, "25.00"),
-          tax_amount: Money.new!(:USD, "2.12"),
+          total_price: Money.new!(:CAD, "25.00"),
+          tax_amount: Money.new!(:CAD, "2.12"),
           notes: "Please leave at the door."
         },
         tenant: org.id,
@@ -29,7 +29,7 @@ defmodule SupervisedSlices.Orders.EmailsTest do
         order_id: order.id,
         quantity: 2,
         item_name: "Margherita Pizza",
-        price_at_time: Money.new!(:USD, "10.00"),
+        price_at_time: Money.new!(:CAD, "10.00"),
         size_snapshot: %{"name" => "Large"}
       },
       tenant: org.id,
@@ -41,7 +41,7 @@ defmodule SupervisedSlices.Orders.EmailsTest do
         order_id: order.id,
         quantity: 1,
         item_name: "Garlic Bread",
-        price_at_time: Money.new!(:USD, "5.00"),
+        price_at_time: Money.new!(:CAD, "5.00"),
         modifiers_snapshot: [%{"name" => "Extra Cheese"}]
       },
       tenant: org.id,

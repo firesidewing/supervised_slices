@@ -42,7 +42,7 @@ defmodule SupervisedSlicesWeb.MenuLiveTest do
       %{
         name: "Bruschetta",
         description: "Toasted bread with tomato",
-        price: Money.new!(:USD, "9.00"),
+        price: Money.new!(:CAD, "9.00"),
         category_id: category.id
       },
       scope: scope,
@@ -317,8 +317,8 @@ defmodule SupervisedSlicesWeb.MenuLiveTest do
 
       assert order != nil
       assert order.tax_amount != nil
-      assert Money.compare!(order.tax_amount, Money.new!(:USD, "0.90")) == :eq
-      assert Money.compare!(order.total_price, Money.new!(:USD, "9.90")) == :eq
+      assert Money.compare!(order.tax_amount, Money.new!(:CAD, "0.90")) == :eq
+      assert Money.compare!(order.total_price, Money.new!(:CAD, "9.90")) == :eq
     end
 
     test "placing an order with no tax stores zero tax_amount", %{
@@ -348,7 +348,7 @@ defmodule SupervisedSlicesWeb.MenuLiveTest do
       order = List.first(orders)
 
       assert order != nil
-      assert Money.compare!(order.total_price, Money.new!(:USD, "9.00")) == :eq
+      assert Money.compare!(order.total_price, Money.new!(:CAD, "9.00")) == :eq
     end
 
     test "placing an order with modifiers and sizes stores snapshots correctly", %{
@@ -378,7 +378,7 @@ defmodule SupervisedSlicesWeb.MenuLiveTest do
 
       size =
         MenuItemSize.create!(
-          %{name: "Large", price: Money.new!(:USD, "12.00"), menu_item_id: item.id},
+          %{name: "Large", price: Money.new!(:CAD, "12.00"), menu_item_id: item.id},
           scope: scope,
           authorize?: false
         )
@@ -395,7 +395,7 @@ defmodule SupervisedSlicesWeb.MenuLiveTest do
             name: "Pepperoni",
             sort_order: 0,
             modifier_group_id: group.id,
-            price_delta: Money.new!(:USD, "1.50")
+            price_delta: Money.new!(:CAD, "1.50")
           },
           scope: scope,
           authorize?: false
@@ -436,7 +436,7 @@ defmodule SupervisedSlicesWeb.MenuLiveTest do
       order = Order.active!(scope: scope, authorize?: false, load: [:order_items]) |> List.first()
       assert [item] = order.order_items
       # Size 12.00 + 1.50 = 13.50
-      assert Money.compare!(item.price_at_time, Money.new!(:USD, "13.50")) == :eq
+      assert Money.compare!(item.price_at_time, Money.new!(:CAD, "13.50")) == :eq
 
       assert item.size_snapshot["name"] == "Large"
       assert [mod] = item.modifiers_snapshot

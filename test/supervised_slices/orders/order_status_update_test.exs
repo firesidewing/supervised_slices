@@ -18,8 +18,8 @@ defmodule SupervisedSlices.Orders.OrderStatusUpdateTest do
       %{
         customer_name: "Bob",
         customer_email: "bob@example.com",
-        total_price: Money.new!(:USD, "20.00"),
-        tax_amount: Money.new!(:USD, "0.00")
+        total_price: Money.new!(:CAD, "20.00"),
+        tax_amount: Money.new!(:CAD, "0.00")
       },
       tenant: org.id,
       authorize?: false

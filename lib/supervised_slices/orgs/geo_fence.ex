@@ -18,7 +18,7 @@ defmodule SupervisedSlices.Orgs.GeoFence do
       public? true
     end
 
-    attribute :radius_in_miles, :float do
+    attribute :radius_in_km, :float do
       public? true
     end
   end

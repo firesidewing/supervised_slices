@@ -135,3 +135,65 @@ export const OrderNotifications = {
     }
   }
 }
+
+/**
+ * GeoFenceMap — interactive Leaflet map for setting delivery area.
+ */
+export const GeoFenceMap = {
+  mounted() {
+    this.initMap()
+  },
+
+  updated() {
+    this.updateRadius()
+  },
+
+  initMap() {
+    const lat = parseFloat(this.el.dataset.lat) || 43.6532 // Toronto
+    const lng = parseFloat(this.el.dataset.lng) || -79.3832
+    const radiusInKm = parseFloat(this.el.dataset.radius) || 5.0
+
+    this.map = L.map(this.el).setView([lat, lng], 13)
+
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+      attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+    }).addTo(this.map)
+
+    const icon = L.icon({
+      iconUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon.png',
+      shadowUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-shadow.png',
+      iconSize: [25, 41],
+      iconAnchor: [12, 41],
+      popupAnchor: [1, -34],
+      shadowSize: [41, 41]
+    })
+
+    this.marker = L.marker([lat, lng], { draggable: true, icon }).addTo(this.map)
+
+    this.circle = L.circle([lat, lng], {
+      color: '#b90027',
+      fillColor: '#b90027',
+      fillOpacity: 0.1,
+      radius: radiusInKm * 1000
+    }).addTo(this.map)
+
+    this.marker.on('dragend', (e) => {
+      const { lat, lng } = e.target.getLatLng()
+      this.circle.setLatLng([lat, lng])
+      this.pushEventTo(this.el, 'update_geo_center', { lat, lng })
+    })
+
+    this.handleEvent("recenter_map", ({lat, lng}) => {
+      this.marker.setLatLng([lat, lng])
+      this.circle.setLatLng([lat, lng])
+      this.map.setView([lat, lng], 13)
+    })
+  },
+
+  updateRadius() {
+    const radiusInKm = parseFloat(this.el.dataset.radius) || 5.0
+    if (this.circle) {
+      this.circle.setRadius(radiusInKm * 1000)
+    }
+  }
+}

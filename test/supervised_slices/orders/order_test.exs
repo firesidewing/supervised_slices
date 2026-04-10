@@ -23,8 +23,8 @@ defmodule SupervisedSlices.Orders.OrderTest do
         Order.place_order(
           %{
             customer_name: "Test Customer",
-            total_price: Money.new!(:USD, "10.00"),
-            tax_amount: Money.new!(:USD, "0.85")
+            total_price: Money.new!(:CAD, "10.00"),
+            tax_amount: Money.new!(:CAD, "0.85")
           },
           tenant: org.id,
           authorize?: false
@@ -41,8 +41,8 @@ defmodule SupervisedSlices.Orders.OrderTest do
             customer_name: "Test Customer",
             customer_email: "test@example.com",
             customer_phone: nil,
-            total_price: Money.new!(:USD, "10.00"),
-            tax_amount: Money.new!(:USD, "0.85")
+            total_price: Money.new!(:CAD, "10.00"),
+            tax_amount: Money.new!(:CAD, "0.85")
           },
           tenant: org.id,
           authorize?: false
@@ -60,8 +60,8 @@ defmodule SupervisedSlices.Orders.OrderTest do
             customer_name: "Test Customer",
             customer_email: "test@example.com",
             customer_phone: "555-1234",
-            total_price: Money.new!(:USD, "10.00"),
-            tax_amount: Money.new!(:USD, "0.85")
+            total_price: Money.new!(:CAD, "10.00"),
+            tax_amount: Money.new!(:CAD, "0.85")
           },
           tenant: org.id,
           authorize?: false

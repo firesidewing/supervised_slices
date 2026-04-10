@@ -17,7 +17,8 @@ defmodule SupervisedSlicesWeb.AdminLive.SettingsComponent do
      |> assign(:delivery_min_order_input, format_money(org.delivery_min_order))
      |> assign(:geo_fence_lat, (org.delivery_geo_fence && to_string(org.delivery_geo_fence.center_lat)) || "")
      |> assign(:geo_fence_lng, (org.delivery_geo_fence && to_string(org.delivery_geo_fence.center_lng)) || "")
-     |> assign(:geo_fence_radius, (org.delivery_geo_fence && to_string(org.delivery_geo_fence.radius_in_miles)) || "")
+     |> assign(:geo_fence_radius, (org.delivery_geo_fence && to_string(org.delivery_geo_fence.radius_in_km)) || "")
+     |> assign(:search_address_input, "")
      |> assign(:save_status, nil)
      |> assign(:branding_status, nil)
      |> allow_upload(:logo,
@@ -25,6 +26,47 @@ defmodule SupervisedSlicesWeb.AdminLive.SettingsComponent do
        max_entries: 1,
        max_file_size: 5_000_000
      )}
+  end
+
+  def handle_event("update_geo_center", %{"lat" => lat, "lng" => lng}, socket) do
+    {:noreply,
+     socket
+     |> assign(:geo_fence_lat, to_string(lat))
+     |> assign(:geo_fence_lng, to_string(lng))}
+  end
+
+  def handle_event("search_address", params, socket) do
+    address = params["address"] || params["value"]
+
+    if address && address != "" do
+      url = "https://nominatim.openstreetmap.org/search?format=json&q=#{URI.encode(address)}&limit=1"
+      headers = [{"User-Agent", "SupervisedSlices"}]
+
+      case Req.get(url, headers: headers) do
+        {:ok, %{status: 200, body: [%{"lat" => lat, "lon" => lng} | _]}} ->
+          lat = String.to_float(lat)
+          lng = String.to_float(lng)
+
+          {:noreply,
+           socket
+           |> assign(:geo_fence_lat, to_string(lat))
+           |> assign(:geo_fence_lng, to_string(lng))
+           |> push_event("recenter_map", %{lat: lat, lng: lng})}
+
+        _ ->
+          {:noreply, socket}
+      end
+    else
+      {:noreply, socket}
+    end
+  end
+
+  def handle_event("update_radius", %{"geo_fence_radius" => radius}, socket) do
+    {:noreply, assign(socket, :geo_fence_radius, radius)}
+  end
+
+  def handle_event("update_search_input", %{"address_search" => address}, socket) do
+    {:noreply, assign(socket, :search_address_input, address)}
   end
 
   def handle_event("save_settings", params, socket) do
@@ -38,7 +80,7 @@ defmodule SupervisedSlicesWeb.AdminLive.SettingsComponent do
     geo_fence = %{
       center_lat: parse_float(params["geo_fence_lat"]),
       center_lng: parse_float(params["geo_fence_lng"]),
-      radius_in_miles: parse_float(params["geo_fence_radius"]),
+      radius_in_km: parse_float(params["geo_fence_radius"]),
       type: :circle
     }
 
@@ -71,7 +113,7 @@ defmodule SupervisedSlicesWeb.AdminLive.SettingsComponent do
        |> assign(:delivery_min_order_input, format_money(delivery_min))
        |> assign(:geo_fence_lat, to_string(geo_fence.center_lat))
        |> assign(:geo_fence_lng, to_string(geo_fence.center_lng))
-       |> assign(:geo_fence_radius, to_string(geo_fence.radius_in_miles))
+       |> assign(:geo_fence_radius, to_string(geo_fence.radius_in_km))
        |> assign(:org, updated_org)
        |> assign(:save_status, :ok)}
     else
@@ -159,7 +201,7 @@ defmodule SupervisedSlicesWeb.AdminLive.SettingsComponent do
 
   defp parse_money(raw) do
     case Decimal.parse(String.trim(raw || "0")) do
-      {decimal, ""} -> {:ok, Money.new(decimal, :USD)}
+      {decimal, ""} -> {:ok, Money.new(decimal, :CAD)}
       _ -> :error
     end
   end
@@ -304,6 +346,47 @@ defmodule SupervisedSlicesWeb.AdminLive.SettingsComponent do
               <label class="font-body block text-[10px] font-black uppercase tracking-[0.15em] text-on-surface-variant">
                 Delivery Geo-fence (Circle)
               </label>
+
+              <div class="space-y-2">
+                <label class="text-[10px] font-bold uppercase tracking-wider text-on-surface-variant/70 ml-1">
+                  Search Center Address
+                </label>
+                <div class="flex gap-2">
+                  <input
+                    type="text"
+                    name="address_search"
+                    id="address_search"
+                    value={@search_address_input}
+                    placeholder="Enter an address..."
+                    class="flex-1 px-4 py-2.5 rounded-xl bg-surface-container-low border-0 text-sm font-medium focus:ring-2 focus:ring-primary/40"
+                    phx-keydown="search_address"
+                    phx-key="Enter"
+                    phx-change="update_search_input"
+                    phx-target={@myself}
+                  />
+                  <button
+                    type="button"
+                    phx-click="search_address"
+                    phx-value-address={@search_address_input}
+                    phx-target={@myself}
+                    class="px-4 py-2 bg-surface-container text-on-surface rounded-xl text-xs font-bold uppercase tracking-widest hover:bg-surface-container-high transition-colors"
+                  >
+                    Search
+                  </button>
+                </div>
+              </div>
+
+              <div
+                id="geofence-map"
+                phx-update="ignore"
+                phx-hook="GeoFenceMap"
+                data-lat={@geo_fence_lat}
+                data-lng={@geo_fence_lng}
+                data-radius={@geo_fence_radius}
+                class="w-full h-64 rounded-2xl border-2 border-surface-container overflow-hidden"
+              >
+              </div>
+
               <div class="grid grid-cols-2 gap-4">
                 <div class="space-y-1">
                   <label class="text-[10px] font-bold uppercase tracking-wider text-on-surface-variant/70 ml-1">
@@ -332,12 +415,14 @@ defmodule SupervisedSlicesWeb.AdminLive.SettingsComponent do
               </div>
               <div class="space-y-1">
                 <label class="text-[10px] font-bold uppercase tracking-wider text-on-surface-variant/70 ml-1">
-                  Radius (miles)
+                  Radius (km)
                 </label>
                 <input
                   type="text"
                   name="geo_fence_radius"
                   value={@geo_fence_radius}
+                  phx-change="update_radius"
+                  phx-target={@myself}
                   placeholder="e.g. 5.0"
                   class="w-full px-4 py-2.5 rounded-xl bg-surface-container-low border-0 text-sm font-medium focus:ring-2 focus:ring-primary/40"
                 />
