@@ -29,7 +29,16 @@ defmodule SupervisedSlices.Orders.Order do
     defaults [:read]
 
     create :place_order do
-      accept [:customer_name, :customer_phone, :customer_email, :notes, :total_price, :tax_amount, :delivery_type, :delivery_fee]
+      accept [
+        :customer_name,
+        :customer_phone,
+        :customer_email,
+        :notes,
+        :total_price,
+        :tax_amount,
+        :delivery_type,
+        :delivery_fee
+      ]
 
       argument :delivery_address, :map
 

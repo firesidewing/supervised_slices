@@ -105,7 +105,11 @@ defmodule SupervisedSlicesWeb.MenuLive do
 
     subtotal = order_subtotal(cart)
     tax_amount = order_tax_amount(subtotal, org.tax_rate)
-    delivery_fee = if cart.delivery_type == :delivery, do: org.delivery_fee || Money.new(0, subtotal.currency), else: Money.new(0, subtotal.currency)
+
+    delivery_fee =
+      if cart.delivery_type == :delivery,
+        do: org.delivery_fee || Money.new(0, subtotal.currency),
+        else: Money.new(0, subtotal.currency)
 
     {:ok, total_before_delivery} = Money.add(subtotal, tax_amount)
     {:ok, total_price} = Money.add(total_before_delivery, delivery_fee)

@@ -242,7 +242,10 @@ defmodule SupervisedSlicesWeb.CoreComponents do
     ~H"""
     <div class="fieldset mb-6">
       <label for={@id} class="flex flex-col gap-2">
-        <span :if={@label} class="font-headline text-[10px] font-black uppercase tracking-[0.2em] text-on-surface-variant/40 ml-1">
+        <span
+          :if={@label}
+          class="font-headline text-[10px] font-black uppercase tracking-[0.2em] text-on-surface-variant/40 ml-1"
+        >
           {@label}
         </span>
         <select
@@ -269,7 +272,10 @@ defmodule SupervisedSlicesWeb.CoreComponents do
     ~H"""
     <div class="fieldset mb-6">
       <label for={@id} class="flex flex-col gap-2">
-        <span :if={@label} class="font-headline text-[10px] font-black uppercase tracking-[0.2em] text-on-surface-variant/40 ml-1">
+        <span
+          :if={@label}
+          class="font-headline text-[10px] font-black uppercase tracking-[0.2em] text-on-surface-variant/40 ml-1"
+        >
           {@label}
         </span>
         <textarea
@@ -293,7 +299,10 @@ defmodule SupervisedSlicesWeb.CoreComponents do
     ~H"""
     <div class="fieldset mb-6">
       <label for={@id} class="flex flex-col gap-2">
-        <span :if={@label} class="font-headline text-[10px] font-black uppercase tracking-[0.2em] text-on-surface-variant/40 ml-1">
+        <span
+          :if={@label}
+          class="font-headline text-[10px] font-black uppercase tracking-[0.2em] text-on-surface-variant/40 ml-1"
+        >
           {@label}
         </span>
         <input
@@ -664,7 +673,10 @@ defmodule SupervisedSlicesWeb.CoreComponents do
                     <span>{basket_tax_string(@cart, @tax_rate)}</span>
                   </div>
                 <% end %>
-                <div :if={fee = basket_delivery_fee_money(@cart, @org)} class="flex justify-between items-center text-sm font-black text-on-surface-variant uppercase tracking-widest opacity-60">
+                <div
+                  :if={fee = basket_delivery_fee_money(@cart, @org)}
+                  class="flex justify-between items-center text-sm font-black text-on-surface-variant uppercase tracking-widest opacity-60"
+                >
                   <span>Delivery Fee</span>
                   <span>{Money.to_string!(fee)}</span>
                 </div>
@@ -696,7 +708,10 @@ defmodule SupervisedSlicesWeb.CoreComponents do
             class="overflow-y-auto flex-1 flex flex-col no-scrollbar"
           >
             <div class="flex-1 px-6 py-6 space-y-6">
-              <div :if={@org.delivery_enabled and @org.pickup_enabled} class="bg-surface-container rounded-2xl p-1 flex gap-1 mb-2">
+              <div
+                :if={@org.delivery_enabled and @org.pickup_enabled}
+                class="bg-surface-container rounded-2xl p-1 flex gap-1 mb-2"
+              >
                 <label class="flex-1">
                   <input
                     type="radio"
@@ -817,7 +832,10 @@ defmodule SupervisedSlicesWeb.CoreComponents do
                     <span>{basket_tax_string(@cart, @tax_rate)}</span>
                   </div>
                 <% end %>
-                <div :if={fee = basket_delivery_fee_money(@cart, @org)} class="flex justify-between items-center text-sm font-black text-on-surface-variant uppercase tracking-widest opacity-60">
+                <div
+                  :if={fee = basket_delivery_fee_money(@cart, @org)}
+                  class="flex justify-between items-center text-sm font-black text-on-surface-variant uppercase tracking-widest opacity-60"
+                >
                   <span>Delivery Fee</span>
                   <span>{Money.to_string!(fee)}</span>
                 </div>
@@ -971,7 +989,11 @@ defmodule SupervisedSlicesWeb.CoreComponents do
 
       subtotal ->
         tax = Money.mult!(subtotal, tax_rate)
-        fee = if cart.delivery_type == :delivery, do: org.delivery_fee, else: Money.new(0, subtotal.currency)
+
+        fee =
+          if cart.delivery_type == :delivery,
+            do: org.delivery_fee || Money.new(0, subtotal.currency),
+            else: Money.new(0, subtotal.currency)
 
         {:ok, sum} = Money.add(subtotal, tax)
         {:ok, total} = Money.add(sum, fee)

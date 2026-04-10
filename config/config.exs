@@ -8,6 +8,8 @@
 import Config
 
 config :ex_cldr, default_backend: SupervisedSlices.Cldr
+config :ex_money, default_currency: :CAD
+config :ash_money, default_currency: :CAD
 config :ash_oban, pro?: false
 
 config :supervised_slices, Oban,

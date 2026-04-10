@@ -64,7 +64,14 @@ defmodule SupervisedSlices.Orgs.Organization do
     end
 
     update :update_settings do
-      accept [:tax_rate, :default_prep_time, :delivery_enabled, :pickup_enabled, :delivery_fee, :delivery_min_order]
+      accept [
+        :tax_rate,
+        :default_prep_time,
+        :delivery_enabled,
+        :pickup_enabled,
+        :delivery_fee,
+        :delivery_min_order
+      ]
 
       argument :delivery_geo_fence, :map
 

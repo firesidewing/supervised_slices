@@ -4,7 +4,7 @@ defmodule SupervisedSlices.Orgs.GeoFence do
 
   attributes do
     attribute :type, :atom do
-      constraints [one_of: [:circle, :polygon]]
+      constraints one_of: [:circle, :polygon]
       default :circle
       allow_nil? false
       public? true

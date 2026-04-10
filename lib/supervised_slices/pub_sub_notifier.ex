@@ -101,10 +101,15 @@ defmodule SupervisedSlices.PubSubNotifier do
       |> Ash.Query.for_read(:read, %{}, tenant: order.organization_id, authorize?: false)
 
     query =
-      if order.user_id do
-        filter(query, user_id == ^order.user_id)
-      else
-        filter(query, session_id == ^order.session_id)
+      cond do
+        order.user_id ->
+          filter(query, user_id == ^order.user_id)
+
+        order.session_id ->
+          filter(query, session_id == ^order.session_id)
+
+        true ->
+          filter(query, false)
       end
 
     Ash.read!(query, authorize?: false)

@@ -15,9 +15,18 @@ defmodule SupervisedSlicesWeb.AdminLive.SettingsComponent do
      |> assign(:pickup_enabled, org.pickup_enabled)
      |> assign(:delivery_fee_input, format_money(org.delivery_fee))
      |> assign(:delivery_min_order_input, format_money(org.delivery_min_order))
-     |> assign(:geo_fence_lat, (org.delivery_geo_fence && to_string(org.delivery_geo_fence.center_lat)) || "")
-     |> assign(:geo_fence_lng, (org.delivery_geo_fence && to_string(org.delivery_geo_fence.center_lng)) || "")
-     |> assign(:geo_fence_radius, (org.delivery_geo_fence && to_string(org.delivery_geo_fence.radius_in_km)) || "")
+     |> assign(
+       :geo_fence_lat,
+       (org.delivery_geo_fence && to_string(org.delivery_geo_fence.center_lat)) || ""
+     )
+     |> assign(
+       :geo_fence_lng,
+       (org.delivery_geo_fence && to_string(org.delivery_geo_fence.center_lng)) || ""
+     )
+     |> assign(
+       :geo_fence_radius,
+       (org.delivery_geo_fence && to_string(org.delivery_geo_fence.radius_in_km)) || ""
+     )
      |> assign(:search_address_input, "")
      |> assign(:save_status, nil)
      |> assign(:branding_status, nil)
@@ -39,7 +48,9 @@ defmodule SupervisedSlicesWeb.AdminLive.SettingsComponent do
     address = params["address"] || params["value"]
 
     if address && address != "" do
-      url = "https://nominatim.openstreetmap.org/search?format=json&q=#{URI.encode(address)}&limit=1"
+      url =
+        "https://nominatim.openstreetmap.org/search?format=json&q=#{URI.encode(address)}&limit=1"
+
       headers = [{"User-Agent", "SupervisedSlices"}]
 
       case Req.get(url, headers: headers) do
