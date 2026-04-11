@@ -7,6 +7,8 @@
 # General application configuration
 import Config
 
+config :elixir, :time_zone_database, Tzdata.TimeZoneDatabase
+
 config :ex_cldr, default_backend: SupervisedSlices.Cldr
 config :ex_money, default_currency: :CAD
 config :ash_money, default_currency: :CAD

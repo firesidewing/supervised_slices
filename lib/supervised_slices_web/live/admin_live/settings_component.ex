@@ -29,6 +29,7 @@ defmodule SupervisedSlicesWeb.AdminLive.SettingsComponent do
      )
      |> assign(:search_address_input, "")
      |> assign(:schedule, org.operating_schedule)
+     |> assign(:timezone, org.timezone || "Etc/UTC")
      |> assign(:save_status, nil)
      |> assign(:branding_status, nil)
      |> allow_upload(:logo,
@@ -88,6 +89,7 @@ defmodule SupervisedSlicesWeb.AdminLive.SettingsComponent do
     pickup_enabled = params["pickup_enabled"] == "true"
     raw_delivery_fee = params["delivery_fee"]
     raw_delivery_min = params["delivery_min_order"]
+    timezone = params["timezone"] || "Etc/UTC"
 
     geo_fence = %{
       center_lat: parse_float(params["geo_fence_lat"]),
@@ -113,7 +115,8 @@ defmodule SupervisedSlicesWeb.AdminLive.SettingsComponent do
             delivery_fee: delivery_fee,
             delivery_min_order: delivery_min,
             delivery_geo_fence: geo_fence,
-            operating_schedule: schedule
+            operating_schedule: schedule,
+            timezone: timezone
           },
           authorize?: false
         )
@@ -130,6 +133,7 @@ defmodule SupervisedSlicesWeb.AdminLive.SettingsComponent do
        |> assign(:geo_fence_lng, to_string(geo_fence.center_lng))
        |> assign(:geo_fence_radius, to_string(geo_fence.radius_in_km))
        |> assign(:schedule, updated_org.operating_schedule)
+       |> assign(:timezone, updated_org.timezone || "Etc/UTC")
        |> assign(:org, updated_org)
        |> assign(:save_status, :ok)}
     else
@@ -251,6 +255,49 @@ defmodule SupervisedSlicesWeb.AdminLive.SettingsComponent do
       {float, _} -> float
       _ -> nil
     end
+  end
+
+  defp timezone_options do
+    [
+      {"UTC", [{"UTC", "Etc/UTC"}]},
+      {"Canada", [
+        {"Newfoundland (UTC-3:30)", "America/St_Johns"},
+        {"Atlantic — Halifax (UTC-4)", "America/Halifax"},
+        {"Eastern — Toronto (UTC-5)", "America/Toronto"},
+        {"Central — Winnipeg (UTC-6)", "America/Winnipeg"},
+        {"Mountain — Edmonton (UTC-7)", "America/Edmonton"},
+        {"Pacific — Vancouver (UTC-8)", "America/Vancouver"}
+      ]},
+      {"United States", [
+        {"Eastern — New York (UTC-5)", "America/New_York"},
+        {"Central — Chicago (UTC-6)", "America/Chicago"},
+        {"Mountain — Denver (UTC-7)", "America/Denver"},
+        {"Arizona, no DST (UTC-7)", "America/Phoenix"},
+        {"Pacific — Los Angeles (UTC-8)", "America/Los_Angeles"},
+        {"Alaska (UTC-9)", "America/Anchorage"},
+        {"Hawaii (UTC-10)", "Pacific/Honolulu"}
+      ]},
+      {"Latin America", [
+        {"Mexico City (UTC-6)", "America/Mexico_City"},
+        {"São Paulo (UTC-3)", "America/Sao_Paulo"},
+        {"Buenos Aires (UTC-3)", "America/Argentina/Buenos_Aires"}
+      ]},
+      {"Europe", [
+        {"London (UTC+0)", "Europe/London"},
+        {"Paris / Berlin / Rome (UTC+1)", "Europe/Paris"},
+        {"Helsinki / Kiev (UTC+2)", "Europe/Helsinki"},
+        {"Moscow (UTC+3)", "Europe/Moscow"}
+      ]},
+      {"Asia / Pacific", [
+        {"Dubai (UTC+4)", "Asia/Dubai"},
+        {"India (UTC+5:30)", "Asia/Kolkata"},
+        {"Bangkok (UTC+7)", "Asia/Bangkok"},
+        {"Singapore / Shanghai (UTC+8)", "Asia/Singapore"},
+        {"Tokyo / Seoul (UTC+9)", "Asia/Tokyo"},
+        {"Sydney / Melbourne (UTC+10)", "Australia/Sydney"},
+        {"New Zealand (UTC+12)", "Pacific/Auckland"}
+      ]}
+    ]
   end
 
   def render(assigns) do
@@ -473,9 +520,27 @@ defmodule SupervisedSlicesWeb.AdminLive.SettingsComponent do
                 Operating Hours
               </h3>
               <p class="font-body text-xs text-on-surface-variant mt-0.5">
-                Times are in UTC. Customers cannot place orders outside these hours.
+                Times are in your configured timezone. Customers cannot place orders outside these hours.
                 Leave all days enabled and set wide hours to accept orders 24/7.
               </p>
+            </div>
+
+            <div>
+              <label class="font-body block text-xs font-bold uppercase tracking-widest text-on-surface-variant mb-1.5">
+                Timezone
+              </label>
+              <select
+                name="timezone"
+                class="w-full px-4 py-3 rounded-xl bg-surface-container-low border-0 text-on-surface text-sm font-medium focus:outline-none focus:ring-2 focus:ring-primary/40"
+              >
+                <%= for {group, zones} <- timezone_options() do %>
+                  <optgroup label={group}>
+                    <%= for {label, value} <- zones do %>
+                      <option value={value} selected={@timezone == value}>{label}</option>
+                    <% end %>
+                  </optgroup>
+                <% end %>
+              </select>
             </div>
 
             <% days = [

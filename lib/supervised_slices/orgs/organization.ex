@@ -70,7 +70,8 @@ defmodule SupervisedSlices.Orgs.Organization do
         :delivery_enabled,
         :pickup_enabled,
         :delivery_fee,
-        :delivery_min_order
+        :delivery_min_order,
+        :timezone
       ]
 
       argument :delivery_geo_fence, :map
@@ -190,6 +191,12 @@ defmodule SupervisedSlices.Orgs.Organization do
       public? true
     end
 
+    attribute :timezone, :string do
+      default "Etc/UTC"
+      allow_nil? true
+      public? true
+    end
+
     attribute :logo_url, :string do
       allow_nil? true
       public? true
@@ -227,16 +234,24 @@ defmodule SupervisedSlices.Orgs.Organization do
   Returns true if the organization is currently open based on its operating
   schedule. If no schedule has been configured, returns true (always open).
 
-  Times in the schedule are compared against the current UTC time. Restaurant
-  owners should set their hours in UTC or adjust their configured times by their
-  UTC offset.
+  The current time is shifted into the org's configured timezone before
+  comparing against the scheduled hours. Falls back to UTC if no timezone
+  is set or if the stored timezone string is unrecognized.
   """
   def open_now?(%__MODULE__{operating_schedule: nil}), do: true
 
-  def open_now?(%__MODULE__{operating_schedule: schedule}) do
-    now = DateTime.utc_now()
-    day = Date.day_of_week(DateTime.to_date(now))
-    current_time = DateTime.to_time(now)
+  def open_now?(%__MODULE__{operating_schedule: schedule, timezone: timezone}) do
+    tz = timezone || "Etc/UTC"
+
+    now_local =
+      case DateTime.shift_zone(DateTime.utc_now(), tz) do
+        {:ok, dt} -> dt
+        # Invalid timezone — fall back to UTC rather than crashing
+        {:error, _} -> DateTime.utc_now()
+      end
+
+    day = Date.day_of_week(DateTime.to_date(now_local))
+    current_time = DateTime.to_time(now_local)
 
     {is_open_key, open_key, close_key} = day_schedule_keys(day)
 
