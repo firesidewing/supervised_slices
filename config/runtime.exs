@@ -16,6 +16,14 @@ import Config
 #
 # Alternatively, you can use `mix phx.gen.release` to generate a `bin/server`
 # script that automatically sets the env var above.
+if stripe_secret_key = System.get_env("STRIPE_SECRET_KEY") do
+  config :stripity_stripe, api_key: stripe_secret_key
+end
+
+config :supervised_slices, :stripe,
+  webhook_secret: System.get_env("STRIPE_WEBHOOK_SECRET", "whsec_placeholder"),
+  price_id: System.get_env("STRIPE_PRICE_ID", "price_placeholder")
+
 config :ex_aws,
   access_key_id: System.get_env("TIGRIS_ACCESS_KEY_ID"),
   secret_access_key: System.get_env("TIGRIS_SECRET_ACCESS_KEY"),

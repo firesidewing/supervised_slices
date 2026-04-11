@@ -44,6 +44,10 @@ defmodule SupervisedSlicesWeb.Router do
 
       live "/orders/:org_slug/:order_id", OrderTrackingLive, :index
 
+      # Billing flow — requires auth; org loaded from :org_slug by AshScopeHook
+      live "/billing/setup/:org_slug", BillingLive.Setup, :index
+      live "/billing/success/:org_slug", BillingLive.Success, :index
+
       live "/kitchen/:org_slug", AdminLive, :orders
       live "/kitchen/:org_slug/baskets", AdminLive, :baskets
       live "/kitchen/:org_slug/history", AdminLive, :history
@@ -52,10 +56,20 @@ defmodule SupervisedSlicesWeb.Router do
     end
   end
 
+  # Stripe webhooks — no CSRF, raw body preserved for signature verification
+  scope "/webhooks", SupervisedSlicesWeb do
+    pipe_through :api
+    post "/stripe", StripeWebhookController, :event
+  end
+
   scope "/", SupervisedSlicesWeb do
     pipe_through :browser
 
     get "/", PageController, :home
+
+    # Stripe Customer Portal redirect (requires browser session for auth)
+    get "/billing/manage/:org_slug", BillingController, :portal
+
     auth_routes AuthController, SupervisedSlices.Accounts.User, path: "/auth"
     sign_out_route AuthController
 

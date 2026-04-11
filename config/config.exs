@@ -127,6 +127,8 @@ config :logger, :default_formatter,
 # Use Jason for JSON parsing in Phoenix
 config :phoenix, :json_library, Jason
 
+config :stripity_stripe, api_key: System.get_env("STRIPE_SECRET_KEY", "sk_test_placeholder")
+
 config :supervised_slices, :vapid,
   public_key:
     "BM5Xgt6mnKHmtNOinlRSnh3KZ_0Ce_a5fGr8yMllSBFx9FmPd2V00Kdr5RhCgh3-33NVan6Eg4ydfJWl4LKUlgo",

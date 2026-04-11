@@ -1,7 +1,7 @@
 defmodule SupervisedSlicesWeb.AdminLive do
   use SupervisedSlicesWeb, :live_view
 
-  on_mount {SupervisedSlicesWeb.LiveUserAuth, :live_user_required}
+  on_mount {SupervisedSlicesWeb.LiveUserAuth, :live_user_and_subscription_required}
 
   alias SupervisedSlices.Cart.Cart
   alias SupervisedSlices.Orders.Order
