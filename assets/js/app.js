@@ -23,14 +23,14 @@ import "phoenix_html"
 import {Socket} from "phoenix"
 import {LiveSocket} from "phoenix_live_view"
 import {hooks as colocatedHooks} from "phoenix-colocated/supervised_slices"
-import {Countdown, OrderNotifications, GeoFenceMap} from "./hooks"
+import {Countdown, OrderNotifications, GeoFenceMap, KitchenAlert} from "./hooks"
 import topbar from "../vendor/topbar"
 
 const csrfToken = document.querySelector("meta[name='csrf-token']").getAttribute("content")
 const liveSocket = new LiveSocket("/live", Socket, {
   longPollFallbackMs: 2500,
   params: {_csrf_token: csrfToken},
-  hooks: {...colocatedHooks, Countdown, OrderNotifications, GeoFenceMap},
+  hooks: {...colocatedHooks, Countdown, OrderNotifications, GeoFenceMap, KitchenAlert},
 })
 
 // Show progress bar on live navigation and form submits

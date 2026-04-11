@@ -43,3 +43,6 @@ config :phoenix_live_view,
 # Sort query params output of verified routes for robust url comparisons
 config :phoenix,
   sort_verified_routes_query_params: true
+
+# Allow Req.Test stubs in GeofenceChecker during tests
+config :supervised_slices, :req_options, plug: {Req.Test, :nominatim}

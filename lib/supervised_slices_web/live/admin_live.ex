@@ -27,6 +27,7 @@ defmodule SupervisedSlicesWeb.AdminLive do
      |> assign(:visitor_count, visitor_count)
      |> assign(:active_carts, active_carts)
      |> assign(:orders_initial, orders)
+     |> assign(:ticket_count, length(orders))
      |> assign(:page_title, "Kitchen Command")}
   end
 
@@ -37,14 +38,20 @@ defmodule SupervisedSlicesWeb.AdminLive do
   def handle_info({:new_order, order}, socket) do
     loaded = reload_order(order, socket.assigns.ash_scope)
     send_update(OrdersComponent, id: "orders", action: {:insert, loaded})
-    {:noreply, assign(socket, :orders_initial, [loaded | socket.assigns.orders_initial])}
+    updated = [loaded | socket.assigns.orders_initial]
+
+    {:noreply,
+     socket
+     |> assign(:orders_initial, updated)
+     |> assign(:ticket_count, length(updated))
+     |> push_event("new_order_alert", %{})}
   end
 
   def handle_info({:order_updated, order}, socket) do
     if order.status in [:completed, :cancelled] do
       send_update(OrdersComponent, id: "orders", action: {:delete, order})
       updated = Enum.reject(socket.assigns.orders_initial, &(&1.id == order.id))
-      {:noreply, assign(socket, :orders_initial, updated)}
+      {:noreply, socket |> assign(:orders_initial, updated) |> assign(:ticket_count, length(updated))}
     else
       loaded = reload_order(order, socket.assigns.ash_scope)
       send_update(OrdersComponent, id: "orders", action: {:update, loaded})

@@ -74,8 +74,10 @@ defmodule SupervisedSlices.Orgs.Organization do
       ]
 
       argument :delivery_geo_fence, :map
+      argument :operating_schedule, :map
 
       change set_attribute(:delivery_geo_fence, arg(:delivery_geo_fence))
+      change set_attribute(:operating_schedule, arg(:operating_schedule))
     end
 
     update :update_branding do
@@ -184,6 +186,10 @@ defmodule SupervisedSlices.Orgs.Organization do
       public? true
     end
 
+    attribute :operating_schedule, SupervisedSlices.Orgs.OperatingSchedule do
+      public? true
+    end
+
     attribute :logo_url, :string do
       allow_nil? true
       public? true
@@ -211,5 +217,64 @@ defmodule SupervisedSlices.Orgs.Organization do
 
   identities do
     identity :unique_slug, [:slug]
+  end
+
+  # ---------------------------------------------------------------------------
+  # Business hours helpers
+  # ---------------------------------------------------------------------------
+
+  @doc """
+  Returns true if the organization is currently open based on its operating
+  schedule. If no schedule has been configured, returns true (always open).
+
+  Times in the schedule are compared against the current UTC time. Restaurant
+  owners should set their hours in UTC or adjust their configured times by their
+  UTC offset.
+  """
+  def open_now?(%__MODULE__{operating_schedule: nil}), do: true
+
+  def open_now?(%__MODULE__{operating_schedule: schedule}) do
+    now = DateTime.utc_now()
+    day = Date.day_of_week(DateTime.to_date(now))
+    current_time = DateTime.to_time(now)
+
+    {is_open_key, open_key, close_key} = day_schedule_keys(day)
+
+    is_open = Map.get(schedule, is_open_key)
+    open_str = Map.get(schedule, open_key)
+    close_str = Map.get(schedule, close_key)
+
+    is_open == true and time_in_range?(current_time, open_str, close_str)
+  end
+
+  # ISO weekday: 1=Monday … 7=Sunday
+  defp day_schedule_keys(1), do: {:mon_open, :mon_open_time, :mon_close_time}
+  defp day_schedule_keys(2), do: {:tue_open, :tue_open_time, :tue_close_time}
+  defp day_schedule_keys(3), do: {:wed_open, :wed_open_time, :wed_close_time}
+  defp day_schedule_keys(4), do: {:thu_open, :thu_open_time, :thu_close_time}
+  defp day_schedule_keys(5), do: {:fri_open, :fri_open_time, :fri_close_time}
+  defp day_schedule_keys(6), do: {:sat_open, :sat_open_time, :sat_close_time}
+  defp day_schedule_keys(7), do: {:sun_open, :sun_open_time, :sun_close_time}
+
+  defp time_in_range?(_current, nil, _), do: true
+  defp time_in_range?(_current, _, nil), do: true
+
+  defp time_in_range?(current, open_str, close_str) do
+    with {:ok, open} <- parse_hhmm(open_str),
+         {:ok, close} <- parse_hhmm(close_str) do
+      if Time.compare(close, open) == :gt do
+        # Normal range: open <= now <= close
+        Time.compare(current, open) in [:gt, :eq] and Time.compare(current, close) in [:lt, :eq]
+      else
+        # Cross-midnight: now >= open OR now <= close
+        Time.compare(current, open) in [:gt, :eq] or Time.compare(current, close) in [:lt, :eq]
+      end
+    else
+      _ -> true
+    end
+  end
+
+  defp parse_hhmm(str) do
+    Time.from_iso8601("#{str}:00")
   end
 end

@@ -23,6 +23,7 @@ defmodule SupervisedSlicesWeb.AdminLive.OrdersComponent do
     socket =
       socket
       |> assign(:id, assigns.id)
+      |> assign(:ticket_count, assigns.ticket_count)
       |> assign(:active_carts_count, assigns.active_carts_count)
       |> assign(:visitor_count, assigns.visitor_count)
       |> assign(:ash_scope, assigns.ash_scope)
@@ -62,7 +63,7 @@ defmodule SupervisedSlicesWeb.AdminLive.OrdersComponent do
             Active Tickets
           </span>
           <span class="font-headline text-4xl font-black text-on-surface" id="active-tickets-count">
-            &mdash;
+            {@ticket_count}
           </span>
         </div>
         <div class="bg-secondary-container/30 rounded-xl p-8 flex flex-col justify-center">

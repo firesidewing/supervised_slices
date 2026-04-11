@@ -7,7 +7,8 @@ defmodule SupervisedSlicesWeb.AdminLive.MenuEditorComponent do
     MenuItemSize,
     MenuItemModifierGroup,
     MenuItemModifier,
-    MenuItemModifierGroupLink
+    MenuItemModifierGroupLink,
+    MenuImageUploader
   }
 
   def mount(socket) do
@@ -18,7 +19,12 @@ defmodule SupervisedSlicesWeb.AdminLive.MenuEditorComponent do
      |> assign(:creating_category, false)
      |> assign(:adding_size_to_item_id, nil)
      |> assign(:creating_modifier_group, false)
-     |> assign(:adding_modifier_to_group_id, nil)}
+     |> assign(:adding_modifier_to_group_id, nil)
+     |> allow_upload(:item_image,
+       accept: ~w(.jpg .jpeg .png .webp .gif),
+       max_entries: 1,
+       max_file_size: 8_000_000
+     )}
   end
 
   def update(%{ash_scope: scope} = assigns, socket) do
@@ -57,11 +63,17 @@ defmodule SupervisedSlicesWeb.AdminLive.MenuEditorComponent do
   def handle_event("save_item", %{"item" => params}, socket) do
     %{ash_scope: scope} = socket.assigns
 
+    uploaded_url =
+      consume_uploaded_entries(socket, :item_image, fn %{path: path}, entry ->
+        {:ok, MenuImageUploader.upload(scope.current_tenant, path, entry.client_type)}
+      end)
+      |> List.first()
+
     attrs = %{
       name: params["name"],
       description: params["description"],
       price: parse_money(params["price"]),
-      image_url: params["image_url"],
+      image_url: uploaded_url || params["image_url"],
       sort_order: String.to_integer(params["sort_order"] || "0")
     }
 
@@ -83,13 +95,19 @@ defmodule SupervisedSlicesWeb.AdminLive.MenuEditorComponent do
   def handle_event("create_item", %{"item" => params}, socket) do
     %{ash_scope: scope} = socket.assigns
 
+    uploaded_url =
+      consume_uploaded_entries(socket, :item_image, fn %{path: path}, entry ->
+        {:ok, MenuImageUploader.upload(scope.current_tenant, path, entry.client_type)}
+      end)
+      |> List.first()
+
     item =
       MenuItem.create!(
         %{
           name: params["name"],
           description: params["description"],
           price: parse_money(params["price"]),
-          image_url: params["image_url"],
+          image_url: uploaded_url || params["image_url"],
           sort_order: String.to_integer(params["sort_order"] || "0"),
           category_id: params["category_id"]
         },
@@ -653,14 +671,31 @@ defmodule SupervisedSlicesWeb.AdminLive.MenuEditorComponent do
                           class="w-full bg-surface-container-low border-0 rounded-lg px-4 py-2.5 text-sm focus:ring-2 focus:ring-primary outline-none resize-none"
                         >{item.description}</textarea>
                       </div>
-                      <div>
-                        <label class="block text-xs font-bold text-on-surface-variant uppercase tracking-wider mb-1">
-                          Image URL
+                      <div class="md:col-span-2 space-y-2">
+                        <label class="block text-xs font-bold text-on-surface-variant uppercase tracking-wider">
+                          Image
                         </label>
+                        <%= if item.image_url do %>
+                          <img
+                            src={item.image_url}
+                            alt={item.name}
+                            class="h-16 w-16 rounded-lg object-cover"
+                          />
+                        <% end %>
+                        <div class="flex gap-2 items-center">
+                          <.live_file_input
+                            upload={@uploads.item_image}
+                            class="text-sm text-on-surface-variant file:mr-3 file:py-1.5 file:px-3 file:rounded-lg file:border-0 file:bg-surface-container file:text-xs file:font-bold file:uppercase file:tracking-wider file:cursor-pointer"
+                          />
+                        </div>
+                        <p class="text-[10px] text-on-surface-variant">
+                          Or paste a URL below (upload takes priority)
+                        </p>
                         <input
                           type="text"
                           name="item[image_url]"
                           value={item.image_url || ""}
+                          placeholder="https://…"
                           class="w-full bg-surface-container-low border-0 rounded-lg px-4 py-2.5 text-sm focus:ring-2 focus:ring-primary outline-none"
                         />
                       </div>
@@ -978,10 +1013,17 @@ defmodule SupervisedSlicesWeb.AdminLive.MenuEditorComponent do
                       class="w-full bg-surface-container-low border-0 rounded-lg px-4 py-2.5 text-sm focus:ring-2 focus:ring-primary outline-none resize-none"
                     ></textarea>
                   </div>
-                  <div class="md:col-span-2">
-                    <label class="block text-xs font-bold text-on-surface-variant uppercase tracking-wider mb-1">
-                      Image URL
+                  <div class="md:col-span-2 space-y-2">
+                    <label class="block text-xs font-bold text-on-surface-variant uppercase tracking-wider">
+                      Image
                     </label>
+                    <.live_file_input
+                      upload={@uploads.item_image}
+                      class="text-sm text-on-surface-variant file:mr-3 file:py-1.5 file:px-3 file:rounded-lg file:border-0 file:bg-surface-container file:text-xs file:font-bold file:uppercase file:tracking-wider file:cursor-pointer"
+                    />
+                    <p class="text-[10px] text-on-surface-variant">
+                      Or paste a URL below (upload takes priority)
+                    </p>
                     <input
                       type="text"
                       name="item[image_url]"

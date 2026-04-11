@@ -17,6 +17,102 @@ defmodule SupervisedSlices.Orders.OrderTest do
     %{org: create_org()}
   end
 
+  describe "place_order — delivery validation" do
+    test "requires street for delivery orders", %{org: org} do
+      result =
+        Order.place_order(
+          %{
+            customer_name: "Alice",
+            customer_email: "alice@example.com",
+            total_price: Money.new!(:CAD, "20.00"),
+            tax_amount: Money.new!(:CAD, "1.00"),
+            delivery_type: :delivery,
+            delivery_address: %{"street" => "", "city" => "Toronto", "zip" => "M5V"}
+          },
+          tenant: org.id,
+          authorize?: false
+        )
+
+      assert {:error, %Ash.Error.Invalid{errors: [error | _]}} = result
+      assert error.field == :delivery_address
+    end
+
+    test "requires city for delivery orders", %{org: org} do
+      result =
+        Order.place_order(
+          %{
+            customer_name: "Alice",
+            customer_email: "alice@example.com",
+            total_price: Money.new!(:CAD, "20.00"),
+            tax_amount: Money.new!(:CAD, "1.00"),
+            delivery_type: :delivery,
+            delivery_address: %{"street" => "123 Main St", "city" => "", "zip" => "M5V"}
+          },
+          tenant: org.id,
+          authorize?: false
+        )
+
+      assert {:error, %Ash.Error.Invalid{errors: [error | _]}} = result
+      assert error.field == :delivery_address
+    end
+
+    test "requires zip for delivery orders", %{org: org} do
+      result =
+        Order.place_order(
+          %{
+            customer_name: "Alice",
+            customer_email: "alice@example.com",
+            total_price: Money.new!(:CAD, "20.00"),
+            tax_amount: Money.new!(:CAD, "1.00"),
+            delivery_type: :delivery,
+            delivery_address: %{"street" => "123 Main St", "city" => "Toronto", "zip" => ""}
+          },
+          tenant: org.id,
+          authorize?: false
+        )
+
+      assert {:error, %Ash.Error.Invalid{errors: [error | _]}} = result
+      assert error.field == :delivery_address
+    end
+
+    test "accepts delivery orders with complete address", %{org: org} do
+      result =
+        Order.place_order(
+          %{
+            customer_name: "Alice",
+            customer_email: "alice@example.com",
+            total_price: Money.new!(:CAD, "20.00"),
+            tax_amount: Money.new!(:CAD, "1.00"),
+            delivery_type: :delivery,
+            delivery_address: %{"street" => "123 Main St", "city" => "Toronto", "zip" => "M5V 1A1"}
+          },
+          tenant: org.id,
+          authorize?: false
+        )
+
+      assert {:ok, order} = result
+      assert order.delivery_type == :delivery
+    end
+
+    test "pickup orders do not require address fields", %{org: org} do
+      result =
+        Order.place_order(
+          %{
+            customer_name: "Alice",
+            customer_email: "alice@example.com",
+            total_price: Money.new!(:CAD, "20.00"),
+            tax_amount: Money.new!(:CAD, "1.00"),
+            delivery_type: :pickup
+          },
+          tenant: org.id,
+          authorize?: false
+        )
+
+      assert {:ok, order} = result
+      assert order.delivery_type == :pickup
+    end
+  end
+
   describe "place_order" do
     test "requires customer_email", %{org: org} do
       result =

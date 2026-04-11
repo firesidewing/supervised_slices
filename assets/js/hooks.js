@@ -137,6 +137,72 @@ export const OrderNotifications = {
 }
 
 /**
+ * KitchenAlert — plays an audible chime and flashes the page title whenever
+ * the server pushes a `new_order_alert` event (a new order has come in).
+ *
+ * Mount this hook on any persistent element in the kitchen dashboard layout.
+ */
+export const KitchenAlert = {
+  mounted() {
+    this.originalTitle = document.title
+    this.flashInterval = null
+
+    this.handleEvent("new_order_alert", () => {
+      this.playChime()
+      this.flashTitle()
+    })
+  },
+
+  destroyed() {
+    clearInterval(this.flashInterval)
+    document.title = this.originalTitle
+  },
+
+  playChime() {
+    try {
+      const ctx = new (window.AudioContext || window.webkitAudioContext)()
+      const notes = [523.25, 659.25, 783.99] // C5, E5, G5
+
+      notes.forEach((freq, i) => {
+        const osc = ctx.createOscillator()
+        const gain = ctx.createGain()
+
+        osc.connect(gain)
+        gain.connect(ctx.destination)
+
+        osc.type = "sine"
+        osc.frequency.value = freq
+
+        const startAt = ctx.currentTime + i * 0.15
+        gain.gain.setValueAtTime(0, startAt)
+        gain.gain.linearRampToValueAtTime(0.35, startAt + 0.02)
+        gain.gain.exponentialRampToValueAtTime(0.001, startAt + 0.4)
+
+        osc.start(startAt)
+        osc.stop(startAt + 0.4)
+      })
+    } catch (_e) {
+      // AudioContext unavailable — skip sound, visual flash still works
+    }
+  },
+
+  flashTitle() {
+    clearInterval(this.flashInterval)
+    document.title = "🔔 New Order!"
+
+    let count = 0
+    this.flashInterval = setInterval(() => {
+      count++
+      document.title = count % 2 === 0 ? "🔔 New Order!" : this.originalTitle
+      if (count >= 10) {
+        clearInterval(this.flashInterval)
+        document.title = this.originalTitle
+      }
+    }, 800)
+  }
+}
+
+/**
  * GeoFenceMap — interactive Leaflet map for setting delivery area.
  */
 export const GeoFenceMap = {

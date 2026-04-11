@@ -42,6 +42,20 @@
     </.link>
 
     <.link
+      navigate={~p"/kitchen/#{@org.slug}/history"}
+      class={[
+        "flex items-center gap-4 px-6 py-4 rounded-2xl font-medium transition-all duration-200 font-headline",
+        if(@live_action == :history,
+          do: "bg-white text-primary shadow-sm",
+          else: "text-on-surface-variant hover:bg-surface-container hover:translate-x-0.5"
+        )
+      ]}
+    >
+      <span class="material-symbols-outlined">history</span>
+      <span>Order History</span>
+    </.link>
+
+    <.link
       navigate={~p"/kitchen/#{@org.slug}/menu"}
       class={[
         "flex items-center gap-4 px-6 py-4 rounded-2xl font-medium transition-all duration-200 font-headline",
@@ -80,6 +94,8 @@
   </div>
 </aside>
 
+<div id="kitchen-alert" phx-hook="KitchenAlert" class="hidden"></div>
+
 <main class="ml-72 min-h-screen bg-background">
   <header class="bg-background/90 backdrop-blur-sm sticky top-0 z-30 flex justify-between items-center px-8 py-4">
     <div class="flex items-center gap-4">
@@ -87,6 +103,7 @@
         {case @live_action do
           :orders -> "Live Orders"
           :baskets -> "Basket Monitor"
+          :history -> "Order History"
           :menu -> "Menu Editor"
           :settings -> "Settings"
         end}
@@ -106,10 +123,19 @@
       module={SupervisedSlicesWeb.AdminLive.OrdersComponent}
       id="orders"
       orders={@orders_initial}
+      ticket_count={@ticket_count}
       active_carts_count={length(@active_carts)}
       visitor_count={@visitor_count}
       ash_scope={@ash_scope}
       org={@org}
+    />
+  <% end %>
+
+  <%= if @live_action == :history do %>
+    <.live_component
+      module={SupervisedSlicesWeb.AdminLive.HistoryComponent}
+      id="history"
+      ash_scope={@ash_scope}
     />
   <% end %>
 
