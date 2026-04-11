@@ -2,6 +2,17 @@ defmodule SupervisedSlicesWeb.AuthController do
   use SupervisedSlicesWeb, :controller
   use AshAuthentication.Phoenix.Controller
 
+  def success(conn, {:password, :register}, user, _token) do
+    org = get_admin_org(user)
+
+    conn
+    |> delete_session(:return_to)
+    |> store_in_session(user)
+    |> assign(:current_user, user)
+    |> put_flash(:info, "Welcome! Complete your subscription to activate your kitchen.")
+    |> redirect(to: ~p"/billing/setup/#{org.slug}")
+  end
+
   def success(conn, activity, user, _token) do
     return_to = get_session(conn, :return_to) || ~p"/"
 
@@ -19,6 +30,13 @@ defmodule SupervisedSlicesWeb.AuthController do
     |> assign(:current_user, user)
     |> put_flash(:info, message)
     |> redirect(to: return_to)
+  end
+
+  defp get_admin_org(user) do
+    SupervisedSlices.Orgs.Membership
+    |> Ash.Query.filter(user_id == ^user.id and role == :admin)
+    |> Ash.read_one!(authorize?: false, load: [:organization])
+    |> Map.get(:organization)
   end
 
   def failure(conn, activity, reason) do

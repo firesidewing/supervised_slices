@@ -73,6 +73,14 @@ config :supervised_slices,
   dev_routes: true,
   token_signing_secret: "Gsf4SvbAXyXiYLfZg381jgUcUinn/cgf"
 
+# Stripe keys — set these to your Stripe test-mode keys.
+# Get them from https://dashboard.stripe.com/test/apikeys
+config :stripity_stripe, api_key: System.get_env("STRIPE_SECRET_KEY", "sk_test_placeholder")
+
+config :supervised_slices, :stripe,
+  webhook_secret: System.get_env("STRIPE_WEBHOOK_SECRET", "whsec_placeholder"),
+  price_id: System.get_env("STRIPE_PRICE_ID", "price_placeholder")
+
 # Do not include metadata nor timestamps in development logs
 config :logger, :default_formatter, format: "[$level] $message\n"
 

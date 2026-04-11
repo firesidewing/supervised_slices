@@ -29,6 +29,8 @@ defmodule SupervisedSlices.Orgs.Organization do
   code_interface do
     define :update_settings, action: :update_settings
     define :update_branding, action: :update_branding
+    define :update_billing, action: :update_billing
+    define :by_stripe_customer, action: :by_stripe_customer, args: [:customer_id]
   end
 
   actions do
@@ -91,6 +93,16 @@ defmodule SupervisedSlices.Orgs.Organization do
       filter expr(slug == ^arg(:slug))
     end
 
+    update :update_billing do
+      accept [:stripe_customer_id, :stripe_subscription_id, :subscription_status]
+    end
+
+    read :by_stripe_customer do
+      argument :customer_id, :string, allow_nil?: false
+      get? true
+      filter expr(stripe_customer_id == ^arg(:customer_id))
+    end
+
     update :cleanup_stale_carts do
       accept []
       require_atomic? false
@@ -119,6 +131,10 @@ defmodule SupervisedSlices.Orgs.Organization do
     end
 
     bypass action(:update_branding) do
+      authorize_if always()
+    end
+
+    bypass action(:update_billing) do
       authorize_if always()
     end
 
@@ -212,6 +228,32 @@ defmodule SupervisedSlices.Orgs.Organization do
       allow_nil? true
       public? true
       constraints match: ~r/^#[0-9a-fA-F]{6}$/
+    end
+
+    attribute :stripe_customer_id, :string do
+      allow_nil? true
+      public? false
+    end
+
+    attribute :stripe_subscription_id, :string do
+      allow_nil? true
+      public? false
+    end
+
+    attribute :subscription_status, :atom do
+      default :none
+      constraints one_of: [
+                    :none,
+                    :active,
+                    :trialing,
+                    :past_due,
+                    :canceled,
+                    :unpaid,
+                    :incomplete,
+                    :incomplete_expired
+                  ]
+      allow_nil? false
+      public? true
     end
 
     create_timestamp :inserted_at
