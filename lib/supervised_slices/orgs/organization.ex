@@ -70,12 +70,15 @@ defmodule SupervisedSlices.Orgs.Organization do
         :delivery_enabled,
         :pickup_enabled,
         :delivery_fee,
-        :delivery_min_order
+        :delivery_min_order,
+        :timezone
       ]
 
       argument :delivery_geo_fence, :map
+      argument :operating_schedule, :map
 
       change set_attribute(:delivery_geo_fence, arg(:delivery_geo_fence))
+      change set_attribute(:operating_schedule, arg(:operating_schedule))
     end
 
     update :update_branding do
@@ -184,6 +187,16 @@ defmodule SupervisedSlices.Orgs.Organization do
       public? true
     end
 
+    attribute :operating_schedule, SupervisedSlices.Orgs.OperatingSchedule do
+      public? true
+    end
+
+    attribute :timezone, :string do
+      default "Etc/UTC"
+      allow_nil? true
+      public? true
+    end
+
     attribute :logo_url, :string do
       allow_nil? true
       public? true
@@ -211,5 +224,72 @@ defmodule SupervisedSlices.Orgs.Organization do
 
   identities do
     identity :unique_slug, [:slug]
+  end
+
+  # ---------------------------------------------------------------------------
+  # Business hours helpers
+  # ---------------------------------------------------------------------------
+
+  @doc """
+  Returns true if the organization is currently open based on its operating
+  schedule. If no schedule has been configured, returns true (always open).
+
+  The current time is shifted into the org's configured timezone before
+  comparing against the scheduled hours. Falls back to UTC if no timezone
+  is set or if the stored timezone string is unrecognized.
+  """
+  def open_now?(%__MODULE__{operating_schedule: nil}), do: true
+
+  def open_now?(%__MODULE__{operating_schedule: schedule, timezone: timezone}) do
+    tz = timezone || "Etc/UTC"
+
+    now_local =
+      case DateTime.shift_zone(DateTime.utc_now(), tz) do
+        {:ok, dt} -> dt
+        # Invalid timezone — fall back to UTC rather than crashing
+        {:error, _} -> DateTime.utc_now()
+      end
+
+    day = Date.day_of_week(DateTime.to_date(now_local))
+    current_time = DateTime.to_time(now_local)
+
+    {is_open_key, open_key, close_key} = day_schedule_keys(day)
+
+    is_open = Map.get(schedule, is_open_key)
+    open_str = Map.get(schedule, open_key)
+    close_str = Map.get(schedule, close_key)
+
+    is_open == true and time_in_range?(current_time, open_str, close_str)
+  end
+
+  # ISO weekday: 1=Monday … 7=Sunday
+  defp day_schedule_keys(1), do: {:mon_open, :mon_open_time, :mon_close_time}
+  defp day_schedule_keys(2), do: {:tue_open, :tue_open_time, :tue_close_time}
+  defp day_schedule_keys(3), do: {:wed_open, :wed_open_time, :wed_close_time}
+  defp day_schedule_keys(4), do: {:thu_open, :thu_open_time, :thu_close_time}
+  defp day_schedule_keys(5), do: {:fri_open, :fri_open_time, :fri_close_time}
+  defp day_schedule_keys(6), do: {:sat_open, :sat_open_time, :sat_close_time}
+  defp day_schedule_keys(7), do: {:sun_open, :sun_open_time, :sun_close_time}
+
+  defp time_in_range?(_current, nil, _), do: true
+  defp time_in_range?(_current, _, nil), do: true
+
+  defp time_in_range?(current, open_str, close_str) do
+    with {:ok, open} <- parse_hhmm(open_str),
+         {:ok, close} <- parse_hhmm(close_str) do
+      if Time.compare(close, open) == :gt do
+        # Normal range: open <= now <= close
+        Time.compare(current, open) in [:gt, :eq] and Time.compare(current, close) in [:lt, :eq]
+      else
+        # Cross-midnight: now >= open OR now <= close
+        Time.compare(current, open) in [:gt, :eq] or Time.compare(current, close) in [:lt, :eq]
+      end
+    else
+      _ -> true
+    end
+  end
+
+  defp parse_hhmm(str) do
+    Time.from_iso8601("#{str}:00")
   end
 end

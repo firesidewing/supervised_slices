@@ -28,6 +28,8 @@ defmodule SupervisedSlicesWeb.AdminLive.SettingsComponent do
        (org.delivery_geo_fence && to_string(org.delivery_geo_fence.radius_in_km)) || ""
      )
      |> assign(:search_address_input, "")
+     |> assign(:schedule, org.operating_schedule)
+     |> assign(:timezone, org.timezone || "Etc/UTC")
      |> assign(:save_status, nil)
      |> assign(:branding_status, nil)
      |> allow_upload(:logo,
@@ -87,6 +89,7 @@ defmodule SupervisedSlicesWeb.AdminLive.SettingsComponent do
     pickup_enabled = params["pickup_enabled"] == "true"
     raw_delivery_fee = params["delivery_fee"]
     raw_delivery_min = params["delivery_min_order"]
+    timezone = params["timezone"] || "Etc/UTC"
 
     geo_fence = %{
       center_lat: parse_float(params["geo_fence_lat"]),
@@ -94,6 +97,8 @@ defmodule SupervisedSlicesWeb.AdminLive.SettingsComponent do
       radius_in_km: parse_float(params["geo_fence_radius"]),
       type: :circle
     }
+
+    schedule = parse_schedule_params(params)
 
     with {:ok, rate} <- parse_tax_rate(raw_tax),
          {:ok, prep_time} <- parse_prep_time(raw_prep),
@@ -109,7 +114,9 @@ defmodule SupervisedSlicesWeb.AdminLive.SettingsComponent do
             pickup_enabled: pickup_enabled,
             delivery_fee: delivery_fee,
             delivery_min_order: delivery_min,
-            delivery_geo_fence: geo_fence
+            delivery_geo_fence: geo_fence,
+            operating_schedule: schedule,
+            timezone: timezone
           },
           authorize?: false
         )
@@ -125,6 +132,8 @@ defmodule SupervisedSlicesWeb.AdminLive.SettingsComponent do
        |> assign(:geo_fence_lat, to_string(geo_fence.center_lat))
        |> assign(:geo_fence_lng, to_string(geo_fence.center_lng))
        |> assign(:geo_fence_radius, to_string(geo_fence.radius_in_km))
+       |> assign(:schedule, updated_org.operating_schedule)
+       |> assign(:timezone, updated_org.timezone || "Etc/UTC")
        |> assign(:org, updated_org)
        |> assign(:save_status, :ok)}
     else
@@ -217,6 +226,27 @@ defmodule SupervisedSlicesWeb.AdminLive.SettingsComponent do
     end
   end
 
+  @days ~w(mon tue wed thu fri sat sun)
+
+  defp parse_schedule_params(params) do
+    @days
+    |> Enum.flat_map(fn day ->
+      is_open = params["#{day}_open"] == "true"
+      open_time = String.trim(params["#{day}_open_time"] || "11:00")
+      close_time = String.trim(params["#{day}_close_time"] || "22:00")
+
+      [
+        {:"#{day}_open", is_open},
+        {:"#{day}_open_time", open_time},
+        {:"#{day}_close_time", close_time}
+      ]
+    end)
+    |> Map.new()
+  end
+
+  defp schedule_day_value(nil, _key, default), do: default
+  defp schedule_day_value(schedule, key, default), do: Map.get(schedule, key) || default
+
   defp parse_float(nil), do: nil
   defp parse_float(""), do: nil
 
@@ -225,6 +255,49 @@ defmodule SupervisedSlicesWeb.AdminLive.SettingsComponent do
       {float, _} -> float
       _ -> nil
     end
+  end
+
+  defp timezone_options do
+    [
+      {"UTC", [{"UTC", "Etc/UTC"}]},
+      {"Canada", [
+        {"Newfoundland (UTC-3:30)", "America/St_Johns"},
+        {"Atlantic — Halifax (UTC-4)", "America/Halifax"},
+        {"Eastern — Toronto (UTC-5)", "America/Toronto"},
+        {"Central — Winnipeg (UTC-6)", "America/Winnipeg"},
+        {"Mountain — Edmonton (UTC-7)", "America/Edmonton"},
+        {"Pacific — Vancouver (UTC-8)", "America/Vancouver"}
+      ]},
+      {"United States", [
+        {"Eastern — New York (UTC-5)", "America/New_York"},
+        {"Central — Chicago (UTC-6)", "America/Chicago"},
+        {"Mountain — Denver (UTC-7)", "America/Denver"},
+        {"Arizona, no DST (UTC-7)", "America/Phoenix"},
+        {"Pacific — Los Angeles (UTC-8)", "America/Los_Angeles"},
+        {"Alaska (UTC-9)", "America/Anchorage"},
+        {"Hawaii (UTC-10)", "Pacific/Honolulu"}
+      ]},
+      {"Latin America", [
+        {"Mexico City (UTC-6)", "America/Mexico_City"},
+        {"São Paulo (UTC-3)", "America/Sao_Paulo"},
+        {"Buenos Aires (UTC-3)", "America/Argentina/Buenos_Aires"}
+      ]},
+      {"Europe", [
+        {"London (UTC+0)", "Europe/London"},
+        {"Paris / Berlin / Rome (UTC+1)", "Europe/Paris"},
+        {"Helsinki / Kiev (UTC+2)", "Europe/Helsinki"},
+        {"Moscow (UTC+3)", "Europe/Moscow"}
+      ]},
+      {"Asia / Pacific", [
+        {"Dubai (UTC+4)", "Asia/Dubai"},
+        {"India (UTC+5:30)", "Asia/Kolkata"},
+        {"Bangkok (UTC+7)", "Asia/Bangkok"},
+        {"Singapore / Shanghai (UTC+8)", "Asia/Singapore"},
+        {"Tokyo / Seoul (UTC+9)", "Asia/Tokyo"},
+        {"Sydney / Melbourne (UTC+10)", "Australia/Sydney"},
+        {"New Zealand (UTC+12)", "Pacific/Auckland"}
+      ]}
+    ]
   end
 
   def render(assigns) do
@@ -438,6 +511,87 @@ defmodule SupervisedSlicesWeb.AdminLive.SettingsComponent do
                   class="w-full px-4 py-2.5 rounded-xl bg-surface-container-low border-0 text-sm font-medium focus:ring-2 focus:ring-primary/40"
                 />
               </div>
+            </div>
+          </div>
+
+          <div class="pt-6 border-t border-surface-container/50 space-y-4">
+            <div>
+              <h3 class="font-headline text-base font-extrabold text-on-surface">
+                Operating Hours
+              </h3>
+              <p class="font-body text-xs text-on-surface-variant mt-0.5">
+                Times are in your configured timezone. Customers cannot place orders outside these hours.
+                Leave all days enabled and set wide hours to accept orders 24/7.
+              </p>
+            </div>
+
+            <div>
+              <label class="font-body block text-xs font-bold uppercase tracking-widest text-on-surface-variant mb-1.5">
+                Timezone
+              </label>
+              <select
+                name="timezone"
+                class="w-full px-4 py-3 rounded-xl bg-surface-container-low border-0 text-on-surface text-sm font-medium focus:outline-none focus:ring-2 focus:ring-primary/40"
+              >
+                <%= for {group, zones} <- timezone_options() do %>
+                  <optgroup label={group}>
+                    <%= for {label, value} <- zones do %>
+                      <option value={value} selected={@timezone == value}>{label}</option>
+                    <% end %>
+                  </optgroup>
+                <% end %>
+              </select>
+            </div>
+
+            <% days = [
+              {"mon", "Monday"},
+              {"tue", "Tuesday"},
+              {"wed", "Wednesday"},
+              {"thu", "Thursday"},
+              {"fri", "Friday"},
+              {"sat", "Saturday"},
+              {"sun", "Sunday"}
+            ] %>
+
+            <div class="space-y-2">
+              <%= for {key, label} <- days do %>
+                <% is_open = schedule_day_value(@schedule, :"#{key}_open", key not in ["sun"]) %>
+                <% open_time = schedule_day_value(@schedule, :"#{key}_open_time", if(key in ["fri", "sat"], do: "11:00", else: "11:00")) %>
+                <% close_time = schedule_day_value(@schedule, :"#{key}_close_time", if(key in ["fri", "sat"], do: "23:00", else: "22:00")) %>
+
+                <div class="flex items-center gap-3 py-2">
+                  <span class="font-body text-xs font-bold text-on-surface-variant w-20 uppercase tracking-widest">
+                    {label}
+                  </span>
+
+                  <%!-- Hidden false value so unchecked = "false" in params --%>
+                  <input type="hidden" name={"#{key}_open"} value="false" />
+                  <label class="flex items-center gap-2 cursor-pointer">
+                    <input
+                      type="checkbox"
+                      name={"#{key}_open"}
+                      value="true"
+                      checked={is_open}
+                      class="rounded accent-primary w-4 h-4"
+                    />
+                    <span class="font-body text-xs text-on-surface">Open</span>
+                  </label>
+
+                  <input
+                    type="time"
+                    name={"#{key}_open_time"}
+                    value={open_time}
+                    class="rounded-lg bg-surface-container-low border-0 text-sm px-2 py-1.5 text-on-surface focus:ring-2 focus:ring-primary/30 outline-none w-28"
+                  />
+                  <span class="text-xs text-on-surface-variant">to</span>
+                  <input
+                    type="time"
+                    name={"#{key}_close_time"}
+                    value={close_time}
+                    class="rounded-lg bg-surface-container-low border-0 text-sm px-2 py-1.5 text-on-surface focus:ring-2 focus:ring-primary/30 outline-none w-28"
+                  />
+                </div>
+              <% end %>
             </div>
           </div>
 

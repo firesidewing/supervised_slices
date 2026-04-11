@@ -529,6 +529,7 @@ defmodule SupervisedSlicesWeb.CoreComponents do
   attr :checkout_step, :atom, required: true
   attr :tax_rate, :any, required: true
   attr :org, :any, required: true
+  attr :store_open, :boolean, default: true
 
   def basket_drawer(assigns) do
     ~H"""
@@ -690,15 +691,26 @@ defmodule SupervisedSlicesWeb.CoreComponents do
                 </div>
               </div>
 
-              <button
-                phx-click="start_checkout"
-                class="w-full bg-gradient-to-r from-primary to-primary-container text-on-primary font-black text-lg rounded-xl px-6 py-4 shadow-[0px_16px_32px_rgba(185,0,39,0.3)] hover:scale-[1.02] hover:shadow-[0px_20px_40px_rgba(185,0,39,0.4)] transition-all active:scale-95 phx-click-loading:opacity-80"
-              >
-                <span class="phx-click-loading:!hidden">PROCEED TO CHECKOUT</span>
-                <span class="hidden phx-click-loading:!flex items-center justify-center gap-3">
-                  PREPARING... <.icon name="hero-arrow-path" class="size-6 animate-spin" />
-                </span>
-              </button>
+              <%= if @store_open do %>
+                <button
+                  phx-click="start_checkout"
+                  class="w-full bg-gradient-to-r from-primary to-primary-container text-on-primary font-black text-lg rounded-xl px-6 py-4 shadow-[0px_16px_32px_rgba(185,0,39,0.3)] hover:scale-[1.02] hover:shadow-[0px_20px_40px_rgba(185,0,39,0.4)] transition-all active:scale-95 phx-click-loading:opacity-80"
+                >
+                  <span class="phx-click-loading:!hidden">PROCEED TO CHECKOUT</span>
+                  <span class="hidden phx-click-loading:!flex items-center justify-center gap-3">
+                    PREPARING... <.icon name="hero-arrow-path" class="size-6 animate-spin" />
+                  </span>
+                </button>
+              <% else %>
+                <div class="w-full rounded-xl px-6 py-4 bg-surface-container-low text-center">
+                  <p class="font-headline font-black text-on-surface-variant uppercase text-sm">
+                    We're currently closed
+                  </p>
+                  <p class="font-body text-xs text-on-surface-variant mt-1 opacity-70">
+                    Orders aren't being accepted right now
+                  </p>
+                </div>
+              <% end %>
             </div>
           <% end %>
         <% else %>

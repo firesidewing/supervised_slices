@@ -23,6 +23,7 @@ defmodule SupervisedSlices.Orders.Order do
     define :active, action: :active
     define :all, action: :all
     define :for_user, args: [:user_id]
+    define :completed_orders, action: :completed
   end
 
   actions do
@@ -60,6 +61,45 @@ defmodule SupervisedSlices.Orders.Order do
 
           _ ->
             changeset
+        end
+      end
+
+      change fn changeset, _context ->
+        delivery_type = Ash.Changeset.get_attribute(changeset, :delivery_type)
+
+        if delivery_type == :delivery do
+          address = Ash.Changeset.get_argument(changeset, :delivery_address) || %{}
+
+          blank = fn v -> is_nil(v) or String.trim(to_string(v)) == "" end
+
+          street = address["street"] || address[:street]
+          city = address["city"] || address[:city]
+          zip = address["zip"] || address[:zip]
+
+          cond do
+            blank.(street) ->
+              Ash.Changeset.add_error(changeset,
+                field: :delivery_address,
+                message: "street address is required for delivery orders"
+              )
+
+            blank.(city) ->
+              Ash.Changeset.add_error(changeset,
+                field: :delivery_address,
+                message: "city is required for delivery orders"
+              )
+
+            blank.(zip) ->
+              Ash.Changeset.add_error(changeset,
+                field: :delivery_address,
+                message: "postal code is required for delivery orders"
+              )
+
+            true ->
+              changeset
+          end
+        else
+          changeset
         end
       end
     end
@@ -118,6 +158,11 @@ defmodule SupervisedSlices.Orders.Order do
     end
 
     read :all do
+      prepare build(sort: [inserted_at: :desc], load: [:order_items])
+    end
+
+    read :completed do
+      filter expr(status in [:completed, :cancelled])
       prepare build(sort: [inserted_at: :desc], load: [:order_items])
     end
 

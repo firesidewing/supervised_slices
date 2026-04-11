@@ -7,6 +7,7 @@ defmodule SupervisedSlicesWeb.MenuLive do
   alias SupervisedSlices.Cart.{Cart, CartItem}
   alias SupervisedSlices.Menu.{Category, MenuItem}
   alias SupervisedSlices.Orders.{Order, OrderItem, Emails}
+  alias SupervisedSlices.Orgs.GeofenceChecker
   alias SupervisedSlices.OrgPresence
   alias SupervisedSlices.PubSubNotifier
 
@@ -40,6 +41,7 @@ defmodule SupervisedSlicesWeb.MenuLive do
      |> assign(:show_basket, false)
      |> assign(:checkout_step, :review)
      |> assign(:selected_item, nil)
+     |> assign(:store_open, SupervisedSlices.Orgs.Organization.open_now?(org))
      |> assign(:page_title, org.name)}
   end
 
@@ -100,6 +102,10 @@ defmodule SupervisedSlicesWeb.MenuLive do
     {:noreply, assign(socket, :checkout_step, :confirm)}
   end
 
+  def handle_event("place_order", _params, %{assigns: %{store_open: false}} = socket) do
+    {:noreply, put_flash(socket, :error, "We're currently closed. Please check back during business hours.")}
+  end
+
   def handle_event("place_order", params, socket) do
     %{ash_scope: scope, cart: cart, org: org} = socket.assigns
 
@@ -114,68 +120,76 @@ defmodule SupervisedSlicesWeb.MenuLive do
     {:ok, total_before_delivery} = Money.add(subtotal, tax_amount)
     {:ok, total_price} = Money.add(total_before_delivery, delivery_fee)
 
-    order =
-      Order.place_order!(
-        %{
-          customer_name: params["customer_name"],
-          customer_email: params["customer_email"],
-          notes: params["notes"],
-          total_price: total_price,
-          tax_amount: tax_amount,
-          delivery_type: cart.delivery_type,
-          delivery_fee: delivery_fee,
-          delivery_address: params["delivery_address"]
-        },
-        scope: scope
-      )
+    delivery_address = params["delivery_address"]
 
-    Enum.each(cart.cart_items, fn item ->
-      modifiers = order_find_modifiers(item)
-      price = order_item_price(item, modifiers)
-
-      modifiers_snapshot =
-        Enum.map(modifiers, fn mod ->
+    if cart.delivery_type == :delivery and
+         not GeofenceChecker.within_zone?(org, delivery_address || %{}) do
+      {:noreply,
+       put_flash(socket, :error, "Sorry, your address is outside our delivery area.")}
+    else
+      order =
+        Order.place_order!(
           %{
-            "name" => mod.name,
-            "price" => Money.to_string!(mod.price_delta || Money.new!(0, price.currency))
-          }
-        end)
+            customer_name: params["customer_name"],
+            customer_email: params["customer_email"],
+            notes: params["notes"],
+            total_price: total_price,
+            tax_amount: tax_amount,
+            delivery_type: cart.delivery_type,
+            delivery_fee: delivery_fee,
+            delivery_address: delivery_address
+          },
+          scope: scope
+        )
 
-      size_snapshot =
-        case item.selected_size do
-          %{name: name, price: p} -> %{"name" => name, "price" => Money.to_string!(p)}
-          _ -> nil
-        end
+      Enum.each(cart.cart_items, fn item ->
+        modifiers = order_find_modifiers(item)
+        price = order_item_price(item, modifiers)
 
-      OrderItem.create!(
-        %{
-          order_id: order.id,
-          menu_item_id: item.menu_item_id,
-          quantity: item.quantity,
-          item_name: item.menu_item.name,
-          price_at_time: price,
-          modifiers_snapshot: modifiers_snapshot,
-          size_snapshot: size_snapshot
-        },
-        scope: scope
-      )
-    end)
+        modifiers_snapshot =
+          Enum.map(modifiers, fn mod ->
+            %{
+              "name" => mod.name,
+              "price" => Money.to_string!(mod.price_delta || Money.new!(0, price.currency))
+            }
+          end)
 
-    Cart.checkout!(cart, scope: scope)
+        size_snapshot =
+          case item.selected_size do
+            %{name: name, price: p} -> %{"name" => name, "price" => Money.to_string!(p)}
+            _ -> nil
+          end
 
-    PubSubNotifier.broadcast_new_order(order)
-    Emails.send_order_confirmation(order)
+        OrderItem.create!(
+          %{
+            order_id: order.id,
+            menu_item_id: item.menu_item_id,
+            quantity: item.quantity,
+            item_name: item.menu_item.name,
+            price_at_time: price,
+            modifiers_snapshot: modifiers_snapshot,
+            size_snapshot: size_snapshot
+          },
+          scope: scope
+        )
+      end)
 
-    {:noreply,
-     socket
-     |> assign(
-       cart: nil,
-       cart_items_map: %{},
-       cart_count: 0,
-       show_basket: false,
-       checkout_step: :review
-     )
-     |> push_navigate(to: ~p"/orders/#{org.slug}/#{order.id}")}
+      Cart.checkout!(cart, scope: scope)
+
+      PubSubNotifier.broadcast_new_order(order)
+      Emails.send_order_confirmation(order)
+
+      {:noreply,
+       socket
+       |> assign(
+         cart: nil,
+         cart_items_map: %{},
+         cart_count: 0,
+         show_basket: false,
+         checkout_step: :review
+       )
+       |> push_navigate(to: ~p"/orders/#{org.slug}/#{order.id}")}
+    end
   end
 
   def handle_event("add_to_cart", %{"item_id" => item_id} = params, socket) do
@@ -480,6 +494,19 @@ defmodule SupervisedSlicesWeb.MenuLive do
       </div>
     </header>
 
+    <div
+      :if={!@store_open}
+      class="mt-16 mx-4 rounded-2xl bg-primary-container/30 border border-primary/20 px-6 py-4 flex items-center gap-4"
+    >
+      <span class="material-symbols-outlined text-primary text-3xl">storefront</span>
+      <div>
+        <p class="font-headline font-black text-on-surface">We're currently closed</p>
+        <p class="font-body text-sm text-on-surface-variant mt-0.5">
+          You can browse the menu, but orders aren't being accepted right now. Check back soon!
+        </p>
+      </div>
+    </div>
+
     <.live_component
       :if={@live_action == :index}
       module={SupervisedSlicesWeb.MenuLive.MenuComponent}
@@ -506,6 +533,7 @@ defmodule SupervisedSlicesWeb.MenuLive do
       checkout_step={@checkout_step}
       tax_rate={@org.tax_rate}
       org={@org}
+      store_open={@store_open}
     />
 
     <div class="fixed top-[15%] right-[-30px] opacity-[0.03] pointer-events-none transform rotate-[25deg] select-none hidden lg:block text-on-surface">
