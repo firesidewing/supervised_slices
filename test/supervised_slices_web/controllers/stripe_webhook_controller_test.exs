@@ -25,17 +25,19 @@ defmodule SupervisedSlicesWeb.StripeWebhookControllerTest do
         |> Ash.Changeset.for_update(:update_billing, %{stripe_customer_id: "cus_123"})
         |> Ash.update!(authorize?: false)
 
-      payload = %{
-        id: "evt_123",
-        type: "customer.subscription.updated",
-        data: %{
-          object: %{
-            id: "sub_456",
-            customer: "cus_123",
-            status: "active"
+      payload =
+        %{
+          id: "evt_123",
+          type: "customer.subscription.updated",
+          data: %{
+            object: %{
+              id: "sub_456",
+              customer: "cus_123",
+              status: "active"
+            }
           }
         }
-      } |> Jason.encode!()
+        |> Jason.encode!()
 
       sig = generate_signature(payload, @secret)
 
@@ -60,17 +62,19 @@ defmodule SupervisedSlicesWeb.StripeWebhookControllerTest do
         |> Ash.Changeset.for_update(:update_billing, %{stripe_customer_id: "cus_123"})
         |> Ash.update!(authorize?: false)
 
-      payload = %{
-        id: "evt_123",
-        type: "customer.subscription.created",
-        data: %{
-          object: %{
-            id: "sub_456",
-            customer: "cus_123",
-            status: "trialing"
+      payload =
+        %{
+          id: "evt_123",
+          type: "customer.subscription.created",
+          data: %{
+            object: %{
+              id: "sub_456",
+              customer: "cus_123",
+              status: "trialing"
+            }
           }
         }
-      } |> Jason.encode!()
+        |> Jason.encode!()
 
       sig = generate_signature(payload, @secret)
 
@@ -99,17 +103,19 @@ defmodule SupervisedSlicesWeb.StripeWebhookControllerTest do
         })
         |> Ash.update!(authorize?: false)
 
-      payload = %{
-        id: "evt_123",
-        type: "customer.subscription.deleted",
-        data: %{
-          object: %{
-            id: "sub_456",
-            customer: "cus_123",
-            status: "canceled"
+      payload =
+        %{
+          id: "evt_123",
+          type: "customer.subscription.deleted",
+          data: %{
+            object: %{
+              id: "sub_456",
+              customer: "cus_123",
+              status: "canceled"
+            }
           }
         }
-      } |> Jason.encode!()
+        |> Jason.encode!()
 
       sig = generate_signature(payload, @secret)
 
@@ -139,11 +145,13 @@ defmodule SupervisedSlicesWeb.StripeWebhookControllerTest do
     end
 
     test "returns 200 ok for unhandled events", %{conn: conn} do
-      payload = %{
-        id: "evt_unknown",
-        type: "invoice.created",
-        data: %{object: %{}}
-      } |> Jason.encode!()
+      payload =
+        %{
+          id: "evt_unknown",
+          type: "invoice.created",
+          data: %{object: %{}}
+        }
+        |> Jason.encode!()
 
       sig = generate_signature(payload, @secret)
 
@@ -157,17 +165,19 @@ defmodule SupervisedSlicesWeb.StripeWebhookControllerTest do
     end
 
     test "returns 200 ok if organization not found", %{conn: conn} do
-      payload = %{
-        id: "evt_123",
-        type: "customer.subscription.updated",
-        data: %{
-          object: %{
-            id: "sub_456",
-            customer: "cus_nonexistent",
-            status: "active"
+      payload =
+        %{
+          id: "evt_123",
+          type: "customer.subscription.updated",
+          data: %{
+            object: %{
+              id: "sub_456",
+              customer: "cus_nonexistent",
+              status: "active"
+            }
           }
         }
-      } |> Jason.encode!()
+        |> Jason.encode!()
 
       sig = generate_signature(payload, @secret)
 

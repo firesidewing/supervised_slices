@@ -260,43 +260,48 @@ defmodule SupervisedSlicesWeb.AdminLive.SettingsComponent do
   defp timezone_options do
     [
       {"UTC", [{"UTC", "Etc/UTC"}]},
-      {"Canada", [
-        {"Newfoundland (UTC-3:30)", "America/St_Johns"},
-        {"Atlantic — Halifax (UTC-4)", "America/Halifax"},
-        {"Eastern — Toronto (UTC-5)", "America/Toronto"},
-        {"Central — Winnipeg (UTC-6)", "America/Winnipeg"},
-        {"Mountain — Edmonton (UTC-7)", "America/Edmonton"},
-        {"Pacific — Vancouver (UTC-8)", "America/Vancouver"}
-      ]},
-      {"United States", [
-        {"Eastern — New York (UTC-5)", "America/New_York"},
-        {"Central — Chicago (UTC-6)", "America/Chicago"},
-        {"Mountain — Denver (UTC-7)", "America/Denver"},
-        {"Arizona, no DST (UTC-7)", "America/Phoenix"},
-        {"Pacific — Los Angeles (UTC-8)", "America/Los_Angeles"},
-        {"Alaska (UTC-9)", "America/Anchorage"},
-        {"Hawaii (UTC-10)", "Pacific/Honolulu"}
-      ]},
-      {"Latin America", [
-        {"Mexico City (UTC-6)", "America/Mexico_City"},
-        {"São Paulo (UTC-3)", "America/Sao_Paulo"},
-        {"Buenos Aires (UTC-3)", "America/Argentina/Buenos_Aires"}
-      ]},
-      {"Europe", [
-        {"London (UTC+0)", "Europe/London"},
-        {"Paris / Berlin / Rome (UTC+1)", "Europe/Paris"},
-        {"Helsinki / Kiev (UTC+2)", "Europe/Helsinki"},
-        {"Moscow (UTC+3)", "Europe/Moscow"}
-      ]},
-      {"Asia / Pacific", [
-        {"Dubai (UTC+4)", "Asia/Dubai"},
-        {"India (UTC+5:30)", "Asia/Kolkata"},
-        {"Bangkok (UTC+7)", "Asia/Bangkok"},
-        {"Singapore / Shanghai (UTC+8)", "Asia/Singapore"},
-        {"Tokyo / Seoul (UTC+9)", "Asia/Tokyo"},
-        {"Sydney / Melbourne (UTC+10)", "Australia/Sydney"},
-        {"New Zealand (UTC+12)", "Pacific/Auckland"}
-      ]}
+      {"Canada",
+       [
+         {"Newfoundland (UTC-3:30)", "America/St_Johns"},
+         {"Atlantic — Halifax (UTC-4)", "America/Halifax"},
+         {"Eastern — Toronto (UTC-5)", "America/Toronto"},
+         {"Central — Winnipeg (UTC-6)", "America/Winnipeg"},
+         {"Mountain — Edmonton (UTC-7)", "America/Edmonton"},
+         {"Pacific — Vancouver (UTC-8)", "America/Vancouver"}
+       ]},
+      {"United States",
+       [
+         {"Eastern — New York (UTC-5)", "America/New_York"},
+         {"Central — Chicago (UTC-6)", "America/Chicago"},
+         {"Mountain — Denver (UTC-7)", "America/Denver"},
+         {"Arizona, no DST (UTC-7)", "America/Phoenix"},
+         {"Pacific — Los Angeles (UTC-8)", "America/Los_Angeles"},
+         {"Alaska (UTC-9)", "America/Anchorage"},
+         {"Hawaii (UTC-10)", "Pacific/Honolulu"}
+       ]},
+      {"Latin America",
+       [
+         {"Mexico City (UTC-6)", "America/Mexico_City"},
+         {"São Paulo (UTC-3)", "America/Sao_Paulo"},
+         {"Buenos Aires (UTC-3)", "America/Argentina/Buenos_Aires"}
+       ]},
+      {"Europe",
+       [
+         {"London (UTC+0)", "Europe/London"},
+         {"Paris / Berlin / Rome (UTC+1)", "Europe/Paris"},
+         {"Helsinki / Kiev (UTC+2)", "Europe/Helsinki"},
+         {"Moscow (UTC+3)", "Europe/Moscow"}
+       ]},
+      {"Asia / Pacific",
+       [
+         {"Dubai (UTC+4)", "Asia/Dubai"},
+         {"India (UTC+5:30)", "Asia/Kolkata"},
+         {"Bangkok (UTC+7)", "Asia/Bangkok"},
+         {"Singapore / Shanghai (UTC+8)", "Asia/Singapore"},
+         {"Tokyo / Seoul (UTC+9)", "Asia/Tokyo"},
+         {"Sydney / Melbourne (UTC+10)", "Australia/Sydney"},
+         {"New Zealand (UTC+12)", "Pacific/Auckland"}
+       ]}
     ]
   end
 
@@ -556,8 +561,18 @@ defmodule SupervisedSlicesWeb.AdminLive.SettingsComponent do
             <div class="space-y-2">
               <%= for {key, label} <- days do %>
                 <% is_open = schedule_day_value(@schedule, :"#{key}_open", key not in ["sun"]) %>
-                <% open_time = schedule_day_value(@schedule, :"#{key}_open_time", if(key in ["fri", "sat"], do: "11:00", else: "11:00")) %>
-                <% close_time = schedule_day_value(@schedule, :"#{key}_close_time", if(key in ["fri", "sat"], do: "23:00", else: "22:00")) %>
+                <% open_time =
+                  schedule_day_value(
+                    @schedule,
+                    :"#{key}_open_time",
+                    if(key in ["fri", "sat"], do: "11:00", else: "11:00")
+                  ) %>
+                <% close_time =
+                  schedule_day_value(
+                    @schedule,
+                    :"#{key}_close_time",
+                    if(key in ["fri", "sat"], do: "23:00", else: "22:00")
+                  ) %>
 
                 <div class="flex items-center gap-3 py-2">
                   <span class="font-body text-xs font-bold text-on-surface-variant w-20 uppercase tracking-widest">

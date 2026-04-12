@@ -51,7 +51,9 @@ defmodule SupervisedSlicesWeb.AdminLive do
     if order.status in [:completed, :cancelled] do
       send_update(OrdersComponent, id: "orders", action: {:delete, order})
       updated = Enum.reject(socket.assigns.orders_initial, &(&1.id == order.id))
-      {:noreply, socket |> assign(:orders_initial, updated) |> assign(:ticket_count, length(updated))}
+
+      {:noreply,
+       socket |> assign(:orders_initial, updated) |> assign(:ticket_count, length(updated))}
     else
       loaded = reload_order(order, socket.assigns.ash_scope)
       send_update(OrdersComponent, id: "orders", action: {:update, loaded})

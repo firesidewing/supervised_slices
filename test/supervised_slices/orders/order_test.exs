@@ -84,7 +84,11 @@ defmodule SupervisedSlices.Orders.OrderTest do
             total_price: Money.new!(:CAD, "20.00"),
             tax_amount: Money.new!(:CAD, "1.00"),
             delivery_type: :delivery,
-            delivery_address: %{"street" => "123 Main St", "city" => "Toronto", "zip" => "M5V 1A1"}
+            delivery_address: %{
+              "street" => "123 Main St",
+              "city" => "Toronto",
+              "zip" => "M5V 1A1"
+            }
           },
           tenant: org.id,
           authorize?: false

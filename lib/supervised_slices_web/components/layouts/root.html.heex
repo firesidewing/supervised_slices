@@ -3,16 +3,20 @@
   <head>
     {Application.get_env(:live_debugger, :live_debugger_tags)}
 
+    <meta name="description" content="The Digital Hearth is the premium operating system for artisan pizzerias. UX-first ordering, integrated KDS, and real-time analytics designed for the perfect slice." />
+    <meta property="og:title" content="The Digital Hearth | Artisan Pizzeria Operating System" />
+    <meta property="og:description" content="Transform your pizzeria with a UX-first ordering experience and an integrated kitchen display system." />
+    <meta property="og:type" content="website" />
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <meta name="csrf-token" content={get_csrf_token()} />
-    <.live_title default="SupervisedSlices" suffix=" · SupervisedSlices">
+    <.live_title default="The Digital Hearth | The Artisan OS for Modern Pizzerias" suffix=" · The Digital Hearth">
       {assigns[:page_title]}
     </.live_title>
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link
-      href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@700;800&family=Geist:wght@400;500;600;700&display=swap"
+      href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@700;800&family=Be+Vietnam+Pro:wght@400;500;600&family=Geist:wght@400;500;600;700&display=swap"
       rel="stylesheet"
     />
     <link

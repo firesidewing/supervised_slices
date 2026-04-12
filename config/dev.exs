@@ -81,6 +81,10 @@ config :supervised_slices, :stripe,
   webhook_secret: System.get_env("STRIPE_WEBHOOK_SECRET", "whsec_placeholder"),
   price_id: System.get_env("STRIPE_PRICE_ID", "price_placeholder")
 
+config :supervised_slices,
+       :tigris_bucket,
+       System.get_env("TIGRIS_BUCKET", "supervised-slices-dev")
+
 # Do not include metadata nor timestamps in development logs
 config :logger, :default_formatter, format: "[$level] $message\n"
 

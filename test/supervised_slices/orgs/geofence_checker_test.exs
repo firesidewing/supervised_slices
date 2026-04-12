@@ -48,7 +48,9 @@ defmodule SupervisedSlices.Orgs.GeofenceCheckerTest do
     end
 
     test "returns true when fence radius is nil" do
-      org = org_with_fence(%{center_lat: @toronto_lat, center_lng: @toronto_lng, radius_in_km: nil})
+      org =
+        org_with_fence(%{center_lat: @toronto_lat, center_lng: @toronto_lng, radius_in_km: nil})
+
       assert GeofenceChecker.within_zone?(org, %{"street" => "1 Main St"})
     end
 
@@ -70,7 +72,12 @@ defmodule SupervisedSlices.Orgs.GeofenceCheckerTest do
     test "returns true when Nominatim returns an empty result list" do
       stub_nominatim(nominatim_empty())
       org = org_with_fence(%{center_lat: @toronto_lat, center_lng: @toronto_lng, radius_in_km: 5})
-      assert GeofenceChecker.within_zone?(org, %{"street" => "1 Main St", "city" => "Toronto", "zip" => "M5V"})
+
+      assert GeofenceChecker.within_zone?(org, %{
+               "street" => "1 Main St",
+               "city" => "Toronto",
+               "zip" => "M5V"
+             })
     end
 
     test "returns true when Nominatim returns a non-200 status" do
@@ -90,11 +97,18 @@ defmodule SupervisedSlices.Orgs.GeofenceCheckerTest do
   describe "within_zone?/2 — address inside zone" do
     test "returns true when geocoded point is well within the radius" do
       # Point 1 km north of Toronto centre — well inside a 10 km fence.
-      nearby_lat = @toronto_lat + 0.009  # ~1 km north
+      # ~1 km north
+      nearby_lat = @toronto_lat + 0.009
       stub_nominatim(nominatim_hit(nearby_lat, @toronto_lng))
 
-      org = org_with_fence(%{center_lat: @toronto_lat, center_lng: @toronto_lng, radius_in_km: 10})
-      assert GeofenceChecker.within_zone?(org, %{"street" => "1 Main St", "city" => "Toronto", "zip" => "M5V"})
+      org =
+        org_with_fence(%{center_lat: @toronto_lat, center_lng: @toronto_lng, radius_in_km: 10})
+
+      assert GeofenceChecker.within_zone?(org, %{
+               "street" => "1 Main St",
+               "city" => "Toronto",
+               "zip" => "M5V"
+             })
     end
 
     test "returns true when geocoded point is exactly at the center" do
@@ -112,13 +126,20 @@ defmodule SupervisedSlices.Orgs.GeofenceCheckerTest do
       mississauga_lng = -79.6441
       stub_nominatim(nominatim_hit(mississauga_lat, mississauga_lng))
 
-      org = org_with_fence(%{center_lat: @toronto_lat, center_lng: @toronto_lng, radius_in_km: 10})
-      refute GeofenceChecker.within_zone?(org, %{"street" => "100 City Centre Dr", "city" => "Mississauga", "zip" => "L5B"})
+      org =
+        org_with_fence(%{center_lat: @toronto_lat, center_lng: @toronto_lng, radius_in_km: 10})
+
+      refute GeofenceChecker.within_zone?(org, %{
+               "street" => "100 City Centre Dr",
+               "city" => "Mississauga",
+               "zip" => "L5B"
+             })
     end
 
     test "returns false when geocoded point is just beyond a tight radius" do
       # Point ~3 km north — outside a 2 km fence.
-      far_lat = @toronto_lat + 0.027  # ~3 km north
+      # ~3 km north
+      far_lat = @toronto_lat + 0.027
       stub_nominatim(nominatim_hit(far_lat, @toronto_lng))
 
       org = org_with_fence(%{center_lat: @toronto_lat, center_lng: @toronto_lng, radius_in_km: 2})
@@ -135,6 +156,7 @@ defmodule SupervisedSlices.Orgs.GeofenceCheckerTest do
       stub_nominatim(nominatim_hit(@toronto_lat, @toronto_lng))
 
       org = org_with_fence(%{center_lat: @toronto_lat, center_lng: @toronto_lng, radius_in_km: 5})
+
       assert GeofenceChecker.within_zone?(org, %{street: "1 Main St", city: "Toronto", zip: "M5V"})
     end
   end

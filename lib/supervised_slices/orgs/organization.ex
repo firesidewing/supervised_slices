@@ -242,6 +242,7 @@ defmodule SupervisedSlices.Orgs.Organization do
 
     attribute :subscription_status, :atom do
       default :none
+
       constraints one_of: [
                     :none,
                     :active,
@@ -252,6 +253,7 @@ defmodule SupervisedSlices.Orgs.Organization do
                     :incomplete,
                     :incomplete_expired
                   ]
+
       allow_nil? false
       public? true
     end

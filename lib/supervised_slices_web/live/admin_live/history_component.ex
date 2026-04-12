@@ -69,7 +69,9 @@ defmodule SupervisedSlicesWeb.AdminLive.HistoryComponent do
       <div class="flex flex-col sm:flex-row sm:items-center gap-4 justify-between">
         <div>
           <h2 class="font-headline text-xl font-bold text-on-surface">Order History</h2>
-          <p class="font-body text-sm text-on-surface-variant mt-0.5">Completed and cancelled orders</p>
+          <p class="font-body text-sm text-on-surface-variant mt-0.5">
+            Completed and cancelled orders
+          </p>
         </div>
 
         <form phx-change="set_history_date" phx-target={@myself} class="flex items-center gap-2">
@@ -131,8 +133,12 @@ defmodule SupervisedSlicesWeb.AdminLive.HistoryComponent do
               </div>
 
               <div class="min-w-0">
-                <p class="font-body text-sm font-bold text-on-surface truncate">{order.customer_name}</p>
-                <p class="font-body text-[11px] text-on-surface-variant truncate">{order.customer_email}</p>
+                <p class="font-body text-sm font-bold text-on-surface truncate">
+                  {order.customer_name}
+                </p>
+                <p class="font-body text-[11px] text-on-surface-variant truncate">
+                  {order.customer_email}
+                </p>
               </div>
 
               <div class="font-body text-xs text-on-surface-variant truncate">

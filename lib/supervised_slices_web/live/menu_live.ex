@@ -103,7 +103,8 @@ defmodule SupervisedSlicesWeb.MenuLive do
   end
 
   def handle_event("place_order", _params, %{assigns: %{store_open: false}} = socket) do
-    {:noreply, put_flash(socket, :error, "We're currently closed. Please check back during business hours.")}
+    {:noreply,
+     put_flash(socket, :error, "We're currently closed. Please check back during business hours.")}
   end
 
   def handle_event("place_order", params, socket) do
@@ -124,8 +125,7 @@ defmodule SupervisedSlicesWeb.MenuLive do
 
     if cart.delivery_type == :delivery and
          not GeofenceChecker.within_zone?(org, delivery_address || %{}) do
-      {:noreply,
-       put_flash(socket, :error, "Sorry, your address is outside our delivery area.")}
+      {:noreply, put_flash(socket, :error, "Sorry, your address is outside our delivery area.")}
     else
       order =
         Order.place_order!(
