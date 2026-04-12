@@ -7,9 +7,28 @@ defmodule SupervisedSlicesWeb.Plugs.RawBodyReader do
   """
 
   def read_body(conn, opts) do
-    {:ok, body, conn} = Plug.Conn.read_body(conn, opts)
-    existing = Map.get(conn.private, :raw_body, [])
-    conn = Plug.Conn.put_private(conn, :raw_body, [body | existing])
-    {:ok, body, conn}
+    case Plug.Conn.read_body(conn, opts) do
+      {:ok, body, conn} ->
+        if should_cache?(conn) do
+          existing = Map.get(conn.private, :raw_body, [])
+          conn = Plug.Conn.put_private(conn, :raw_body, [body | existing])
+          {:ok, body, conn}
+        else
+          {:ok, body, conn}
+        end
+
+      {:more, body, conn} ->
+        if should_cache?(conn) do
+          existing = Map.get(conn.private, :raw_body, [])
+          conn = Plug.Conn.put_private(conn, :raw_body, [body | existing])
+          {:more, body, conn}
+        else
+          {:more, body, conn}
+        end
+    end
+  end
+
+  defp should_cache?(conn) do
+    match?(["webhooks", "stripe"], conn.path_info)
   end
 end
