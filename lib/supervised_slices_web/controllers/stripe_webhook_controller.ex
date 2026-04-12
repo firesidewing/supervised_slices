@@ -1,5 +1,6 @@
 defmodule SupervisedSlicesWeb.StripeWebhookController do
   use SupervisedSlicesWeb, :controller
+  require Logger
 
   alias SupervisedSlices.Billing
   alias SupervisedSlices.Orgs.Organization
@@ -16,9 +17,18 @@ defmodule SupervisedSlicesWeb.StripeWebhookController do
     secret = Application.get_env(:supervised_slices, :stripe)[:webhook_secret]
 
     case Stripe.Webhook.construct_event(raw_body, sig, secret) do
-      {:ok, %Stripe.Event{type: type} = event} when type in @handled_events ->
-        handle_subscription_event(event)
-        send_resp(conn, 200, "ok")
+      {:ok, %{type: type} = event} when type in @handled_events ->
+        case handle_subscription_event(event) do
+          :ok ->
+            send_resp(conn, 200, "ok")
+
+          {:error, reason} ->
+            Logger.error("Stripe webhook processing error: #{inspect(reason)}")
+
+            conn
+            |> put_status(500)
+            |> json(%{error: "Internal Server Error"})
+        end
 
       {:ok, _event} ->
         send_resp(conn, 200, "ok")
@@ -30,7 +40,7 @@ defmodule SupervisedSlicesWeb.StripeWebhookController do
     end
   end
 
-  defp handle_subscription_event(%Stripe.Event{data: %{object: subscription}}) do
+  defp handle_subscription_event(%{data: %{object: subscription}}) do
     customer_id = subscription.customer
     subscription_id = subscription.id
     status = Billing.parse_subscription_status(subscription.status)
@@ -45,10 +55,17 @@ defmodule SupervisedSlicesWeb.StripeWebhookController do
           stripe_subscription_id: subscription_id,
           subscription_status: status
         })
-        |> Ash.update!(authorize?: false)
+        |> Ash.update(authorize?: false)
+        |> case do
+          {:ok, _} -> :ok
+          {:error, reason} -> {:error, reason}
+        end
 
-      {:error, _} ->
+      {:error, %Ash.Error.Invalid{errors: [%Ash.Error.Query.NotFound{}]}} ->
         :ok
+
+      {:error, reason} ->
+        {:error, reason}
     end
   end
 end

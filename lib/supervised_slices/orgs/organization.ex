@@ -264,6 +264,10 @@ defmodule SupervisedSlices.Orgs.Organization do
     has_many :memberships, SupervisedSlices.Orgs.Membership
   end
 
+  calculations do
+    calculate :subscribed?, :boolean, expr(subscription_status in [:active, :trialing])
+  end
+
   identities do
     identity :unique_slug, [:slug]
   end
