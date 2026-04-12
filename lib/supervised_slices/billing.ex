@@ -33,7 +33,7 @@ defmodule SupervisedSlices.Billing do
   def create_checkout_session(customer_id, success_url, cancel_url) do
     price_id = Application.get_env(:supervised_slices, :stripe)[:price_id]
 
-    Stripe.Session.create(%{
+    Stripe.Checkout.Session.create(%{
       customer: customer_id,
       mode: "subscription",
       line_items: [%{price: price_id, quantity: 1}],

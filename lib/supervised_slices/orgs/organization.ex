@@ -280,9 +280,9 @@ defmodule SupervisedSlices.Orgs.Organization do
   comparing against the scheduled hours. Falls back to UTC if no timezone
   is set or if the stored timezone string is unrecognized.
   """
-  def open_now?(%__MODULE__{operating_schedule: nil}), do: true
+  def open_now?(%{operating_schedule: nil}), do: true
 
-  def open_now?(%__MODULE__{operating_schedule: schedule, timezone: timezone}) do
+  def open_now?(%{operating_schedule: schedule, timezone: timezone}) do
     tz = timezone || "Etc/UTC"
 
     now_local =

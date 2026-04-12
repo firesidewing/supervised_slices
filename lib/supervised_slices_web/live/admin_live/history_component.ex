@@ -1,6 +1,8 @@
 defmodule SupervisedSlicesWeb.AdminLive.HistoryComponent do
   use SupervisedSlicesWeb, :live_component
 
+  require Ash.Query
+
   alias SupervisedSlices.Orders.Order
 
   def update(assigns, socket) do
@@ -32,7 +34,7 @@ defmodule SupervisedSlicesWeb.AdminLive.HistoryComponent do
     start_dt = DateTime.new!(date, ~T[00:00:00], "Etc/UTC")
     end_dt = DateTime.add(start_dt, 86400, :second)
 
-    SupervisedSlices.Orders.Order
+    Order
     |> Ash.Query.for_read(:completed, %{}, scope: scope, authorize?: false)
     |> Ash.Query.filter(inserted_at >= ^start_dt and inserted_at < ^end_dt)
     |> Ash.read!(authorize?: false)

@@ -2,6 +2,8 @@ defmodule SupervisedSlicesWeb.AuthController do
   use SupervisedSlicesWeb, :controller
   use AshAuthentication.Phoenix.Controller
 
+  require Ash.Query
+
   def success(conn, {:password, :register}, user, _token) do
     org = get_admin_org(user)
 
