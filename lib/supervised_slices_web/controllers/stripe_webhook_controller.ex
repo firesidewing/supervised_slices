@@ -13,12 +13,31 @@ defmodule SupervisedSlicesWeb.StripeWebhookController do
   )
 
   def event(conn, _params) do
-    raw_body = conn.private |> Map.get(:raw_body, []) |> Enum.reverse() |> IO.iodata_to_binary()
+    # Try to get cached body first from our custom key
+    raw_body_list = Map.get(conn.private, :stripe_raw_body)
+
+    {raw_body, chunks, source} =
+      case raw_body_list do
+        nil ->
+          # Fallback: maybe it wasn't cached because of a path mismatch?
+          case Plug.Conn.read_body(conn) do
+            {:ok, body, _conn} -> {body, 1, "direct_read"}
+            _ -> {"", 0, "none"}
+          end
+
+        list when is_list(list) ->
+          {list |> Enum.reverse() |> IO.iodata_to_binary(), length(list), "cached"}
+      end
+
     sig = conn |> get_req_header("stripe-signature") |> List.first()
     secret = Application.get_env(:supervised_slices, :stripe)[:webhook_secret]
 
+    Logger.info(
+      "Stripe Webhook Diagnosis: request_path=#{conn.request_path}, source=#{source}, chunks=#{chunks}, body_len=#{byte_size(raw_body)}, sig?=#{not is_nil(sig)}, secret_prefix=#{if is_binary(secret), do: String.slice(secret, 0, 8), else: "nil"}"
+    )
+
     if raw_body == "" do
-      Logger.error("Stripe webhook: raw_body is empty")
+      Logger.error("Stripe webhook: raw_body is empty. path_info: #{inspect(conn.path_info)}")
     end
 
     if is_nil(sig) do
@@ -26,11 +45,12 @@ defmodule SupervisedSlicesWeb.StripeWebhookController do
     end
 
     if is_nil(secret) or secret == "whsec_placeholder" do
-      Logger.warning("Stripe webhook: secret is nil or default placeholder")
+      Logger.error("Stripe webhook: secret is nil or default placeholder (value: #{inspect(secret)})")
     end
 
     case Stripe.Webhook.construct_event(raw_body, sig, secret) do
       {:ok, %{type: type}} when type in @handled_events ->
+        Logger.info("Stripe webhook: received handled event #{type}")
         # Now parse it into our own structs for clarity
         event = StripeWebhook.parse!(raw_body)
 
