@@ -58,7 +58,7 @@ defmodule SupervisedSlicesWeb.MenuLive.ItemComponent do
       <div class="pt-32 pb-44 px-6 md:px-12 max-w-7xl mx-auto flex flex-col md:flex-row gap-12 items-start">
         <div
           :if={@selected_item.image_url}
-          class="relative w-full md:w-1/2 aspect-[4/3] md:aspect-[3/4] overflow-hidden rounded-[3rem] shadow-2xl shadow-primary/10 sticky top-[6rem]"
+          class="relative w-full md:w-1/2 aspect-[4/3] md:aspect-[3/4] overflow-hidden rounded-[3rem] shadow-2xl shadow-primary/10"
         >
           <img
             src={@selected_item.image_url}

@@ -82,7 +82,7 @@ defmodule SupervisedSlices.Orders.OrderHistoryTest do
       Order.update_status!(order, %{status: :completed}, tenant: org.id, authorize?: false)
 
       [result] = Order.completed_orders!(tenant: org.id, authorize?: false)
-      assert match?([_ | _] | [], result.order_items)
+      assert is_list(result.order_items)
       refute match?(%Ash.NotLoaded{}, result.order_items)
     end
   end

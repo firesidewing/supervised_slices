@@ -536,16 +536,16 @@ defmodule SupervisedSlicesWeb.MenuLive do
       store_open={@store_open}
     />
 
-    <div class="fixed top-[15%] right-[-30px] opacity-[0.03] pointer-events-none transform rotate-[25deg] select-none hidden lg:block text-on-surface">
+    <div class="fixed top-[15%] right-[-30px] opacity-[0.03] pointer-events-none transform rotate-[25deg] select-none hidden lg:block text-on-surface z-[-1]">
       <span class="material-symbols-outlined" style="font-size: 180px;">local_pizza</span>
     </div>
-    <div class="fixed bottom-[20%] left-[-40px] opacity-[0.04] pointer-events-none transform -rotate-[15deg] select-none hidden lg:block text-on-surface">
+    <div class="fixed bottom-[20%] left-[-40px] opacity-[0.04] pointer-events-none transform -rotate-[15deg] select-none hidden lg:block text-on-surface z-[-1]">
       <span class="material-symbols-outlined" style="font-size: 200px;">egg</span>
     </div>
-    <div class="fixed top-[45%] left-[-20px] opacity-[0.02] pointer-events-none transform rotate-[10deg] select-none hidden lg:block text-on-surface">
+    <div class="fixed top-[45%] left-[-20px] opacity-[0.02] pointer-events-none transform rotate-[10deg] select-none hidden lg:block text-on-surface z-[-1]">
       <span class="material-symbols-outlined" style="font-size: 140px;">spa</span>
     </div>
-    <div class="fixed bottom-[10%] right-[-10px] opacity-[0.03] pointer-events-none transform -rotate-[20deg] select-none hidden lg:block text-on-surface">
+    <div class="fixed bottom-[10%] right-[-10px] opacity-[0.03] pointer-events-none transform -rotate-[20deg] select-none hidden lg:block text-on-surface z-[-1]">
       <span class="material-symbols-outlined" style="font-size: 160px;">skillet</span>
     </div>
     <div

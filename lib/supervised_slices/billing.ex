@@ -10,7 +10,7 @@ defmodule SupervisedSlices.Billing do
   to the org, and returns `{:ok, updated_org}`.
   """
   def create_customer_for_org(%Organization{stripe_customer_id: nil} = org, email) do
-    case Stripe.Customer.create(%{email: email, name: org.name}) do
+    case Stripe.Customer.create(%{email: to_string(email), name: to_string(org.name)}) do
       {:ok, customer} ->
         updated =
           org
