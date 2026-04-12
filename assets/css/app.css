@@ -195,6 +195,11 @@
     --color-on-surface-variant: #5d3f3e;
 }
 
+/* Smooth anchor scroll */
+html {
+    scroll-behavior: smooth;
+}
+
 /* This file is for your main application CSS */
 @layer utilities {
     .auth-card {

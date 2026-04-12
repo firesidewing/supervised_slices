@@ -1,5 +1,4 @@
 <div class="relative overflow-hidden bg-surface">
-  <%!-- Hero Section: The Editorial Entry --%>
   <section class="relative z-10 max-w-[1440px] mx-auto px-6 lg:px-12 pt-24 pb-32 lg:pt-48 lg:pb-64">
     <div class="flex flex-col lg:flex-row items-start gap-16 lg:gap-32">
       <div class="flex-1 relative z-20">
@@ -9,7 +8,7 @@
             The Artisan Operating System
           </span>
         </div>
-        
+
         <h1 class="text-6xl lg:text-[100px] font-headline font-extrabold tracking-[-0.04em] text-on-surface leading-[0.9] mb-12 text-balance">
           Engineering the <br/>
           <span class="text-primary italic relative">
@@ -17,14 +16,14 @@
             <svg class="absolute -bottom-2 left-0 w-full h-3 text-primary/20" viewBox="0 0 100 10" preserveAspectRatio="none">
               <path d="M0 5 Q 25 0, 50 5 T 100 5" fill="none" stroke="currentColor" stroke-width="4" />
             </svg>
-          </span> 
+          </span>
           Slice.
         </h1>
-        
+
         <p class="text-xl lg:text-2xl font-body text-on-surface-variant max-w-xl leading-relaxed mb-16 text-balance opacity-90">
-          The Digital Hearth is the first UX-first platform built specifically for artisan pizzerias. From hydration to doorstep, we've optimized every touchpoint.
+          The Digital Hearth is the operating platform built for artisan pizzerias. From hydration tracking to doorstep delivery, every touchpoint optimized.
         </p>
-        
+
         <div class="flex flex-wrap gap-6 items-center">
           <a href="/register" class="btn-tomato text-xl px-10 py-5 group">
             Start Your 14-Day Trial
@@ -35,40 +34,63 @@
             <span class="material-symbols-outlined text-sm">south</span>
           </a>
         </div>
+
+        <div class="flex flex-wrap gap-10 mt-16 pt-12 border-t border-outline-variant/20">
+          <div>
+            <div class="text-2xl font-headline font-extrabold text-on-surface tabular-nums">1,247</div>
+            <div class="text-xs font-label uppercase tracking-widest text-on-surface-variant mt-1">Active pizzerias</div>
+          </div>
+          <div>
+            <div class="text-2xl font-headline font-extrabold text-on-surface tabular-nums">99.7%</div>
+            <div class="text-xs font-label uppercase tracking-widest text-on-surface-variant mt-1">Uptime SLA</div>
+          </div>
+          <div>
+            <div class="text-2xl font-headline font-extrabold text-on-surface tabular-nums">4.8 <span class="text-secondary text-lg">★</span></div>
+            <div class="text-xs font-label uppercase tracking-widest text-on-surface-variant mt-1">Average rating</div>
+          </div>
+        </div>
       </div>
 
       <div class="flex-1 relative mt-12 lg:mt-0">
-        <%!-- Asymmetric Image Stack --%>
         <div class="relative z-10 w-full max-w-2xl ml-auto">
           <div class="relative rounded-[3rem] overflow-hidden shadow-soft transform lg:-rotate-3 hover:rotate-0 transition-all duration-700 aspect-[4/3]">
-            <img 
-              src="https://lh3.googleusercontent.com/aida-public/d921e4cc80c74902b1f3c7e0c459fbc4.png" 
-              alt="The Digital Hearth KDS Interface" 
+            <img
+              src="https://picsum.photos/seed/artisan-pizza-kitchen/800/600"
+              alt="The Digital Hearth kitchen display system running during dinner service"
               class="w-full h-full object-cover"
             />
           </div>
-          
-          <%!-- Floating Ingredient (Basil Leaf Concept) --%>
+
           <div class="absolute -top-16 -left-16 w-48 h-48 opacity-90 hidden lg:block transform -rotate-12 hover:rotate-0 transition-transform duration-500">
-             <div class="w-full h-full bg-secondary-container/40 rounded-full backdrop-blur-xl flex items-center justify-center border-4 border-surface overflow-hidden">
-               <img src="https://lh3.googleusercontent.com/aida-public/b2b7dfb342084f889efc869be7c25e83.png" class="w-[150%] h-[150%] object-cover opacity-60" />
-             </div>
+            <div class="w-full h-full bg-secondary-container/60 rounded-full backdrop-blur-xl flex items-center justify-center border-4 border-surface">
+              <span class="material-symbols-outlined text-secondary" style="font-size: 3rem;">local_pizza</span>
+            </div>
           </div>
-          
-          <%!-- Decorative Tonal Circle --%>
+
           <div class="absolute -bottom-24 -right-12 w-64 h-64 bg-primary/5 rounded-full blur-3xl -z-10"></div>
         </div>
       </div>
     </div>
   </section>
 
-  <%!-- Large Decorative Text (Editorial) --%>
   <div class="absolute top-[20%] right-[-5%] text-[20vw] font-headline font-black text-on-surface/[0.02] pointer-events-none select-none leading-none tracking-tighter">
     ARTISAN
   </div>
 </div>
 
-<%!-- Features Section: Editorial Layout --%>
+<div class="bg-surface-container py-10">
+  <div class="max-w-[1440px] mx-auto px-6 lg:px-12">
+    <p class="text-center text-xs font-label uppercase tracking-widest text-on-surface-variant/50 mb-8">Trusted by independent pizzerias across North America</p>
+    <div class="flex flex-wrap justify-center items-center gap-12 lg:gap-20">
+      <span class="text-base font-headline font-bold tracking-tight text-on-surface-variant/40">Napoli Bianca</span>
+      <span class="text-base font-headline font-bold tracking-tight text-on-surface-variant/40">Casa Forno</span>
+      <span class="text-base font-headline font-bold tracking-tight text-on-surface-variant/40">The Coal Room</span>
+      <span class="text-base font-headline font-bold tracking-tight text-on-surface-variant/40">Margherita & Co.</span>
+      <span class="text-base font-headline font-bold tracking-tight text-on-surface-variant/40">Fiore Toscano</span>
+    </div>
+  </div>
+</div>
+
 <section id="features" class="bg-surface-container-low py-32 lg:py-64 overflow-hidden">
   <div class="max-w-[1440px] mx-auto px-6 lg:px-12">
     <div class="flex flex-col lg:flex-row gap-24 items-center mb-48">
@@ -82,26 +104,23 @@
         </p>
       </div>
       <div class="lg:w-1/2 grid grid-cols-1 sm:grid-cols-2 gap-8">
-        <%!-- Feature 1: KDS --%>
         <div class="bg-surface-container-lowest p-10 rounded-[2.5rem] shadow-soft hover:translate-y-[-8px] transition-transform duration-500">
           <div class="w-14 h-14 bg-primary-fixed rounded-2xl flex items-center justify-center mb-8 text-on-primary-fixed">
             <span class="material-symbols-outlined text-3xl">kitchen</span>
           </div>
           <h3 class="text-2xl font-headline font-bold mb-4">Integrated KDS</h3>
-          <p class="text-on-surface-variant font-body">Manage order flow from intake to out-the-door with hydration tracking.</p>
+          <p class="text-on-surface-variant font-body">Manage order flow from intake to out-the-door with hydration tracking built in.</p>
         </div>
-        <%!-- Feature 2: UX-First --%>
         <div class="bg-surface-container-lowest p-10 rounded-[2.5rem] shadow-soft lg:mt-12 hover:translate-y-[-8px] transition-transform duration-500">
           <div class="w-14 h-14 bg-secondary-fixed rounded-2xl flex items-center justify-center mb-8 text-on-secondary-fixed">
             <span class="material-symbols-outlined text-3xl">touch_app</span>
           </div>
-          <h3 class="text-2xl font-headline font-bold mb-4">UX-First Ordering</h3>
+          <h3 class="text-2xl font-headline font-bold mb-4">UX-first ordering</h3>
           <p class="text-on-surface-variant font-body">Beautiful, intuitive interfaces optimized for speed and artisan upsells.</p>
         </div>
       </div>
     </div>
 
-    <%!-- Feature Row 2 (Reversed/Asymmetric) --%>
     <div class="flex flex-col lg:flex-row-reverse gap-24 items-center">
       <div class="lg:w-1/2">
         <h2 class="text-5xl lg:text-7xl font-headline font-extrabold tracking-tight text-on-surface leading-[1.1] mb-8">
@@ -109,24 +128,22 @@
           <span class="text-primary italic">Behind</span> the Dough.
         </h2>
         <p class="text-xl lg:text-2xl font-body text-on-surface-variant leading-relaxed max-w-xl">
-          Deep insights into your dough. Track top-selling pies and peak rush patterns to optimize your staff.
+          Deep insights into your operation. Track top-selling pies and peak rush patterns to schedule staff with confidence.
         </p>
       </div>
       <div class="lg:w-1/2 grid grid-cols-1 sm:grid-cols-2 gap-8">
-        <%!-- Feature 3: Analytics --%>
         <div class="bg-surface-container-lowest p-10 rounded-[2.5rem] shadow-soft hover:translate-y-[-8px] transition-transform duration-500">
           <div class="w-14 h-14 bg-tertiary-fixed rounded-2xl flex items-center justify-center mb-8 text-on-tertiary-fixed">
             <span class="material-symbols-outlined text-3xl">monitoring</span>
           </div>
-          <h3 class="text-2xl font-headline font-bold mb-4">Real-Time Analytics</h3>
-          <p class="text-on-surface-variant font-body">Track ingredient usage and inventory with precision.</p>
+          <h3 class="text-2xl font-headline font-bold mb-4">Real-time analytics</h3>
+          <p class="text-on-surface-variant font-body">Track ingredient usage and inventory with precision. Know what to prep before service starts.</p>
         </div>
-        <%!-- Feature 4: Vertical Chit --%>
         <div class="bg-surface-container-lowest p-10 rounded-[2.5rem] shadow-soft lg:mt-12 hover:translate-y-[-8px] transition-transform duration-500">
           <div class="w-14 h-14 bg-primary-fixed rounded-2xl flex items-center justify-center mb-8 text-on-primary-fixed">
             <span class="material-symbols-outlined text-3xl">reorder</span>
           </div>
-          <h3 class="text-2xl font-headline font-bold mb-4">Vertical Chit System</h3>
+          <h3 class="text-2xl font-headline font-bold mb-4">Vertical chit system</h3>
           <p class="text-on-surface-variant font-body">A proprietary digital ticket system that mimics physical rail efficiency.</p>
         </div>
       </div>
@@ -134,35 +151,32 @@
   </div>
 </section>
 
-<%!-- Pricing Section: Tonal Layering & No-Line Rule --%>
 <section id="pricing" class="bg-surface py-32 lg:py-64 relative overflow-hidden">
-  <%!-- Background Decorator --%>
   <div class="absolute top-0 left-0 w-full h-full pointer-events-none overflow-hidden -z-10">
-     <div class="absolute -top-[10%] -left-[10%] w-[40%] h-[40%] bg-secondary/5 rounded-full blur-[120px]"></div>
-     <div class="absolute -bottom-[10%] -right-[10%] w-[40%] h-[40%] bg-primary/5 rounded-full blur-[120px]"></div>
+    <div class="absolute -top-[10%] -left-[10%] w-[40%] h-[40%] bg-secondary/5 rounded-full blur-[120px]"></div>
+    <div class="absolute -bottom-[10%] -right-[10%] w-[40%] h-[40%] bg-primary/5 rounded-full blur-[120px]"></div>
   </div>
 
   <div class="max-w-[1440px] mx-auto px-6 lg:px-12 text-center">
     <div class="inline-block px-4 py-1.5 mb-8 rounded-full bg-primary-fixed/30 text-primary font-label uppercase tracking-widest text-xs font-bold">
-      Pricing for Every Hearth
+      Pricing for every hearth
     </div>
     <h2 class="text-5xl lg:text-7xl font-headline font-extrabold tracking-tight text-on-surface mb-24">
       Select Your <span class="italic text-primary">Blend.</span>
     </h2>
 
     <div class="grid grid-cols-1 md:grid-cols-3 gap-8 items-end">
-      <%!-- Tier 1: The Dough --%>
-      <div class="bg-surface-container-low p-10 lg:p-14 rounded-[3rem] text-left transition-all duration-500 hover:scale-[1.02]">
+      <div class="bg-surface-container-low p-10 lg:p-14 rounded-[3rem] text-left transition-all duration-500 hover:scale-[1.02] flex flex-col">
         <h3 class="text-2xl font-headline font-bold mb-2">The Dough</h3>
-        <p class="text-on-surface-variant font-body mb-8">For single location startups.</p>
+        <p class="text-on-surface-variant font-body mb-8">For single-location startups.</p>
         <div class="flex items-baseline gap-1 mb-12">
-          <span class="text-4xl lg:text-5xl font-headline font-extrabold">$49</span>
+          <span class="text-4xl lg:text-5xl font-headline font-extrabold tabular-nums">$49</span>
           <span class="text-on-surface-variant font-label uppercase">/mo</span>
         </div>
-        <ul class="space-y-4 mb-12 font-body text-on-surface-variant">
+        <ul class="space-y-4 mb-12 font-body text-on-surface-variant grow">
           <li class="flex items-center gap-3">
             <span class="material-symbols-outlined text-secondary text-sm font-bold">check</span>
-            1 Active Location
+            1 active location
           </li>
           <li class="flex items-center gap-3">
             <span class="material-symbols-outlined text-secondary text-sm font-bold">check</span>
@@ -170,113 +184,120 @@
           </li>
           <li class="flex items-center gap-3">
             <span class="material-symbols-outlined text-secondary text-sm font-bold">check</span>
-            Online Ordering
+            Online ordering
+          </li>
+          <li class="flex items-center gap-3">
+            <span class="material-symbols-outlined text-secondary text-sm font-bold">check</span>
+            Email support
           </li>
         </ul>
-        <a href="/register" class="btn btn-ghost w-full py-4 rounded-2xl border-2 border-outline/20 font-headline font-bold uppercase tracking-tight hover:bg-surface-container-lowest transition-all">
-          Select Plan
+        <a href="/register" class="btn btn-ghost w-full py-4 rounded-2xl border-2 border-outline/20 font-headline font-bold uppercase tracking-tight hover:bg-surface-container-lowest transition-all mt-auto">
+          Select plan
         </a>
       </div>
 
-      <%!-- Tier 2: The Hearth (Featured) --%>
-      <div class="bg-surface-container-lowest p-12 lg:p-16 rounded-[3.5rem] text-left shadow-soft transform md:scale-105 z-10 border-4 border-primary/5">
+      <div class="bg-surface-container-lowest p-12 lg:p-16 rounded-[3.5rem] text-left shadow-soft transform md:scale-105 z-10 border-4 border-primary/5 flex flex-col">
         <div class="inline-block px-4 py-1 mb-6 rounded-full bg-primary text-on-primary font-label uppercase tracking-widest text-[10px] font-bold">
           Recommended
         </div>
         <h3 class="text-3xl font-headline font-bold mb-2">The Hearth</h3>
         <p class="text-on-surface-variant font-body mb-10">Optimized for high-volume shops.</p>
         <div class="flex items-baseline gap-1 mb-12">
-          <span class="text-5xl lg:text-6xl font-headline font-extrabold">$149</span>
+          <span class="text-5xl lg:text-6xl font-headline font-extrabold tabular-nums">$149</span>
           <span class="text-on-surface-variant font-label uppercase">/mo</span>
         </div>
-        <ul class="space-y-5 mb-14 font-body text-on-surface">
+        <ul class="space-y-5 mb-14 font-body text-on-surface grow">
           <li class="flex items-center gap-3">
             <span class="material-symbols-outlined text-secondary text-sm font-bold">check</span>
-            Up to 3 Locations
+            Up to 3 locations
           </li>
           <li class="flex items-center gap-3">
             <span class="material-symbols-outlined text-secondary text-sm font-bold">check</span>
-            Advanced Analytics
+            Advanced analytics
           </li>
           <li class="flex items-center gap-3">
             <span class="material-symbols-outlined text-secondary text-sm font-bold">check</span>
-            Vertical Chit System
+            Vertical chit system
           </li>
           <li class="flex items-center gap-3">
             <span class="material-symbols-outlined text-secondary text-sm font-bold">check</span>
-            Priority Support
+            Priority support
           </li>
         </ul>
-        <a href="/register" class="btn-tomato w-full py-5 rounded-2xl text-lg">
-          Get Started
+        <a href="/register" class="btn-tomato w-full py-5 rounded-2xl text-lg mt-auto">
+          Get started
         </a>
       </div>
 
-      <%!-- Tier 3: The Masterpiece --%>
-      <div class="bg-surface-container-low p-10 lg:p-14 rounded-[3rem] text-left transition-all duration-500 hover:scale-[1.02]">
+      <div class="bg-surface-container-low p-10 lg:p-14 rounded-[3rem] text-left transition-all duration-500 hover:scale-[1.02] flex flex-col">
         <h3 class="text-2xl font-headline font-bold mb-2">The Masterpiece</h3>
         <p class="text-on-surface-variant font-body mb-8">For the pizza enterprise.</p>
         <div class="flex items-baseline gap-1 mb-12">
-          <span class="text-4xl lg:text-5xl font-headline font-extrabold">$299</span>
+          <span class="text-4xl lg:text-5xl font-headline font-extrabold tabular-nums">$299</span>
           <span class="text-on-surface-variant font-label uppercase">/mo</span>
         </div>
-        <ul class="space-y-4 mb-12 font-body text-on-surface-variant">
+        <ul class="space-y-4 mb-12 font-body text-on-surface-variant grow">
           <li class="flex items-center gap-3">
             <span class="material-symbols-outlined text-secondary text-sm font-bold">check</span>
-            Unlimited Locations
+            Unlimited locations
           </li>
           <li class="flex items-center gap-3">
             <span class="material-symbols-outlined text-secondary text-sm font-bold">check</span>
-            Custom Controls
+            Custom controls
           </li>
           <li class="flex items-center gap-3">
             <span class="material-symbols-outlined text-secondary text-sm font-bold">check</span>
-            White-Label System
+            White-label system
+          </li>
+          <li class="flex items-center gap-3">
+            <span class="material-symbols-outlined text-secondary text-sm font-bold">check</span>
+            Dedicated account manager
           </li>
         </ul>
-        <a href="/register" class="btn btn-ghost w-full py-4 rounded-2xl border-2 border-outline/20 font-headline font-bold uppercase tracking-tight hover:bg-surface-container-lowest transition-all">
-          Contact Sales
+        <a href="/register" class="btn btn-ghost w-full py-4 rounded-2xl border-2 border-outline/20 font-headline font-bold uppercase tracking-tight hover:bg-surface-container-lowest transition-all mt-auto">
+          Contact sales
         </a>
       </div>
     </div>
   </div>
 </section>
 
-<%!-- Final CTA: The Tonal Glow --%>
-<div class="bg-surface py-32 lg:py-64 text-center relative overflow-hidden">
+<div class="relative py-32 lg:py-64 text-center overflow-hidden bg-surface-container-low">
+  <div
+    class="absolute inset-0 bg-cover bg-center opacity-[0.06] mix-blend-multiply"
+    style="background-image: url('https://picsum.photos/seed/artisan-pizza-fire/1920/1080');"
+    aria-hidden="true"
+  ></div>
+  <div class="absolute top-0 left-0 w-full h-full bg-gradient-to-b from-surface-container-low/80 to-surface-container-low/80 pointer-events-none"></div>
+
   <div class="max-w-5xl mx-auto px-6 relative z-10">
     <h2 class="text-6xl lg:text-[120px] font-headline font-extrabold tracking-[-0.05em] text-on-surface mb-12 leading-[0.85] text-balance">
-      Ready to stoke <br/> 
+      Ready to stoke <br/>
       the <span class="text-primary italic">fire?</span>
     </h2>
     <p class="text-xl lg:text-3xl font-body text-on-surface-variant mb-16 max-w-2xl mx-auto leading-relaxed opacity-90">
-      Join the elite group of artisan pizzerias already using The Digital Hearth to master their craft.
+      Join artisan pizzerias already using The Digital Hearth to run a tighter kitchen and a better guest experience.
     </p>
     <div class="flex justify-center">
       <a href="/register" class="btn-tomato text-2xl px-16 py-6 group">
-        Master Your Craft Now
-        <span class="inline-block ml-3 transform group-hover:scale-125 transition-transform">🔥</span>
+        Start your free trial
+        <span class="inline-block ml-3 transform group-hover:translate-x-1 transition-transform">→</span>
       </a>
     </div>
   </div>
-  
-  <%!-- Background Ingredient Float Decorator --%>
-  <div class="absolute bottom-[-10%] left-[50%] -translate-x-1/2 w-full max-w-6xl opacity-[0.03] pointer-events-none -z-10">
-     <img src="https://lh3.googleusercontent.com/aida-public/b2b7dfb342084f889efc869be7c25e83.png" alt="" class="w-full h-auto rotate-12" />
-  </div>
 </div>
 
-<footer class="bg-surface-container-highest py-24 px-6 lg:px-12">
+<footer class="bg-surface-container py-24 px-6 lg:px-12">
   <div class="max-w-[1440px] mx-auto flex flex-col lg:flex-row justify-between items-center gap-12">
     <div class="flex items-center gap-4">
-       <img src={~p"/images/logo.svg"} width="48" />
-       <span class="text-2xl font-headline font-bold tracking-tight">The Digital Hearth</span>
+      <img src={~p"/images/logo.svg"} width="48" alt="The Digital Hearth logo" />
+      <span class="text-2xl font-headline font-bold tracking-tight">The Digital Hearth</span>
     </div>
-    
+
     <div class="flex gap-12 font-label uppercase tracking-widest text-xs font-bold text-on-surface-variant">
-      <a href="#" class="hover:text-primary">Privacy</a>
-      <a href="#" class="hover:text-primary">Terms</a>
-      <a href="#" class="hover:text-primary">Support</a>
+      <a href="#" class="hover:text-primary transition-colors">Privacy</a>
+      <a href="#" class="hover:text-primary transition-colors">Terms</a>
+      <a href="#" class="hover:text-primary transition-colors">Support</a>
     </div>
 
     <p class="text-on-surface-variant font-label text-xs uppercase tracking-widest opacity-60">

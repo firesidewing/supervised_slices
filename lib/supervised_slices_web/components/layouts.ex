@@ -48,6 +48,9 @@ defmodule SupervisedSlicesWeb.Layouts do
             <a href="#features" class="btn btn-ghost font-body">Features</a>
           </li>
           <li>
+            <a href="#pricing" class="btn btn-ghost font-body">Pricing</a>
+          </li>
+          <li>
             <a href="/register" class="btn btn-tomato font-headline px-6">
               Start Trial
             </a>
