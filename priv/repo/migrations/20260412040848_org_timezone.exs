@@ -1,4 +1,4 @@
-defmodule SupervisedSlices.Repo.Migrations.MigrateResources1 do
+defmodule SupervisedSlices.Repo.Migrations.OrgTimezone do
   @moduledoc """
   Updates resources based on their most recent snapshots.
 
