@@ -9,76 +9,108 @@ defmodule SupervisedSlicesWeb.AuthOverrides do
 
   # For a complete reference, see https://hexdocs.pm/ash_authentication_phoenix/ui-overrides.html
 
-  alias AshAuthentication.Phoenix.Components
-
   override AshAuthentication.Phoenix.SignInLive do
-    set :root_class, "grid min-h-dvh place-items-center bg-surface p-4 sm:p-6 lg:p-8"
+    set :root_class, "grid min-h-dvh place-items-center bg-surface bg-paper p-4 sm:p-6 lg:p-8"
   end
 
   override AshAuthentication.Phoenix.RegisterLive do
-    set :root_class, "grid min-h-dvh place-items-center bg-surface p-4 sm:p-6 lg:p-8"
+    set :root_class, "grid min-h-dvh place-items-center bg-surface bg-paper p-4 sm:p-6 lg:p-8"
   end
 
-  override Components.SignIn do
+  override AshAuthentication.Phoenix.ResetLive do
+    set :root_class, "grid min-h-dvh place-items-center bg-surface bg-paper p-4 sm:p-6 lg:p-8"
+  end
+
+  override AshAuthentication.Phoenix.VerifyLive do
+    set :root_class, "grid min-h-dvh place-items-center bg-surface bg-paper p-4 sm:p-6 lg:p-8"
+  end
+
+  override AshAuthentication.Phoenix.MagicSignInLive do
+    set :root_class, "grid min-h-dvh place-items-center bg-surface bg-paper p-4 sm:p-6 lg:p-8"
+  end
+
+  override AshAuthentication.Phoenix.Components.SignIn do
     set :root_class, "mx-auto w-full max-w-md auth-card border-0"
     set :strategy_class, "w-full"
     set :authentication_error_container_class, "text-error text-center mb-4"
+    set :show_banner, true
   end
 
-  override Components.Banner do
+  override AshAuthentication.Phoenix.Components.Register do
+    set :root_class, "mx-auto w-full max-w-md auth-card border-0"
     set :show_banner, true
-    set :root_class, "w-full flex flex-col items-center justify-center pt-2 pb-6 mb-4"
+  end
+
+  override AshAuthentication.Phoenix.Components.Banner do
+    set :show_banner, true
+    set :root_class, "w-full flex flex-col items-center justify-center pt-8 pb-12"
     set :image_url, "/images/logo.svg"
     set :dark_image_url, "/images/logo.svg"
-    set :image_class, "size-20 rounded-2xl shadow-lg -rotate-3 mb-6"
-    set :dark_image_class, "size-20 rounded-2xl shadow-lg -rotate-3 mb-6"
-    set :text, "Supervised Slices"
+    set :image_class, "size-28 object-contain mb-8 dark:hidden"
+    set :dark_image_class, "size-28 object-contain mb-8 hidden dark:block"
+    set :text, nil
 
     set :text_class,
-        "font-headline font-black text-3xl tracking-tighter uppercase italic text-on-surface text-center"
+        "font-headline font-black text-4xl tracking-tighter uppercase text-on-surface text-center"
   end
 
-  override Components.Footer do
+  override AshAuthentication.Phoenix.Components.Footer do
     set :show_footer, false
   end
 
-  override Components.Password do
+  override AshAuthentication.Phoenix.Components.Password do
     set :register_extra_component, &SupervisedSlicesWeb.AuthComponents.RegisterExtra.render/1
     set :sign_in_toggle_text, "Already have an account? Sign in"
     set :register_toggle_text, "New here? Register your kitchen"
     set :reset_toggle_text, "Lost your recipe? Reset password"
 
+    set :interstitial_class, "flex flex-col gap-4 mt-12 w-full"
+
     set :toggler_class,
-        "text-primary hover:text-primary-container font-black uppercase tracking-widest text-[10px] py-3 px-6 rounded-full bg-primary/5 transition-all inline-block mt-8 w-full text-center"
+        "text-primary hover:text-primary-container font-bold uppercase tracking-[0.15em] text-[11px] py-4 px-6 rounded-md bg-surface-container-low transition-all inline-block w-full text-center"
   end
 
-  override Components.Password.SignInForm do
+  override AshAuthentication.Phoenix.Components.Password.SignInForm do
     set :label_class,
-        "font-headline text-lg font-black uppercase italic tracking-tight text-on-surface/40 mb-10 text-center"
+        "font-headline text-lg font-bold uppercase tracking-tight text-on-surface/40 mb-10 text-center"
 
-    set :button_text, "SIGN IN TO KITCHEN"
+    set :button_text, "SIGN IN TO THE ATELIER"
   end
 
-  override Components.Password.RegisterForm do
+  override AshAuthentication.Phoenix.Components.Password.RegisterForm do
     set :label_class,
-        "font-headline text-lg font-black uppercase italic tracking-tight text-on-surface/40 mb-10 text-center"
+        "font-headline text-lg font-bold uppercase tracking-tight text-on-surface/40 mb-10 text-center"
 
-    set :button_text, "OPEN NEW KITCHEN"
+    set :button_text, "COMMISSION YOUR ATELIER"
   end
 
-  override Components.Password.Input do
-    set :field_class, "mb-6 last:mb-0"
+  override AshAuthentication.Phoenix.Components.Password.ResetForm do
+    set :label_class,
+        "font-headline text-lg font-bold uppercase tracking-tight text-on-surface/40 mb-10 text-center"
+
+    set :button_text, "RESET YOUR PASSWORD"
+  end
+
+  override AshAuthentication.Phoenix.Components.Password.RequestResetForm do
+    set :label_class,
+        "font-headline text-lg font-bold uppercase tracking-tight text-on-surface/40 mb-10 text-center"
+
+    set :button_text, "SEND RESET RECIPE"
+  end
+
+  override AshAuthentication.Phoenix.Components.Password.Input do
+    set :field_class, "mb-8 last:mb-0"
 
     set :label_class,
-        "font-headline text-[10px] font-black uppercase tracking-[0.2em] text-on-surface-variant/40 mb-2 ml-1"
+        "font-label text-[10px] font-bold uppercase tracking-[0.2em] text-on-surface-variant/60 mb-2 ml-1"
 
     set :input_class,
-        "bg-surface-container-low border-0 rounded-2xl h-16 px-6 focus:ring-4 focus:ring-primary/10 transition-all font-medium text-on-surface shadow-inner text-lg"
+        "w-full bg-transparent border-0 border-b border-outline-variant/30 rounded-none h-12 px-0 focus:outline-none focus:ring-0 focus:border-primary focus:border-b-2 transition-all font-medium text-on-surface text-lg placeholder:text-on-surface/20"
 
     set :input_class_with_error,
-        "bg-surface-container-low border-2 border-error/20 rounded-2xl h-16 px-6 focus:ring-4 focus:ring-error/10 transition-all font-medium text-on-surface shadow-inner text-lg"
+        "w-full bg-transparent border-0 border-b border-error/50 rounded-none h-12 px-0 focus:outline-none focus:ring-0 focus:border-error focus:border-b-2 transition-all font-medium text-on-surface text-lg placeholder:text-on-surface/20"
 
-    set :submit_class, "btn btn-tomato w-full h-16 rounded-2xl mt-6"
+    set :submit_class, "btn btn-tomato w-full h-14 rounded-md mt-10"
   end
 
   # override AshAuthentication.Phoenix.Components.Banner do

@@ -211,7 +211,7 @@ defmodule SupervisedSlicesWeb.CoreComponents do
       end)
 
     ~H"""
-    <div class="fieldset mb-6">
+    <div class="mb-6">
       <label for={@id} class="flex items-center gap-3 cursor-pointer group">
         <input
           type="hidden"
@@ -240,11 +240,11 @@ defmodule SupervisedSlicesWeb.CoreComponents do
 
   def input(%{type: "select"} = assigns) do
     ~H"""
-    <div class="fieldset mb-6">
-      <label for={@id} class="flex flex-col gap-2">
+    <div class="mb-8">
+      <label for={@id} class="flex flex-col">
         <span
           :if={@label}
-          class="font-headline text-[10px] font-black uppercase tracking-[0.2em] text-on-surface-variant/40 ml-1"
+          class="font-label text-[10px] font-bold uppercase tracking-[0.2em] text-on-surface-variant/60 mb-2 ml-1"
         >
           {@label}
         </span>
@@ -252,8 +252,8 @@ defmodule SupervisedSlicesWeb.CoreComponents do
           id={@id}
           name={@name}
           class={[
-            "w-full bg-surface-container-low border-0 rounded-2xl h-14 px-5 focus:outline-none focus:ring-4 focus:ring-primary/10 transition-all font-medium text-on-surface shadow-inner select",
-            @errors != [] && "ring-2 ring-error/20 bg-error/5 shadow-none",
+            "w-full bg-transparent border-0 border-b border-outline-variant/30 rounded-none h-12 px-0 focus:outline-none focus:ring-0 focus:border-primary focus:border-b-2 transition-all font-medium text-on-surface text-lg select",
+            @errors != [] && "border-error focus:border-error",
             @class
           ]}
           multiple={@multiple}
@@ -270,11 +270,11 @@ defmodule SupervisedSlicesWeb.CoreComponents do
 
   def input(%{type: "textarea"} = assigns) do
     ~H"""
-    <div class="fieldset mb-6">
-      <label for={@id} class="flex flex-col gap-2">
+    <div class="mb-8">
+      <label for={@id} class="flex flex-col">
         <span
           :if={@label}
-          class="font-headline text-[10px] font-black uppercase tracking-[0.2em] text-on-surface-variant/40 ml-1"
+          class="font-label text-[10px] font-bold uppercase tracking-[0.2em] text-on-surface-variant/60 mb-2 ml-1"
         >
           {@label}
         </span>
@@ -282,8 +282,8 @@ defmodule SupervisedSlicesWeb.CoreComponents do
           id={@id}
           name={@name}
           class={[
-            "w-full bg-surface-container-low border-0 rounded-2xl p-5 focus:outline-none focus:ring-4 focus:ring-primary/10 transition-all font-medium text-on-surface shadow-inner min-h-[100px] resize-none",
-            @errors != [] && "ring-2 ring-error/20 bg-error/5 shadow-none",
+            "textarea w-full bg-transparent border-0 border-b border-outline-variant/30 rounded-none p-0 focus:outline-none focus:ring-0 focus:border-primary focus:border-b-2 transition-all font-medium text-on-surface text-lg placeholder:text-on-surface/20 min-h-[120px]",
+            @errors != [] && "border-error focus:border-error",
             @class
           ]}
           {@rest}
@@ -294,14 +294,13 @@ defmodule SupervisedSlicesWeb.CoreComponents do
     """
   end
 
-  # All other inputs text, datetime-local, url, password, etc. are handled here...
   def input(assigns) do
     ~H"""
-    <div class="fieldset mb-6">
-      <label for={@id} class="flex flex-col gap-2">
+    <div class="mb-8">
+      <label for={@id} class="flex flex-col">
         <span
           :if={@label}
-          class="font-headline text-[10px] font-black uppercase tracking-[0.2em] text-on-surface-variant/40 ml-1"
+          class="font-label text-[10px] font-bold uppercase tracking-[0.2em] text-on-surface-variant/60 mb-2 ml-1"
         >
           {@label}
         </span>
@@ -311,8 +310,8 @@ defmodule SupervisedSlicesWeb.CoreComponents do
           id={@id}
           value={Phoenix.HTML.Form.normalize_value(@type, @value)}
           class={[
-            "w-full bg-surface-container-low border-0 rounded-2xl h-14 px-5 focus:outline-none focus:ring-4 focus:ring-primary/10 transition-all font-medium text-on-surface shadow-inner",
-            @errors != [] && "ring-2 ring-error/20 bg-error/5 shadow-none",
+            "w-full bg-transparent border-0 border-b border-outline-variant/30 rounded-none h-12 px-0 focus:outline-none focus:ring-0 focus:border-primary focus:border-b-2 transition-all font-medium text-on-surface text-lg placeholder:text-on-surface/20",
+            @errors != [] && "border-error/50 focus:border-error focus:border-b-2",
             @class
           ]}
           {@rest}

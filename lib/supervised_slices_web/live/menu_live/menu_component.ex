@@ -18,7 +18,7 @@ defmodule SupervisedSlicesWeb.MenuLive.MenuComponent do
           </span>
         </div>
 
-        <div class={if is_grid?(category), do: "grid grid-cols-2 gap-4", else: "space-y-4"}>
+        <div class="grid grid-cols-2 gap-x-4 gap-y-6">
           <%= for item <- category.menu_items do %>
             <.menu_item_card
               :if={customizable?(item)}
@@ -105,7 +105,7 @@ defmodule SupervisedSlicesWeb.MenuLive.MenuComponent do
     assigns = assign(assigns, qty: qty)
 
     ~H"""
-    <div class="flex items-center gap-4 bg-surface-container-low p-3 rounded-xl transition-all duration-300 hover:bg-surface-container group">
+    <div class="col-span-2 flex items-center gap-4 bg-surface-container-low p-3 rounded-xl transition-all duration-300 hover:bg-surface-container group">
       <div class="w-20 h-20 rounded-lg overflow-hidden shrink-0 relative">
         <img
           :if={@item.image_url}
@@ -161,10 +161,6 @@ defmodule SupervisedSlicesWeb.MenuLive.MenuComponent do
       </div>
     </div>
     """
-  end
-
-  defp is_grid?(category) do
-    Enum.any?(category.menu_items, &customizable?/1)
   end
 
   defp customizable?(item) do
