@@ -56,6 +56,29 @@ defmodule SupervisedSlices.Billing do
   end
 
   @doc """
+  Retrieves a Stripe Checkout Session and, if it is complete, immediately
+  updates the org's subscription fields so access is granted without waiting
+  for the webhook. Safe to call multiple times (idempotent).
+  """
+  def fulfill_from_checkout_session(%Organization{} = org, session_id)
+      when is_binary(session_id) do
+    with {:ok, session} <- Stripe.Checkout.Session.retrieve(session_id),
+         true <- session.status == "complete",
+         subscription_id when is_binary(subscription_id) <- session.subscription do
+      status = if session.payment_status == "paid", do: :active, else: :incomplete
+
+      org
+      |> Ash.Changeset.for_update(:update_billing, %{
+        stripe_subscription_id: subscription_id,
+        subscription_status: status
+      })
+      |> Ash.update(authorize?: false)
+    else
+      _ -> {:ok, org}
+    end
+  end
+
+  @doc """
   Converts a Stripe subscription status string to the atom stored on the org.
   """
   def parse_subscription_status(status) when is_binary(status) do

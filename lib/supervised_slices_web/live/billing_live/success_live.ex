@@ -39,12 +39,24 @@ defmodule SupervisedSlicesWeb.BillingLive.Success do
     """
   end
 
-  def mount(_params, _session, socket) do
+  def mount(params, _session, socket) do
     org = socket.assigns.org
 
     if is_nil(org) do
       {:ok, redirect(socket, to: ~p"/")}
     else
+      org =
+        case params do
+          %{"session_id" => session_id} ->
+            case SupervisedSlices.Billing.fulfill_from_checkout_session(org, session_id) do
+              {:ok, updated_org} -> updated_org
+              _ -> org
+            end
+
+          _ ->
+            org
+        end
+
       {:ok, assign(socket, :org, org)}
     end
   end
