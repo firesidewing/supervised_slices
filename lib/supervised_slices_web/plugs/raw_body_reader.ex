@@ -12,7 +12,10 @@ defmodule SupervisedSlicesWeb.Plugs.RawBodyReader do
     case Plug.Conn.read_body(conn, opts) do
       {:ok, body, conn} ->
         if should_cache?(conn) do
-          Logger.info("RawBodyReader: caching body for #{conn.request_path}, size=#{byte_size(body)}")
+          Logger.info(
+            "RawBodyReader: caching body for #{conn.request_path}, size=#{byte_size(body)}"
+          )
+
           existing = Map.get(conn.private, :stripe_raw_body, [])
           conn = Plug.Conn.put_private(conn, :stripe_raw_body, [body | existing])
           {:ok, body, conn}
@@ -22,7 +25,10 @@ defmodule SupervisedSlicesWeb.Plugs.RawBodyReader do
 
       {:more, body, conn} ->
         if should_cache?(conn) do
-          Logger.info("RawBodyReader: caching body chunk for #{conn.request_path}, size=#{byte_size(body)}")
+          Logger.info(
+            "RawBodyReader: caching body chunk for #{conn.request_path}, size=#{byte_size(body)}"
+          )
+
           existing = Map.get(conn.private, :stripe_raw_body, [])
           conn = Plug.Conn.put_private(conn, :stripe_raw_body, [body | existing])
           {:more, body, conn}

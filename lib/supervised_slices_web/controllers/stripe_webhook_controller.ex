@@ -45,7 +45,9 @@ defmodule SupervisedSlicesWeb.StripeWebhookController do
     end
 
     if is_nil(secret) or secret == "whsec_placeholder" do
-      Logger.error("Stripe webhook: secret is nil or default placeholder (value: #{inspect(secret)})")
+      Logger.error(
+        "Stripe webhook: secret is nil or default placeholder (value: #{inspect(secret)})"
+      )
     end
 
     case Stripe.Webhook.construct_event(raw_body, sig, secret) do
