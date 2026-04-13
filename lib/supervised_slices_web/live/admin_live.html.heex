@@ -55,33 +55,35 @@
       <span>Order History</span>
     </.link>
 
-    <.link
-      navigate={~p"/kitchen/#{@org.slug}/menu"}
-      class={[
-        "flex items-center gap-4 px-6 py-4 rounded-2xl font-medium transition-all duration-200 font-headline",
-        if(@live_action == :menu,
-          do: "bg-white text-primary shadow-sm",
-          else: "text-on-surface-variant hover:bg-surface-container hover:translate-x-0.5"
-        )
-      ]}
-    >
-      <span class="material-symbols-outlined">edit_note</span>
-      <span>Menu Editor</span>
-    </.link>
+    <%= if @current_membership.role == :admin do %>
+      <.link
+        navigate={~p"/kitchen/#{@org.slug}/menu"}
+        class={[
+          "flex items-center gap-4 px-6 py-4 rounded-2xl font-medium transition-all duration-200 font-headline",
+          if(@live_action == :menu,
+            do: "bg-white text-primary shadow-sm",
+            else: "text-on-surface-variant hover:bg-surface-container hover:translate-x-0.5"
+          )
+        ]}
+      >
+        <span class="material-symbols-outlined">edit_note</span>
+        <span>Menu Editor</span>
+      </.link>
 
-    <.link
-      navigate={~p"/kitchen/#{@org.slug}/settings"}
-      class={[
-        "flex items-center gap-4 px-6 py-4 rounded-2xl font-medium transition-all duration-200 font-headline",
-        if(@live_action == :settings,
-          do: "bg-white text-primary shadow-sm",
-          else: "text-on-surface-variant hover:bg-surface-container hover:translate-x-0.5"
-        )
-      ]}
-    >
-      <span class="material-symbols-outlined">manage_accounts</span>
-      <span>Settings</span>
-    </.link>
+      <.link
+        navigate={~p"/kitchen/#{@org.slug}/settings"}
+        class={[
+          "flex items-center gap-4 px-6 py-4 rounded-2xl font-medium transition-all duration-200 font-headline",
+          if(@live_action == :settings,
+            do: "bg-white text-primary shadow-sm",
+            else: "text-on-surface-variant hover:bg-surface-container hover:translate-x-0.5"
+          )
+        ]}
+      >
+        <span class="material-symbols-outlined">manage_accounts</span>
+        <span>Settings</span>
+      </.link>
+    <% end %>
   </nav>
 
   <div class="mt-auto px-4">
@@ -160,6 +162,7 @@
       module={SupervisedSlicesWeb.AdminLive.SettingsComponent}
       id="settings"
       org={@org}
+      current_user={@current_user}
     />
   <% end %>
 </main>

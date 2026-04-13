@@ -206,6 +206,23 @@ defmodule SupervisedSlices.Accounts.User do
       end
     end
 
+    create :create_invited do
+      description "Create a user account for an invited org member. Sets a random unusable password and marks the email as confirmed so they can complete setup via the password reset link."
+
+      argument :email, :ci_string, allow_nil?: false
+
+      change set_attribute(:email, arg(:email))
+
+      change fn changeset, _context ->
+        random_password = :crypto.strong_rand_bytes(32) |> Base.encode64()
+        hashed = Bcrypt.hash_pwd_salt(random_password)
+
+        changeset
+        |> Ash.Changeset.force_change_attribute(:hashed_password, hashed)
+        |> Ash.Changeset.force_change_attribute(:confirmed_at, DateTime.utc_now())
+      end
+    end
+
     action :request_password_reset_token do
       description "Send password reset instructions to a user if they exist."
 

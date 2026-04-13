@@ -1,12 +1,21 @@
 defmodule SupervisedSlicesWeb.AdminLive.SettingsComponent do
   use SupervisedSlicesWeb, :live_component
 
+  require Ash.Query
+
   alias SupervisedSlices.Orgs.{LogoUploader, Organization}
 
-  def update(%{org: org} = assigns, socket) do
+  def update(%{org: org, current_user: current_user} = assigns, socket) do
+    memberships = load_memberships(org.id)
+
     {:ok,
      socket
      |> assign(assigns)
+     |> assign(:current_user, current_user)
+     |> assign(:memberships, memberships)
+     |> assign(:invite_email, "")
+     |> assign(:invite_role, :staff)
+     |> assign(:invite_status, nil)
      |> assign(:tax_input, format_tax_rate(org.tax_rate))
      |> assign(:prep_time_input, to_string(org.default_prep_time))
      |> assign(:primary_color_input, org.primary_color || "#b90027")
@@ -171,6 +180,52 @@ defmodule SupervisedSlicesWeb.AdminLive.SettingsComponent do
       {:error, _} ->
         {:noreply, assign(socket, :branding_status, :error)}
     end
+  end
+
+  def handle_event("invite_member", %{"email" => email, "role" => role_str}, socket) do
+    role = String.to_existing_atom(role_str)
+    org = socket.assigns.org
+
+    result =
+      SupervisedSlices.Orgs.Membership
+      |> Ash.Changeset.for_create(:invite, %{email: email, role: role, organization_id: org.id})
+      |> Ash.create(actor: socket.assigns.current_user)
+
+    case result do
+      {:ok, _} ->
+        {:noreply,
+         socket
+         |> assign(:memberships, load_memberships(org.id))
+         |> assign(:invite_email, "")
+         |> assign(:invite_status, :ok)}
+
+      {:error, _} ->
+        {:noreply, assign(socket, :invite_status, :error)}
+    end
+  end
+
+  def handle_event("remove_member", %{"id" => membership_id}, socket) do
+    membership = Enum.find(socket.assigns.memberships, &(&1.id == membership_id))
+    Ash.destroy!(membership, authorize?: false)
+    {:noreply, assign(socket, :memberships, load_memberships(socket.assigns.org.id))}
+  end
+
+  def handle_event("update_member_role", %{"id" => membership_id, "role" => role_str}, socket) do
+    role = String.to_existing_atom(role_str)
+    membership = Enum.find(socket.assigns.memberships, &(&1.id == membership_id))
+
+    membership
+    |> Ash.Changeset.for_update(:update_role, %{role: role})
+    |> Ash.update!(authorize?: false)
+
+    {:noreply, assign(socket, :memberships, load_memberships(socket.assigns.org.id))}
+  end
+
+  defp load_memberships(org_id) do
+    SupervisedSlices.Orgs.Membership
+    |> Ash.Query.filter(organization_id == ^org_id and role in [:admin, :staff])
+    |> Ash.Query.load([:user])
+    |> Ash.read!(authorize?: false)
   end
 
   defp maybe_put_logo(attrs, nil, _existing), do: attrs
@@ -707,6 +762,94 @@ defmodule SupervisedSlicesWeb.AdminLive.SettingsComponent do
             class="w-full bg-gradient-to-r from-primary to-primary-container text-white font-bold py-3 rounded-full text-sm uppercase tracking-widest hover:scale-[1.02] transition-all active:scale-95 shadow-[0px_8px_24px_rgba(185,0,39,0.25)]"
           >
             Save Branding
+          </button>
+        </form>
+      </div>
+    </div>
+
+      <div class="bg-white rounded-3xl shadow-sm p-8 space-y-6">
+        <div>
+          <h2 class="font-headline text-lg font-extrabold text-on-surface">
+            Team Members
+          </h2>
+          <p class="font-body text-sm text-on-surface-variant mt-1">
+            Invite staff to your kitchen or manage existing members. Staff can view and update orders; admins have full access.
+          </p>
+        </div>
+
+        <div class="space-y-1">
+          <%= for m <- @memberships do %>
+            <div class="flex items-center justify-between gap-4 py-2.5 border-b border-surface-container/40 last:border-0">
+              <p class="font-body text-sm font-medium text-on-surface truncate min-w-0">
+                {to_string(m.user.email)}
+              </p>
+              <div class="flex items-center gap-2 shrink-0">
+                <select
+                  phx-change="update_member_role"
+                  phx-value-id={m.id}
+                  phx-target={@myself}
+                  name="role"
+                  class="rounded-lg bg-surface-container-low border-0 text-xs font-bold px-2 py-1.5 text-on-surface focus:ring-2 focus:ring-primary/30 outline-none"
+                >
+                  <option value="admin" selected={m.role == :admin}>Admin</option>
+                  <option value="staff" selected={m.role == :staff}>Staff</option>
+                </select>
+                <button
+                  type="button"
+                  phx-click="remove_member"
+                  phx-value-id={m.id}
+                  phx-target={@myself}
+                  class="p-1.5 rounded-lg text-on-surface-variant hover:bg-surface-container-high transition-colors"
+                >
+                  <span class="material-symbols-outlined text-[18px]">close</span>
+                </button>
+              </div>
+            </div>
+          <% end %>
+        </div>
+
+        <form phx-submit="invite_member" phx-target={@myself} class="space-y-4 pt-4 border-t border-surface-container/50">
+          <div>
+            <label class="font-body block text-xs font-bold uppercase tracking-widest text-on-surface-variant mb-1.5">
+              Invite by Email
+            </label>
+            <input
+              type="email"
+              name="email"
+              value={@invite_email}
+              placeholder="team@example.com"
+              required
+              class="w-full px-4 py-3 rounded-xl bg-surface-container-low border-0 text-on-surface placeholder-on-surface-variant/50 text-sm font-medium focus:outline-none focus:ring-2 focus:ring-primary/40"
+            />
+          </div>
+
+          <div>
+            <label class="font-body block text-xs font-bold uppercase tracking-widest text-on-surface-variant mb-1.5">
+              Role
+            </label>
+            <select
+              name="role"
+              class="w-full px-4 py-3 rounded-xl bg-surface-container-low border-0 text-on-surface text-sm font-medium focus:outline-none focus:ring-2 focus:ring-primary/40"
+            >
+              <option value="staff" selected={@invite_role == :staff}>Staff — orders only</option>
+              <option value="admin" selected={@invite_role == :admin}>Admin — full access</option>
+            </select>
+          </div>
+
+          <%= if @invite_status == :ok do %>
+            <p class="text-sm text-secondary font-medium">Invitation sent.</p>
+          <% end %>
+          <%= if @invite_status == :error do %>
+            <p class="text-sm text-primary font-medium">
+              Could not send invite. Check the email or the user may already be a member.
+            </p>
+          <% end %>
+
+          <button
+            type="submit"
+            class="w-full bg-gradient-to-r from-primary to-primary-container text-white font-bold py-3 rounded-full text-sm uppercase tracking-widest hover:scale-[1.02] transition-all active:scale-95 shadow-[0px_8px_24px_rgba(185,0,39,0.25)]"
+          >
+            Send Invite
           </button>
         </form>
       </div>
