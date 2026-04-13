@@ -35,24 +35,22 @@ defmodule SupervisedSlicesWeb.Layouts do
 
   def app(assigns) do
     ~H"""
-    <header class="navbar px-4 sm:px-6 lg:px-8 py-4 backdrop-blur-md sticky top-0 z-50">
+    <header class="navbar px-8 py-4 bg-surface/80 backdrop-blur-md sticky top-0 z-50 shadow-soft transition-all duration-300">
       <div class="flex-1">
-        <a href="/" class="flex-1 flex w-fit items-center gap-3">
-          <img src={~p"/images/logo.svg"} width="42" />
-          <span class="text-xl font-headline font-bold tracking-tight">The Digital Hearth</span>
+        <a href="/" class="flex items-center gap-3 group">
+          <div class="font-headline text-2xl font-black tracking-tighter text-on-surface group-hover:text-primary transition-colors">
+            Basil & Stone
+          </div>
         </a>
       </div>
       <div class="flex-none">
-        <ul class="flex px-1 space-x-2 items-center">
+        <ul class="flex px-1 space-x-6 items-center">
           <li>
-            <a href="#features" class="btn btn-ghost font-body">Features</a>
+            <a href="#instruments" class="text-sm font-label font-bold uppercase tracking-widest text-on-surface opacity-60 hover:opacity-100 transition-opacity">Instruments</a>
           </li>
           <li>
-            <a href="#pricing" class="btn btn-ghost font-body">Pricing</a>
-          </li>
-          <li>
-            <a href="/register" class="btn btn-tomato font-headline px-6">
-              Start Trial
+            <a href="/register" class="bg-primary text-white px-6 py-2 rounded-md font-body font-bold text-sm hover:bg-primary-container transition-colors scale-95 active:scale-90 shadow-soft">
+              Get Started
             </a>
           </li>
         </ul>
