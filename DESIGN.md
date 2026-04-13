@@ -1,93 +1,97 @@
-# Design System Strategy: The Artisan Editorial
+```markdown
+# Design System Strategy: Basil & Stone
 
 ## 1. Overview & Creative North Star
-**Creative North Star: "The Modern Trattoria Canvas"**
-This design system rejects the "fast-food" template in favor of a high-end editorial experience. We are not building a generic ordering app; we are creating a digital storefront that feels like a floured marble countertop. By utilizing intentional asymmetry, overlapping high-quality food photography, and a sophisticated "No-Line" philosophy, we move the user through an energetic, tactile journey. The experience should feel as fresh as a basil leaf and as warm as a wood-fired oven.
+**Creative North Star: "The Digital Atelier"**
 
-### Breaking the Grid
-To avoid a "boxed-in" look, use **surface-container-lowest** elements that bleed off the edge of the screen or overlap across different background tiers. Large-scale typography should occasionally "tuck" behind isolated food PNGs to create 3D depth.
+This design system is built to bridge the gap between the visceral, tactile world of artisan flour and wood-fired ovens and the precision of high-end SaaS technology. We are not building a generic "app"; we are curating a digital broadsheet for the modern pizzaiolo.
+
+To achieve an "Atelier" feel, the system moves away from rigid bootstrap-style grids. Instead, it utilizes **Editorial Asymmetry**. This means we embrace intentional white space, high-contrast typographic scales, and elements that slightly overlap to create a sense of bespoke craftsmanship. The goal is to make every screen feel like a layout from a high-end culinary journal, where information density is balanced by sophisticated breathing room.
 
 ---
 
-## 2. Colors & Surface Philosophy
-The palette is a celebration of ingredients: Warm Whites (Flour/Dough), Tomato Red (Acid/Energy), and Basil Green (Freshness).
+## 2. Colors: Tonal Depth & The "No-Line" Rule
+
+The palette is rooted in organic, earthy tones—Sage, Stone, and Charcoal—interrupted by the "Artisan Red" of a ripening San Marzano tomato.
 
 ### The "No-Line" Rule
-**Explicit Instruction:** 1px solid borders are strictly prohibited for sectioning. Structural boundaries must be defined solely through background color shifts. 
-- A hero section using `surface` (`#faf9f6`) should transition into a featured menu section using `surface-container-low` (`#f4f3f1`). 
-- This creates a seamless, premium feel that mimics natural light falling on different surfaces.
+**Explicit Instruction:** Designers are prohibited from using 1px solid borders for sectioning. Boundaries must be defined solely through background color shifts.
+*   *Implementation:* Use a `surface-container-low` section sitting directly on a `surface` background. If you feel the need to draw a line, you haven't used your surface tokens correctly.
 
 ### Surface Hierarchy & Nesting
-Treat the UI as a physical stack of parchment and marble:
+Treat the UI as a series of physical layers, like stacked sheets of fine deckle-edged paper. 
+*   **Base:** `surface` (#fcf9f2)
+*   **Sections:** `surface-container-low` (#f6f3ec) or `surface-container` (#f0eee7)
+*   **Interactive Cards:** `surface-container-lowest` (#ffffff) to create a subtle "lift" against the warm stone background.
 
-
-1.  **Base Layer:** `surface` (`#faf9f6`) or `background` (`#faf9f6`).
-2.  **Sectioning:** `surface-container-low` (`#f4f3f1`) for large content blocks.
-3.  **Interactive Elements:** Use `surface-container-lowest` (`#ffffff`) for cards to make them "pop" against the warmer background.
-
-### The "Glass & Gradient" Rule
-To add "soul" to the interface:
-- **Signature Gradients:** For primary CTAs and hero backgrounds, use a subtle linear gradient from `primary` (`#b90027`) to `primary_container` (`#e31837`). This mimics the natural color variation of a ripening tomato.
-- **Glassmorphism:** Use semi-transparent `surface_container_lowest` with a `backdrop-blur` of 12px-20px for floating navigation bars or "Add to Cart" modals.
+### The Glass & Gradient Rule
+To prevent the UI from feeling "flat," use **Glassmorphism** for floating menus and navigation bars.
+*   *Formula:* `surface` color at 80% opacity + `backdrop-blur: 20px`.
+*   *Signature Textures:* For primary CTAs, use a subtle linear gradient from `primary` (#8c161a) to `primary_container` (#ad302f) at a 135-degree angle. This adds a "fired-clay" depth that flat hex codes lack.
 
 ---
 
-## 3. Typography
-We pair the geometric precision of **Plus Jakarta Sans** for headlines with the approachable, high-readability of **Be Vietnam Pro** for body copy.
+## 3. Typography: The Editorial Contrast
 
-*   **Display (Plus Jakarta Sans):** These are your "shouting ingredients." Use `display-lg` (3.5rem) for hero statements with tight letter spacing (-0.02em).
-*   **Headlines (Plus Jakarta Sans):** Energetic and playful. Use `headline-md` (1.75rem) for menu categories.
-*   **Body (Be Vietnam Pro):** Clean and functional. `body-lg` (1rem) is your workhorse for descriptions. Ensure a line height of at least 1.6 for that airy, editorial feel.
-*   **Labels (Be Vietnam Pro):** Use `label-md` (0.75rem) for metadata like "Spicy" or "Vegetarian," always in uppercase with +0.05em tracking for a "stamped" aesthetic.
+The soul of this system lies in the juxtaposition of a high-contrast serif and a precision-engineered sans-serif.
+
+*   **The Voice (Noto Serif):** Used for `display` and `headline` scales. It conveys authority and heritage. Large display headers should use tight letter-spacing (-2%) to feel more like a masthead.
+*   **The Engine (Plus Jakarta Sans):** Used for `title`, `body`, and `labels`. This provides the "modern technology" half of the brand. It is hyper-legible, clean, and professional.
+
+**Hierarchy as Identity:**
+*   **Display-LG (3.5rem):** Use for hero moments only.
+*   **Headline-SM (1.5rem):** Use for section headers, always in Noto Serif to ground the page in the "Atelier" feel.
+*   **Label-MD (0.75rem):** Always uppercase with 5-10% letter spacing when used for metadata or category tags.
 
 ---
 
-## 4. Elevation & Depth
-Depth in this system is achieved through **Tonal Layering**, not structural lines.
+## 4. Elevation & Depth: Tonal Layering
+
+Traditional shadows are often a sign of lazy design. In this system, we use **Tonal Layering** first.
 
 ### The Layering Principle
-Avoid traditional shadows where possible. Instead, place a `surface_container_lowest` card on top of a `surface_container` background. The slight shift in hex value creates a "Soft Lift" that feels modern and clean.
+Depth is achieved by "stacking" surface tiers. Place a `surface-container-lowest` card on a `surface-container-low` section. This creates a soft, natural lift that mimics paper on a stone countertop.
 
 ### Ambient Shadows
-When an element must float (e.g., a "Floating Action Button" for the cart):
-- **Shadow Value:** 0px 12px 32px rgba(93, 63, 62, 0.08). 
-- **The Tint Rule:** Never use pure black for shadows. Use a diluted version of `on_surface_variant` (`#5d3f3e`) to mimic the warm, ambient light of a kitchen.
+If a "floating" effect is mandatory (e.g., a modal or a floating action button):
+*   **Shadow Specs:** Blur: 40px, Spread: -10px, Opacity: 6%. 
+*   **Color Tint:** Never use pure black. Use a tinted version of `on-surface` (#1c1c18) to mimic natural ambient light.
 
 ### The "Ghost Border" Fallback
-If accessibility requires a container edge (e.g., input fields), use the **Ghost Border**: `outline_variant` (`#e6bdbb`) at **20% opacity**. It should be felt, not seen.
+If a border is required for accessibility (e.g., input fields), use the **Ghost Border**:
+*   *Spec:* `outline-variant` token at 20% opacity. Forbid 100% opaque borders.
 
 ---
 
-## 5. Components
+## 5. Components: Functional Elegance
 
-### Buttons & Interaction
-- **Primary Button:** Uses the Tomato Gradient (`primary` to `primary_container`). Shape: `lg` (2rem) rounded corners. 
-- **Secondary Button:** `surface_container_highest` background with `on_surface` text. No border.
-- **Micro-interactions:** On hover, buttons should scale slightly (1.02) and deepen their ambient shadow.
+### Buttons
+*   **Primary:** Artisan Red gradient. `rounded-md` (0.375rem). No border. White text.
+*   **Secondary:** Sage Green (`secondary`). Ghost Border style.
+*   **Tertiary:** Plus Jakarta Sans, Bold, Uppercase, 0.05em tracking. No container.
+
+### Input Fields
+*   **Style:** Minimalist. No background color (transparent). Only a bottom stroke using the "Ghost Border" (20% `outline-variant`).
+*   **States:** On focus, the bottom stroke transitions to `primary` (#8c161a) with a 2px weight.
 
 ### Cards & Lists
-- **Forbid Dividers:** Do not use lines to separate menu items. Use `3.5rem` (Spacing 10) of vertical whitespace or a subtle background toggle between `surface` and `surface_container_low`.
-- **Imagery:** Cards must feature high-quality, "hero" photography. Top-down "flat lay" angles work best for the editorial look. Use `xl` (3rem) corner radius for image containers.
+*   **The Card Rule:** No dividers. Separate content using `title-sm` headers and increased vertical white space (use the 24px or 32px spacing steps).
+*   **List Items:** Use `surface-container-low` for hover states. Never use horizontal lines to separate list items; use tonal shifts.
 
-### Inputs & Selection
-- **Inputs:** Use `surface_container_low` with a `md` (1.5rem) corner radius. The label should sit in `label-md` (Be Vietnam Pro) above the field, never inside as placeholder text.
-- **Chips:** For toppings or dietary filters, use `full` (9999px) rounding. Unselected: `surface_container`. Selected: `secondary` (Basil Green) with `on_secondary` (White).
-
-### Custom Component: The "Ingredient Float"
-A decorative component where isolated PNGs of ingredients (a basil leaf, a peppercorn) are positioned using absolute coordinates to overlap containers, breaking the "box" and adding organic texture.
+### Signature Component: The "Artisan Stamp" Badge
+*   A circular or high-radius `chip` using `secondary_container` (#c5e7df) with `on_secondary_container` (#496962) text. Used for status indicators (e.g., "Fermenting," "Fired," "Delivered").
 
 ---
 
-## 6. Do’s and Don’ts
+## 6. Do’s and Don'ts
 
 ### Do:
-- **Do** use large, bold imagery that breaks the container edges.
-- **Do** use `xl` (3rem) corner radius for main feature cards.
-- **Do** lean into the warm white (`#faf9f6`) to create a "breathable" layout.
-- **Do** use Basil Green (`#3a6843`) sparingly as a "freshness" accent (e.g., "Available Now" or "Organic" badges).
+*   **Do** allow Noto Serif headlines to "bleed" or overlap slightly into different background sections to break the grid.
+*   **Do** use high-density layouts. Professional chefs and business owners prefer seeing more data at once—just ensure it is organized through clear typographic weight, not boxes.
+*   **Do** use `background` (#fcf9f2) as your primary canvas; it feels warmer and more premium than pure #ffffff.
 
 ### Don’t:
-- **Don’t** use dark mode. This system is designed for the "Golden Hour" of dinner service.
-- **Don’t** use 1px dividers. If you feel the need for a line, add more whitespace instead.
-- **Don’t** use sharp corners. Everything should feel hand-tossed and organic.
-- **Don’t** use high-contrast shadows. If the shadow looks like a "drop shadow," it's too dark.
+*   **Don't** use 100% opaque black for text. Always use `on-surface` (#1c1c18).
+*   **Don't** use "Drop Shadows" on buttons. Use tonal contrast.
+*   **Don't** use standard icons. Use thin-stroke (1.5px or 1px) custom iconography to match the "Plus Jakarta Sans" weight.
+*   **Don't** use rounded-full (pills) for primary buttons; stick to `rounded-md` to maintain the "Atelier" architectural structure.

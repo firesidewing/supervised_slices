@@ -362,80 +362,76 @@ defmodule SupervisedSlicesWeb.AdminLive.SettingsComponent do
 
   def render(assigns) do
     ~H"""
-    <div class="max-w-lg mx-auto px-10 py-10 space-y-6">
-      <div class="bg-white rounded-3xl shadow-sm p-8 space-y-6">
+    <div class="max-w-2xl mx-auto space-y-12 pb-24">
+      <div class="bg-surface-container-low rounded-md shadow-sm p-10 space-y-10">
         <div>
-          <h2 class="font-headline text-lg font-extrabold text-on-surface">
-            Kitchen Settings
+          <h2 class="font-headline text-2xl font-black text-on-surface">
+            System Settings
           </h2>
-          <p class="font-body text-sm text-on-surface-variant mt-1">
+          <p class="font-body text-sm text-on-surface-variant/60 mt-1 italic">
             Configure defaults for orders and tax.
           </p>
         </div>
 
-        <form phx-submit="save_settings" phx-target={@myself} class="space-y-4">
-          <div>
-            <label class="font-body block text-xs font-bold uppercase tracking-widest text-on-surface-variant mb-1.5">
-              Default Prep Time (minutes)
-            </label>
-            <div class="relative">
-              <input
-                type="text"
-                name="prep_time"
-                value={@prep_time_input}
-                placeholder="e.g. 20"
-                class="w-full px-4 py-3 pr-14 rounded-xl bg-surface-container-low border-0 text-on-surface placeholder-on-surface-variant/50 text-sm font-medium focus:outline-none focus:ring-2 focus:ring-primary/40"
-              />
-              <span class="absolute right-4 top-1/2 -translate-y-1/2 text-on-surface-variant font-bold text-sm">
-                min
-              </span>
-            </div>
-            <p class="font-body text-xs text-on-surface-variant mt-1.5">
-              Shown to customers as their estimated wait time. Between 1–120 min.
-            </p>
-          </div>
-
-          <div>
-            <label class="font-body block text-xs font-bold uppercase tracking-widest text-on-surface-variant mb-1.5">
-              Tax Rate (%)
-            </label>
-            <div class="relative">
-              <input
-                type="text"
-                name="tax_rate"
-                value={@tax_input}
-                placeholder="e.g. 8.75"
-                class="w-full px-4 py-3 pr-10 rounded-xl bg-surface-container-low border-0 text-on-surface placeholder-on-surface-variant/50 text-sm font-medium focus:outline-none focus:ring-2 focus:ring-primary/40"
-              />
-              <span class="absolute right-4 top-1/2 -translate-y-1/2 text-on-surface-variant font-bold text-sm">
-                %
-              </span>
-            </div>
-            <p class="font-body text-xs text-on-surface-variant mt-1.5">
-              Applied to every order at checkout. Enter 0 to disable tax.
-            </p>
-          </div>
-
-          <div class="pt-6 border-t border-surface-container/50 space-y-6">
+        <form phx-submit="save_settings" phx-target={@myself} class="space-y-8">
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
             <div>
-              <h3 class="font-headline text-base font-extrabold text-on-surface">
-                Delivery & Pickup
+              <label class="font-body block text-[10px] font-black uppercase tracking-[0.2em] text-on-surface-variant/40 mb-2">
+                Default Prep Time (minutes)
+              </label>
+              <div class="relative">
+                <input
+                  type="text"
+                  name="prep_time"
+                  value={@prep_time_input}
+                  placeholder="e.g. 20"
+                  class="w-full px-4 py-3 pr-14 rounded bg-surface-container-highest border-0 text-on-surface placeholder-on-surface-variant/30 text-sm font-bold focus:outline-none focus:ring-1 focus:ring-primary"
+                />
+                <span class="absolute right-4 top-1/2 -translate-y-1/2 text-on-surface-variant/40 font-bold text-[10px] uppercase">
+                  min
+                </span>
+              </div>
+            </div>
+
+            <div>
+              <label class="font-body block text-[10px] font-black uppercase tracking-[0.2em] text-on-surface-variant/40 mb-2">
+                Tax Rate (%)
+              </label>
+              <div class="relative">
+                <input
+                  type="text"
+                  name="tax_rate"
+                  value={@tax_input}
+                  placeholder="e.g. 8.75"
+                  class="w-full px-4 py-3 pr-10 rounded bg-surface-container-highest border-0 text-on-surface placeholder-on-surface-variant/30 text-sm font-bold focus:outline-none focus:ring-1 focus:ring-primary"
+                />
+                <span class="absolute right-4 top-1/2 -translate-y-1/2 text-on-surface-variant/40 font-bold text-sm">
+                  %
+                </span>
+              </div>
+            </div>
+          </div>
+
+          <div class="pt-10 border-t border-on-surface/5 space-y-8">
+            <div>
+              <h3 class="font-headline text-lg font-black text-on-surface">
+                Fulfillment Channels
               </h3>
-              <p class="font-body text-xs text-on-surface-variant mt-1">
+              <p class="font-body text-xs text-on-surface-variant/60 mt-1">
                 Configure delivery area and fees.
               </p>
             </div>
 
-            <div class="flex gap-8">
+            <div class="flex gap-12">
               <label class="flex items-center gap-3 font-body text-sm font-bold text-on-surface cursor-pointer group">
                 <input
                   type="checkbox"
                   name="delivery_enabled"
                   value="true"
                   checked={@delivery_enabled}
-                  class="w-5 h-5 rounded-lg border-2 border-surface-container text-primary focus:ring-primary/20 transition-all cursor-pointer"
+                  class="w-5 h-5 rounded border-2 border-surface-container-highest text-primary focus:ring-primary/20 transition-all cursor-pointer"
                 />
-                <span>Delivery</span>
+                <span class="uppercase tracking-widest text-[10px]">Delivery</span>
               </label>
               <label class="flex items-center gap-3 font-body text-sm font-bold text-on-surface cursor-pointer group">
                 <input
@@ -443,19 +439,19 @@ defmodule SupervisedSlicesWeb.AdminLive.SettingsComponent do
                   name="pickup_enabled"
                   value="true"
                   checked={@pickup_enabled}
-                  class="w-5 h-5 rounded-lg border-2 border-surface-container text-primary focus:ring-primary/20 transition-all cursor-pointer"
+                  class="w-5 h-5 rounded border-2 border-surface-container-highest text-primary focus:ring-primary/20 transition-all cursor-pointer"
                 />
-                <span>Pickup</span>
+                <span class="uppercase tracking-widest text-[10px]">Pickup</span>
               </label>
             </div>
 
-            <div class="grid grid-cols-2 gap-4">
+            <div class="grid grid-cols-2 gap-8">
               <div>
-                <label class="font-body block text-xs font-bold uppercase tracking-widest text-on-surface-variant mb-1.5">
+                <label class="font-body block text-[10px] font-black uppercase tracking-[0.2em] text-on-surface-variant/40 mb-2">
                   Delivery Fee
                 </label>
                 <div class="relative">
-                  <span class="absolute left-4 top-1/2 -translate-y-1/2 text-on-surface-variant font-bold text-sm">
+                  <span class="absolute left-4 top-1/2 -translate-y-1/2 text-on-surface-variant/40 font-bold text-sm">
                     $
                   </span>
                   <input
@@ -463,16 +459,16 @@ defmodule SupervisedSlicesWeb.AdminLive.SettingsComponent do
                     name="delivery_fee"
                     value={@delivery_fee_input}
                     placeholder="0.00"
-                    class="w-full pl-8 pr-4 py-3 rounded-xl bg-surface-container-low border-0 text-on-surface placeholder-on-surface-variant/50 text-sm font-medium focus:outline-none focus:ring-2 focus:ring-primary/40"
+                    class="w-full pl-8 pr-4 py-3 rounded bg-surface-container-highest border-0 text-on-surface placeholder-on-surface-variant/30 text-sm font-bold focus:outline-none focus:ring-1 focus:ring-primary"
                   />
                 </div>
               </div>
               <div>
-                <label class="font-body block text-xs font-bold uppercase tracking-widest text-on-surface-variant mb-1.5">
+                <label class="font-body block text-[10px] font-black uppercase tracking-[0.2em] text-on-surface-variant/40 mb-2">
                   Min. Order
                 </label>
                 <div class="relative">
-                  <span class="absolute left-4 top-1/2 -translate-y-1/2 text-on-surface-variant font-bold text-sm">
+                  <span class="absolute left-4 top-1/2 -translate-y-1/2 text-on-surface-variant/40 font-bold text-sm">
                     $
                   </span>
                   <input
@@ -480,29 +476,26 @@ defmodule SupervisedSlicesWeb.AdminLive.SettingsComponent do
                     name="delivery_min_order"
                     value={@delivery_min_order_input}
                     placeholder="0.00"
-                    class="w-full pl-8 pr-4 py-3 rounded-xl bg-surface-container-low border-0 text-on-surface placeholder-on-surface-variant/50 text-sm font-medium focus:outline-none focus:ring-2 focus:ring-primary/40"
+                    class="w-full pl-8 pr-4 py-3 rounded bg-surface-container-highest border-0 text-on-surface placeholder-on-surface-variant/30 text-sm font-bold focus:outline-none focus:ring-1 focus:ring-primary"
                   />
                 </div>
               </div>
             </div>
 
-            <div class="space-y-4 p-5 bg-surface-container-lowest/50 rounded-2xl border border-surface-container/30">
-              <label class="font-body block text-[10px] font-black uppercase tracking-[0.15em] text-on-surface-variant">
-                Delivery Geo-fence (Circle)
+            <div class="space-y-4 p-6 bg-surface-container-highest/20 rounded-md border border-on-surface/5">
+              <label class="font-body block text-[10px] font-black uppercase tracking-[0.2em] text-primary/60">
+                Delivery Geo-fence
               </label>
 
               <div class="space-y-2">
-                <label class="text-[10px] font-bold uppercase tracking-wider text-on-surface-variant/70 ml-1">
-                  Search Center Address
-                </label>
                 <div class="flex gap-2">
                   <input
                     type="text"
                     name="address_search"
                     id="address_search"
                     value={@search_address_input}
-                    placeholder="Enter an address..."
-                    class="flex-1 px-4 py-2.5 rounded-xl bg-surface-container-low border-0 text-sm font-medium focus:ring-2 focus:ring-primary/40"
+                    placeholder="Search center address..."
+                    class="flex-1 px-4 py-2.5 rounded bg-surface-container-highest border-0 text-sm font-bold focus:ring-1 focus:ring-primary outline-none"
                     phx-keydown="search_address"
                     phx-key="Enter"
                     phx-change="update_search_input"
@@ -513,7 +506,7 @@ defmodule SupervisedSlicesWeb.AdminLive.SettingsComponent do
                     phx-click="search_address"
                     phx-value-address={@search_address_input}
                     phx-target={@myself}
-                    class="px-4 py-2 bg-surface-container text-on-surface rounded-xl text-xs font-bold uppercase tracking-widest hover:bg-surface-container-high transition-colors"
+                    class="px-6 py-2 bg-primary text-white rounded-md text-[10px] font-black uppercase tracking-widest hover:opacity-90 transition-all active:scale-95"
                   >
                     Search
                   </button>
@@ -527,74 +520,70 @@ defmodule SupervisedSlicesWeb.AdminLive.SettingsComponent do
                 data-lat={@geo_fence_lat}
                 data-lng={@geo_fence_lng}
                 data-radius={@geo_fence_radius}
-                class="w-full h-64 rounded-2xl border-2 border-surface-container overflow-hidden"
+                class="w-full h-64 rounded border border-on-surface/5 overflow-hidden"
               >
               </div>
 
-              <div class="grid grid-cols-2 gap-4">
+              <div class="grid grid-cols-3 gap-4">
                 <div class="space-y-1">
-                  <label class="text-[10px] font-bold uppercase tracking-wider text-on-surface-variant/70 ml-1">
+                  <label class="text-[9px] font-black uppercase tracking-widest text-on-surface-variant/40 ml-1">
                     Latitude
                   </label>
                   <input
                     type="text"
                     name="geo_fence_lat"
                     value={@geo_fence_lat}
-                    placeholder="e.g. 40.7128"
-                    class="w-full px-4 py-2.5 rounded-xl bg-surface-container-low border-0 text-sm font-medium focus:ring-2 focus:ring-primary/40"
+                    class="w-full px-4 py-2.5 rounded bg-surface-container-highest border-0 text-xs font-bold focus:ring-1 focus:ring-primary"
                   />
                 </div>
                 <div class="space-y-1">
-                  <label class="text-[10px] font-bold uppercase tracking-wider text-on-surface-variant/70 ml-1">
+                  <label class="text-[9px] font-black uppercase tracking-widest text-on-surface-variant/40 ml-1">
                     Longitude
                   </label>
                   <input
                     type="text"
                     name="geo_fence_lng"
                     value={@geo_fence_lng}
-                    placeholder="e.g. -74.0060"
-                    class="w-full px-4 py-2.5 rounded-xl bg-surface-container-low border-0 text-sm font-medium focus:ring-2 focus:ring-primary/40"
+                    class="w-full px-4 py-2.5 rounded bg-surface-container-highest border-0 text-xs font-bold focus:ring-1 focus:ring-primary"
                   />
                 </div>
-              </div>
-              <div class="space-y-1">
-                <label class="text-[10px] font-bold uppercase tracking-wider text-on-surface-variant/70 ml-1">
-                  Radius (km)
-                </label>
-                <input
-                  type="text"
-                  name="geo_fence_radius"
-                  value={@geo_fence_radius}
-                  phx-change="update_radius"
-                  phx-target={@myself}
-                  placeholder="e.g. 5.0"
-                  class="w-full px-4 py-2.5 rounded-xl bg-surface-container-low border-0 text-sm font-medium focus:ring-2 focus:ring-primary/40"
-                />
+                <div class="space-y-1">
+                  <label class="text-[9px] font-black uppercase tracking-widest text-on-surface-variant/40 ml-1">
+                    Radius (km)
+                  </label>
+                  <input
+                    type="text"
+                    name="geo_fence_radius"
+                    value={@geo_fence_radius}
+                    phx-change="update_radius"
+                    phx-target={@myself}
+                    class="w-full px-4 py-2.5 rounded bg-surface-container-highest border-0 text-xs font-bold focus:ring-1 focus:ring-primary"
+                  />
+                </div>
               </div>
             </div>
           </div>
 
-          <div class="pt-6 border-t border-surface-container/50 space-y-4">
+          <div class="pt-10 border-t border-on-surface/5 space-y-6">
             <div>
-              <h3 class="font-headline text-base font-extrabold text-on-surface">
-                Operating Hours
+              <h3 class="font-headline text-lg font-black text-on-surface">
+                Operating Schedule
               </h3>
-              <p class="font-body text-xs text-on-surface-variant mt-0.5">
-                Times are in your configured timezone. Customers cannot place orders outside these hours.
-                Leave all days enabled and set wide hours to accept orders 24/7.
+              <p class="font-body text-xs text-on-surface-variant/60 mt-1 italic">
+                Set your kitchen's open hours.
               </p>
             </div>
 
             <div>
-              <label class="font-body block text-xs font-bold uppercase tracking-widest text-on-surface-variant mb-1.5">
+              <label class="font-body block text-[10px] font-black uppercase tracking-[0.2em] text-on-surface-variant/40 mb-2">
                 Timezone
               </label>
               <select
                 name="timezone"
-                class="w-full px-4 py-3 rounded-xl bg-surface-container-low border-0 text-on-surface text-sm font-medium focus:outline-none focus:ring-2 focus:ring-primary/40"
+                class="w-full px-4 py-3 rounded bg-surface-container-highest border-0 text-on-surface text-sm font-bold focus:outline-none focus:ring-1 focus:ring-primary"
               >
                 <%= for {group, zones} <- timezone_options() do %>
-                  <optgroup label={group}>
+                  <optgroup label={group} class="font-bold text-xs uppercase tracking-widest">
                     <%= for {label, value} <- zones do %>
                       <option value={value} selected={@timezone == value}>{label}</option>
                     <% end %>
@@ -613,249 +602,249 @@ defmodule SupervisedSlicesWeb.AdminLive.SettingsComponent do
               {"sun", "Sunday"}
             ] %>
 
-            <div class="space-y-2">
+            <div class="space-y-2 pt-4">
               <%= for {key, label} <- days do %>
                 <% is_open = schedule_day_value(@schedule, :"#{key}_open", key not in ["sun"]) %>
-                <% open_time =
-                  schedule_day_value(
-                    @schedule,
-                    :"#{key}_open_time",
-                    if(key in ["fri", "sat"], do: "11:00", else: "11:00")
-                  ) %>
-                <% close_time =
-                  schedule_day_value(
-                    @schedule,
-                    :"#{key}_close_time",
-                    if(key in ["fri", "sat"], do: "23:00", else: "22:00")
-                  ) %>
+                <% open_time = schedule_day_value(@schedule, :"#{key}_open_time", "11:00") %>
+                <% close_time = schedule_day_value(@schedule, :"#{key}_close_time", "22:00") %>
 
-                <div class="flex items-center gap-3 py-2">
-                  <span class="font-body text-xs font-bold text-on-surface-variant w-20 uppercase tracking-widest">
+                <div class="flex items-center gap-4 py-2 border-b border-on-surface/5 last:border-0">
+                  <span class="font-body text-[10px] font-black text-on-surface-variant w-24 uppercase tracking-widest">
                     {label}
                   </span>
 
-                  <%!-- Hidden false value so unchecked = "false" in params --%>
                   <input type="hidden" name={"#{key}_open"} value="false" />
-                  <label class="flex items-center gap-2 cursor-pointer">
+                  <label class="flex items-center gap-2 cursor-pointer group">
                     <input
                       type="checkbox"
                       name={"#{key}_open"}
                       value="true"
                       checked={is_open}
-                      class="rounded accent-primary w-4 h-4"
+                      class="rounded border-2 border-surface-container-highest text-primary focus:ring-primary/20 w-4 h-4"
                     />
-                    <span class="font-body text-xs text-on-surface">Open</span>
+                    <span class="text-[10px] font-black uppercase tracking-widest text-on-surface-variant/40 group-hover:text-primary transition-colors">
+                      Open
+                    </span>
                   </label>
 
-                  <input
-                    type="time"
-                    name={"#{key}_open_time"}
-                    value={open_time}
-                    class="rounded-lg bg-surface-container-low border-0 text-sm px-2 py-1.5 text-on-surface focus:ring-2 focus:ring-primary/30 outline-none w-28"
-                  />
-                  <span class="text-xs text-on-surface-variant">to</span>
-                  <input
-                    type="time"
-                    name={"#{key}_close_time"}
-                    value={close_time}
-                    class="rounded-lg bg-surface-container-low border-0 text-sm px-2 py-1.5 text-on-surface focus:ring-2 focus:ring-primary/30 outline-none w-28"
-                  />
+                  <div class="flex-1 flex items-center justify-end gap-3">
+                    <input
+                      type="time"
+                      name={"#{key}_open_time"}
+                      value={open_time}
+                      class="rounded bg-surface-container-highest border-0 text-xs font-bold px-3 py-1.5 text-on-surface focus:ring-1 focus:ring-primary outline-none"
+                    />
+                    <span class="text-[10px] font-black text-on-surface-variant/20 uppercase">to</span>
+                    <input
+                      type="time"
+                      name={"#{key}_close_time"}
+                      value={close_time}
+                      class="rounded bg-surface-container-highest border-0 text-xs font-bold px-3 py-1.5 text-on-surface focus:ring-1 focus:ring-primary outline-none"
+                    />
+                  </div>
                 </div>
               <% end %>
             </div>
           </div>
 
-          <%= if @save_status == :ok do %>
-            <p class="text-sm text-secondary font-medium">Settings saved.</p>
-          <% end %>
-          <%= if @save_status == :error do %>
-            <p class="text-sm text-primary font-medium">
-              Check your values: prep time 1–120 min, tax 0–100%.
-            </p>
-          <% end %>
-
-          <button
-            type="submit"
-            class="w-full bg-gradient-to-r from-primary to-primary-container text-white font-bold py-3 rounded-full text-sm uppercase tracking-widest hover:scale-[1.02] transition-all active:scale-95 shadow-[0px_8px_24px_rgba(185,0,39,0.25)]"
-          >
-            Save
-          </button>
-        </form>
-      </div>
-
-      <div class="bg-white rounded-3xl shadow-sm p-8 space-y-6">
-        <div>
-          <h2 class="font-headline text-lg font-extrabold text-on-surface">
-            Branding
-          </h2>
-          <p class="font-body text-sm text-on-surface-variant mt-1">
-            Customise the logo and colours shown to staff and customers.
-          </p>
-        </div>
-
-        <form phx-submit="save_branding" phx-target={@myself} class="space-y-5">
-          <div>
-            <label class="font-body block text-xs font-bold uppercase tracking-widest text-on-surface-variant mb-1.5">
-              Logo
-            </label>
-            <%= if @org.logo_url do %>
-              <div class="mb-3 p-3 bg-surface-container-low rounded-xl inline-block">
-                <img src={@org.logo_url} alt="Current logo" class="h-12 object-contain" />
-              </div>
+          <div class="pt-10 flex flex-col gap-4">
+            <%= if @save_status == :ok do %>
+              <p class="text-[10px] font-black uppercase tracking-[0.2em] text-secondary text-center">Settings saved successfully</p>
             <% end %>
-            <.live_file_input
-              upload={@uploads.logo}
-              class="w-full text-sm text-on-surface-variant file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-xs file:font-bold file:uppercase file:tracking-widest file:bg-surface-container file:text-on-surface hover:file:bg-surface-container-high cursor-pointer"
-            />
-            <p class="font-body text-xs text-on-surface-variant mt-1.5">
-              Accepted: JPG, PNG, GIF, WebP, SVG — max 5 MB.
-            </p>
+            <%= if @save_status == :error do %>
+              <p class="text-[10px] font-black uppercase tracking-[0.2em] text-primary text-center">Invalid input values</p>
+            <% end %>
+
+            <button
+              type="submit"
+              class="w-full bg-primary text-white font-black py-4 rounded-md text-xs uppercase tracking-[0.2em] transition-all active:scale-95 shadow-lg shadow-primary/10"
+            >
+              Commit Settings
+            </button>
           </div>
-
-          <div>
-            <label class="font-body block text-xs font-bold uppercase tracking-widest text-on-surface-variant mb-1.5">
-              Primary Colour
-            </label>
-            <div class="flex items-center gap-3">
-              <input
-                type="color"
-                name="primary_color"
-                value={@primary_color_input}
-                class="w-12 h-10 rounded-lg border-0 cursor-pointer bg-transparent p-0.5"
-              />
-              <span class="font-body text-sm text-on-surface-variant">{@primary_color_input}</span>
-            </div>
-            <p class="font-body text-xs text-on-surface-variant mt-1.5">
-              Used for buttons, headings, and accent elements.
-            </p>
-          </div>
-
-          <div>
-            <label class="font-body block text-xs font-bold uppercase tracking-widest text-on-surface-variant mb-1.5">
-              Secondary Colour
-            </label>
-            <div class="flex items-center gap-3">
-              <input
-                type="color"
-                name="secondary_color"
-                value={@secondary_color_input}
-                class="w-12 h-10 rounded-lg border-0 cursor-pointer bg-transparent p-0.5"
-              />
-              <span class="font-body text-sm text-on-surface-variant">{@secondary_color_input}</span>
-            </div>
-            <p class="font-body text-xs text-on-surface-variant mt-1.5">
-              Used for badges and availability indicators.
-            </p>
-          </div>
-
-          <%= if @branding_status == :ok do %>
-            <p class="text-sm text-secondary font-medium">Branding saved.</p>
-          <% end %>
-          <%= if @branding_status == :error do %>
-            <p class="text-sm text-primary font-medium">
-              Colour values must be valid hex colours (e.g. #ff0000).
-            </p>
-          <% end %>
-
-          <button
-            type="submit"
-            class="w-full bg-gradient-to-r from-primary to-primary-container text-white font-bold py-3 rounded-full text-sm uppercase tracking-widest hover:scale-[1.02] transition-all active:scale-95 shadow-[0px_8px_24px_rgba(185,0,39,0.25)]"
-          >
-            Save Branding
-          </button>
         </form>
       </div>
-    </div>
 
-    <div class="bg-white rounded-3xl shadow-sm p-8 space-y-6">
-      <div>
-        <h2 class="font-headline text-lg font-extrabold text-on-surface">
-          Team Members
-        </h2>
-        <p class="font-body text-sm text-on-surface-variant mt-1">
-          Invite staff to your kitchen or manage existing members. Staff can view and update orders; admins have full access.
-        </p>
-      </div>
+      <div class="bg-surface-container-low rounded-md shadow-sm p-10 space-y-10">
+        <div>
+          <h2 class="font-headline text-2xl font-black text-on-surface">
+            Visual Atelier
+          </h2>
+          <p class="font-body text-sm text-on-surface-variant/60 mt-1 italic">
+            Customize the artisan identity.
+          </p>
+        </div>
 
-      <div class="space-y-1">
-        <%= for m <- @memberships do %>
-          <div class="flex items-center justify-between gap-4 py-2.5 border-b border-surface-container/40 last:border-0">
-            <p class="font-body text-sm font-medium text-on-surface truncate min-w-0">
-              {to_string(m.user.email)}
-            </p>
-            <div class="flex items-center gap-2 shrink-0">
-              <select
-                phx-change="update_member_role"
-                phx-value-id={m.id}
-                phx-target={@myself}
-                name="role"
-                class="rounded-lg bg-surface-container-low border-0 text-xs font-bold px-2 py-1.5 text-on-surface focus:ring-2 focus:ring-primary/30 outline-none"
-              >
-                <option value="admin" selected={m.role == :admin}>Admin</option>
-                <option value="staff" selected={m.role == :staff}>Staff</option>
-              </select>
-              <button
-                type="button"
-                phx-click="remove_member"
-                phx-value-id={m.id}
-                phx-target={@myself}
-                class="p-1.5 rounded-lg text-on-surface-variant hover:bg-surface-container-high transition-colors"
-              >
-                <span class="material-symbols-outlined text-[18px]">close</span>
-              </button>
+        <form phx-submit="save_branding" phx-target={@myself} class="space-y-8">
+          <div>
+            <label class="font-body block text-[10px] font-black uppercase tracking-[0.2em] text-on-surface-variant/40 mb-4">
+              Brand Mark (Logo)
+            </label>
+            <div class="flex items-center gap-8">
+              <%= if @org.logo_url do %>
+                <div class="p-4 bg-surface-container-highest rounded-md shrink-0">
+                  <img src={@org.logo_url} alt="Current logo" class="h-16 w-auto object-contain" />
+                </div>
+              <% end %>
+              <div class="flex-1">
+                <.live_file_input
+                  upload={@uploads.logo}
+                  class="w-full text-xs text-on-surface-variant/60 file:mr-4 file:py-2 file:px-6 file:rounded file:border-0 file:text-[10px] file:font-black file:uppercase file:tracking-[0.2em] file:bg-primary file:text-white file:cursor-pointer hover:file:opacity-90"
+                />
+                <p class="font-body text-[9px] text-on-surface-variant/40 mt-3 uppercase tracking-widest leading-relaxed">
+                  JPG, PNG, WebP — max 5 MB. Transparent SVG recommended.
+                </p>
+              </div>
             </div>
           </div>
-        <% end %>
+
+          <div class="grid grid-cols-2 gap-8 pt-4">
+            <div>
+              <label class="font-body block text-[10px] font-black uppercase tracking-[0.2em] text-on-surface-variant/40 mb-3">
+                Primary Brand Hue
+              </label>
+              <div class="flex items-center gap-4 p-3 bg-surface-container-highest rounded-md">
+                <input
+                  type="color"
+                  name="primary_color"
+                  value={@primary_color_input}
+                  class="w-10 h-10 rounded cursor-pointer bg-transparent p-0"
+                />
+                <span class="font-body text-xs font-black uppercase tracking-widest text-on-surface">{@primary_color_input}</span>
+              </div>
+            </div>
+
+            <div>
+              <label class="font-body block text-[10px] font-black uppercase tracking-[0.2em] text-on-surface-variant/40 mb-3">
+                Secondary Accent
+              </label>
+              <div class="flex items-center gap-4 p-3 bg-surface-container-highest rounded-md">
+                <input
+                  type="color"
+                  name="secondary_color"
+                  value={@secondary_color_input}
+                  class="w-10 h-10 rounded cursor-pointer bg-transparent p-0"
+                />
+                <span class="font-body text-xs font-black uppercase tracking-widest text-on-surface">{@secondary_color_input}</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="pt-10 flex flex-col gap-4">
+            <%= if @branding_status == :ok do %>
+              <p class="text-[10px] font-black uppercase tracking-[0.2em] text-secondary text-center">Branding updated</p>
+            <% end %>
+            <%= if @branding_status == :error do %>
+              <p class="text-[10px] font-black uppercase tracking-[0.2em] text-primary text-center">Invalid hex values</p>
+            <% end %>
+
+            <button
+              type="submit"
+              class="w-full bg-primary text-white font-black py-4 rounded-md text-xs uppercase tracking-[0.2em] transition-all active:scale-95 shadow-lg shadow-primary/10"
+            >
+              Update Identity
+            </button>
+          </div>
+        </form>
       </div>
 
-      <form
-        phx-submit="invite_member"
-        phx-target={@myself}
-        class="space-y-4 pt-4 border-t border-surface-container/50"
-      >
+      <div class="bg-surface-container-low rounded-md shadow-sm p-10 space-y-10">
         <div>
-          <label class="font-body block text-xs font-bold uppercase tracking-widest text-on-surface-variant mb-1.5">
-            Invite by Email
-          </label>
-          <input
-            type="email"
-            name="email"
-            value={@invite_email}
-            placeholder="team@example.com"
-            required
-            class="w-full px-4 py-3 rounded-xl bg-surface-container-low border-0 text-on-surface placeholder-on-surface-variant/50 text-sm font-medium focus:outline-none focus:ring-2 focus:ring-primary/40"
-          />
-        </div>
-
-        <div>
-          <label class="font-body block text-xs font-bold uppercase tracking-widest text-on-surface-variant mb-1.5">
-            Role
-          </label>
-          <select
-            name="role"
-            class="w-full px-4 py-3 rounded-xl bg-surface-container-low border-0 text-on-surface text-sm font-medium focus:outline-none focus:ring-2 focus:ring-primary/40"
-          >
-            <option value="staff" selected={@invite_role == :staff}>Staff — orders only</option>
-            <option value="admin" selected={@invite_role == :admin}>Admin — full access</option>
-          </select>
-        </div>
-
-        <%= if @invite_status == :ok do %>
-          <p class="text-sm text-secondary font-medium">Invitation sent.</p>
-        <% end %>
-        <%= if @invite_status == :error do %>
-          <p class="text-sm text-primary font-medium">
-            Could not send invite. Check the email or the user may already be a member.
+          <h2 class="font-headline text-2xl font-black text-on-surface">
+            Artisan Team
+          </h2>
+          <p class="font-body text-sm text-on-surface-variant/60 mt-1 italic">
+            Manage your kitchen staff.
           </p>
-        <% end %>
+        </div>
 
-        <button
-          type="submit"
-          class="w-full bg-gradient-to-r from-primary to-primary-container text-white font-bold py-3 rounded-full text-sm uppercase tracking-widest hover:scale-[1.02] transition-all active:scale-95 shadow-[0px_8px_24px_rgba(185,0,39,0.25)]"
+        <div class="space-y-4">
+          <%= for m <- @memberships do %>
+            <div class="flex items-center justify-between gap-6 py-4 border-b border-on-surface/5 last:border-0">
+              <div class="min-w-0 flex-1">
+                <p class="font-body text-sm font-black text-on-surface truncate">
+                  {to_string(m.user.email)}
+                </p>
+                <p class="text-[9px] font-black uppercase tracking-widest text-on-surface-variant/40">
+                  Joined {Calendar.strftime(m.inserted_at, "%b %d, %Y")}
+                </p>
+              </div>
+              <div class="flex items-center gap-4 shrink-0">
+                <select
+                  phx-change="update_member_role"
+                  phx-value-id={m.id}
+                  phx-target={@myself}
+                  name="role"
+                  class="rounded bg-surface-container-highest border-0 text-[10px] font-black uppercase tracking-widest px-3 py-1.5 text-on-surface focus:ring-1 focus:ring-primary outline-none"
+                >
+                  <option value="admin" selected={m.role == :admin}>Admin</option>
+                  <option value="staff" selected={m.role == :staff}>Staff</option>
+                </select>
+                <button
+                  type="button"
+                  phx-click="remove_member"
+                  phx-value-id={m.id}
+                  phx-target={@myself}
+                  class="p-1.5 text-on-surface-variant/20 hover:text-primary transition-colors"
+                >
+                  <span class="material-symbols-outlined text-lg">close</span>
+                </button>
+              </div>
+            </div>
+          <% end %>
+        </div>
+
+        <form
+          phx-submit="invite_member"
+          phx-target={@myself}
+          class="space-y-6 pt-10 border-t border-on-surface/5"
         >
-          Send Invite
-        </button>
-      </form>
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div>
+              <label class="font-body block text-[10px] font-black uppercase tracking-[0.2em] text-on-surface-variant/40 mb-2">
+                Invite by Email
+              </label>
+              <input
+                type="email"
+                name="email"
+                value={@invite_email}
+                placeholder="team@example.com"
+                required
+                class="w-full px-4 py-3 rounded bg-surface-container-highest border-0 text-sm font-bold focus:ring-1 focus:ring-primary"
+              />
+            </div>
+
+            <div>
+              <label class="font-body block text-[10px] font-black uppercase tracking-[0.2em] text-on-surface-variant/40 mb-2">
+                Role
+              </label>
+              <select
+                name="role"
+                class="w-full px-4 py-3 rounded bg-surface-container-highest border-0 text-sm font-bold focus:ring-1 focus:ring-primary"
+              >
+                <option value="staff" selected={@invite_role == :staff}>Staff — orders only</option>
+                <option value="admin" selected={@invite_role == :admin}>Admin — full access</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="flex flex-col gap-4">
+            <%= if @invite_status == :ok do %>
+              <p class="text-[10px] font-black uppercase tracking-[0.2em] text-secondary text-center">Invitation sent</p>
+            <% end %>
+            <%= if @invite_status == :error do %>
+              <p class="text-[10px] font-black uppercase tracking-[0.2em] text-primary text-center">Failed to send invitation</p>
+            <% end %>
+
+            <button
+              type="submit"
+              class="w-full bg-primary text-white font-black py-4 rounded-md text-xs uppercase tracking-[0.2em] transition-all active:scale-95 shadow-lg shadow-primary/10"
+            >
+              Send Invite
+            </button>
+          </div>
+        </form>
+      </div>
     </div>
     """
   end

@@ -54,223 +54,227 @@ defmodule SupervisedSlicesWeb.MenuLive.ItemComponent do
       )
 
     ~H"""
-    <div class="bg-background min-h-screen">
-      <div class="pt-32 pb-44 px-6 md:px-12 max-w-7xl mx-auto flex flex-col md:flex-row gap-12 items-start">
-        <div
-          :if={@selected_item.image_url}
-          class="relative w-full md:w-1/2 aspect-[4/3] md:aspect-[3/4] overflow-hidden rounded-[3rem] shadow-2xl shadow-primary/10"
-        >
+    <div class="bg-surface min-h-screen text-on-surface antialiased">
+      <main class="pt-[72px] pb-44">
+        <!-- Hero Section -->
+        <div class="relative w-full aspect-[4/5] md:aspect-video overflow-hidden">
           <img
+            :if={@selected_item.image_url}
             src={@selected_item.image_url}
             alt={@selected_item.name}
             class="w-full h-full object-cover"
             style={"view-transition-name: item-img-#{@selected_item.id};"}
           />
-          <div class="absolute inset-0 bg-gradient-to-t from-background/40 to-transparent" />
-        </div>
-
-        <div class="w-full md:w-1/2 space-y-16">
-          <div>
-            <h2 class="font-headline text-5xl md:text-7xl font-black tracking-tighter text-on-surface leading-[0.9]">
+          <div
+            :if={!@selected_item.image_url}
+            class="w-full h-full bg-surface-container-low flex items-center justify-center"
+          >
+            <span class="material-symbols-outlined text-outline opacity-20 text-9xl">local_pizza</span>
+          </div>
+          <div class="absolute bottom-0 left-0 w-full h-2/3 bg-gradient-to-t from-surface to-transparent" />
+          <!-- Headline Overlay -->
+          <div class="absolute bottom-8 left-8 right-8">
+            <div class="flex items-center gap-2 mb-2">
+              <span class="bg-secondary-container text-on-secondary-container text-[10px] px-2 py-0.5 rounded-full font-label tracking-widest uppercase font-bold">
+                Chef's Signature
+              </span>
+            </div>
+            <h2 class="font-headline text-4xl md:text-5xl font-bold tracking-tight text-on-surface leading-none">
               {@selected_item.name}
             </h2>
-            <p class="mt-8 text-on-surface-variant leading-relaxed text-xl font-medium opacity-80 max-w-xl">
+            <p class="mt-2 text-on-surface-variant max-w-xl text-sm md:text-base italic opacity-90">
               {@selected_item.description}
             </p>
           </div>
+        </div>
 
-          <div :if={not Enum.empty?(@selected_item.sizes || [])} class="space-y-8">
-            <div class="flex flex-col gap-1 px-1">
-              <h3 class="font-headline text-2xl font-black tracking-tight text-on-surface uppercase italic">
-                Choose a Size
-              </h3>
+        <div class="px-8 space-y-12 max-w-3xl mx-auto -mt-4 relative z-10">
+          <!-- Size Selector Section -->
+          <section :if={not Enum.empty?(@selected_item.sizes || [])}>
+            <div class="flex items-baseline justify-between mb-6">
+              <h3 class="font-headline text-xl font-bold">Select Diameter</h3>
+              <span class="font-label text-xs tracking-widest uppercase opacity-60">Essential Scale</span>
             </div>
-            <div class="grid grid-cols-1 gap-3">
-              <.size_row
+            <div class="flex overflow-x-auto gap-4 pb-4 no-scrollbar">
+              <.size_card
                 :for={size <- Enum.sort_by(@selected_item.sizes, & &1.sort_order)}
                 size={size}
                 selected={to_string(size.id) == @selected_size_id}
                 myself={@myself}
               />
             </div>
-          </div>
+          </section>
 
-          <div :for={group <- @selected_item.modifier_groups} class="space-y-8">
-            <div class="flex flex-col gap-1 px-1">
-              <h3 class="font-headline text-2xl font-black tracking-tight text-on-surface uppercase italic">
-                {group.name}
-              </h3>
+          <!-- Modifier Groups -->
+          <section :for={group <- @selected_item.modifier_groups} class="space-y-6">
+            <div class="flex items-baseline justify-between">
+              <h3 class="font-headline text-xl font-bold">{group.name}</h3>
+              <span class="font-label text-xs tracking-widest uppercase opacity-60">
+                {if(group.required, do: "Required", else: "Optional Palette")}
+              </span>
             </div>
             <div class="grid grid-cols-1 gap-3">
-              <.modifier_row
+              <.modifier_card
                 :for={modifier <- group.modifiers}
                 modifier={modifier}
                 item={@selected_item}
+                group={group}
                 selected={MapSet.member?(@selected_modifiers, to_string(modifier.id))}
                 myself={@myself}
               />
             </div>
-          </div>
+          </section>
 
-          <div :if={not @has_customization}>
-            <div class={[
-              "flex items-center justify-between py-4 px-6 rounded-xl bg-surface-container-lowest",
-              "shadow-[0px_12px_32px_rgba(93,63,62,0.08)]",
-              "transition-all duration-300"
-            ]}>
-              <span class="font-headline text-2xl font-black text-primary">
-                {format_money(@selected_item.price)}
-              </span>
-              <div class="flex items-center bg-surface-container rounded-full p-1.5 shadow-inner">
-                <button
-                  phx-click="update_quantity"
-                  phx-value-item_id={@selected_item.id}
-                  phx-value-delta="-1"
-                  class={[
-                    "w-10 h-10 flex items-center justify-center rounded-full transition-all active:scale-90 phx-click-loading:opacity-40 phx-click-loading:scale-95",
-                    if(get_item_qty(@cart_items_map, @selected_item.id) > 0,
-                      do: "bg-primary text-on-primary shadow-lg shadow-primary/20",
-                      else: "text-on-surface-variant hover:bg-surface-container-high"
-                    )
-                  ]}
-                  aria-label="Remove one"
-                >
-                  <span class="material-symbols-outlined text-xl font-bold">
-                    remove
-                  </span>
-                </button>
-                <span class="px-4 text-base font-black min-w-[2.5rem] text-center text-on-surface">
-                  {get_item_qty(@cart_items_map, @selected_item.id)}
-                </span>
-                <button
-                  phx-click="update_quantity"
-                  phx-value-item_id={@selected_item.id}
-                  phx-value-delta="1"
-                  class="w-10 h-10 flex items-center justify-center rounded-full bg-primary text-on-primary shadow-lg shadow-primary/20 hover:scale-105 transition-all active:scale-90 phx-click-loading:opacity-40 phx-click-loading:scale-95"
-                  aria-label="Add one"
-                >
-                  <span class="material-symbols-outlined text-xl font-bold">
-                    add
-                  </span>
-                </button>
-              </div>
+          <!-- Preparation Notes (Mock) -->
+          <section>
+            <div class="flex items-baseline justify-between mb-6">
+              <h3 class="font-headline text-xl font-bold">Preparation Notes</h3>
             </div>
-          </div>
+            <textarea
+              class="w-full bg-transparent border-none border-b border-outline-variant focus:border-primary focus:ring-0 text-sm py-4 px-0 placeholder:opacity-40 min-h-[100px] font-body"
+              placeholder="e.g. Extra charred crust, no basil..."
+            ></textarea>
+          </section>
         </div>
-      </div>
+      </main>
 
-      <div class="fixed bottom-8 left-0 right-0 px-6 z-50 md:left-auto md:right-12 md:bottom-12 md:w-[450px]">
-        <div>
+      <!-- Sticky Footer Action -->
+      <footer class="fixed bottom-0 left-0 w-full bg-surface/90 backdrop-blur-xl px-8 py-6 z-50 shadow-[0_-10px_40px_rgba(28,28,24,0.06)]">
+        <div class="max-w-3xl mx-auto flex items-center justify-between gap-6">
+          <div class="flex flex-col">
+            <span class="font-label text-[10px] tracking-widest uppercase opacity-60">Total Value</span>
+            <span :if={@total_price} class="font-headline text-2xl font-black text-on-surface">
+              {format_money(@total_price)}
+            </span>
+          </div>
           <button
             phx-click="add_to_cart"
             phx-value-item_id={@selected_item.id}
             phx-value-size_id={@selected_size_id}
             phx-value-modifier_ids={Enum.join(MapSet.to_list(@selected_modifiers), ",")}
-            class="w-full flex items-center justify-between bg-gradient-to-r from-primary to-primary-container text-on-primary font-black text-lg rounded-2xl px-6 py-4 shadow-[0px_24px_48px_rgba(185,0,39,0.35)] hover:scale-[1.03] hover:shadow-[0px_32px_64px_rgba(185,0,39,0.45)] transition-all active:scale-95 phx-click-loading:opacity-75 phx-click-loading:scale-95 phx-click-loading:cursor-wait phx-click-loading:pointer-events-none"
+            class="flex-1 py-4 bg-gradient-to-tr from-primary to-primary-container text-white font-label font-bold tracking-widest uppercase rounded-md shadow-lg scale-100 active:scale-95 transition-all phx-click-loading:opacity-75 phx-click-loading:scale-95 phx-click-loading:cursor-wait phx-click-loading:pointer-events-none"
           >
-            <div class="flex items-center gap-3">
-              <svg
-                class="animate-spin h-5 w-5 text-current hidden phx-click-loading:!block"
-                xmlns="http://www.w3.org/2000/svg"
-                fill="none"
-                viewBox="0 0 24 24"
-              >
-                <circle
-                  class="opacity-25"
-                  cx="12"
-                  cy="12"
-                  r="10"
-                  stroke="currentColor"
-                  stroke-width="4"
-                >
-                </circle>
-                <path
-                  class="opacity-75"
-                  fill="currentColor"
-                  d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
-                >
-                </path>
-              </svg>
-              <span class="tracking-tight uppercase phx-click-loading:!hidden">
-                Add to Basket
-              </span>
-              <span class="tracking-tight uppercase hidden phx-click-loading:!inline">
-                Adding to Basket...
-              </span>
-            </div>
-            <span
-              :if={@total_price}
-              class="font-headline text-3xl group-hover:scale-110 transition-transform phx-click-loading:!hidden"
-            >
-              {format_money(@total_price)}
-            </span>
+            <span class="phx-click-loading:hidden">Add to Basket</span>
+            <span class="hidden phx-click-loading:inline">Adding...</span>
           </button>
         </div>
-      </div>
+      </footer>
     </div>
     """
   end
 
-  defp size_row(assigns) do
+  defp size_card(assigns) do
     ~H"""
     <button
       id={"size-#{@size.id}"}
-      phx-click={
-        JS.set_attribute({"data-selected", "false"}, to: ".size-option")
-        |> JS.set_attribute({"data-selected", "true"}, to: "#size-#{@size.id}")
-        |> JS.push("select_size")
-      }
+      phx-click={JS.push("select_size")}
       phx-value-size_id={@size.id}
       phx-target={@myself}
-      data-selected={to_string(@selected)}
-      class="size-option group w-full flex items-center justify-between px-5 py-3.5 rounded-xl transition-all duration-300 text-left data-[selected=true]:bg-primary/5 data-[selected=true]:shadow-[0px_8px_24px_rgba(185,0,39,0.06)] data-[selected=true]:translate-x-1 data-[selected=false]:bg-surface-container-lowest data-[selected=false]:shadow-[0px_4px_12px_rgba(93,63,62,0.04)] data-[selected=false]:hover:bg-surface-container-low data-[selected=false]:hover:-translate-y-0.5"
+      class={[
+        "flex-shrink-0 w-28 h-36 flex flex-col items-center justify-center rounded-xl transition-all duration-300",
+        if(@selected,
+          do: "bg-surface-container border-b-2 border-primary-container shadow-md",
+          else: "bg-surface-container-low opacity-80 hover:opacity-100 hover:bg-surface-container"
+        )
+      ]}
     >
-      <div class="flex items-center gap-4">
-        <div class="w-6 h-6 rounded-full border-2 flex items-center justify-center shrink-0 transition-all duration-300 border-on-surface-variant/30 group-hover:border-primary/50 group-data-[selected=true]:border-primary group-data-[selected=true]:bg-primary group-data-[selected=true]:scale-110">
-          <div class="w-2.5 h-2.5 rounded-full bg-on-primary group-data-[selected=false]:hidden" />
-        </div>
-        <span class="font-headline text-base font-black transition-colors group-data-[selected=true]:text-primary group-data-[selected=false]:text-on-surface">
-          {@size.name}
-        </span>
-      </div>
-      <span class="font-headline text-base font-black transition-all group-data-[selected=true]:text-primary group-data-[selected=true]:scale-110 group-data-[selected=false]:text-on-surface-variant">
+      <span class="font-headline text-lg font-bold">{@size.name}</span>
+      <span class="text-[10px] opacity-60 mt-1 font-label uppercase tracking-widest">
+        {size_subtitle(@size)}
+      </span>
+      <span class={[
+        "font-bold mt-4",
+        if(@selected, do: "text-primary", else: "text-on-surface")
+      ]}>
         {format_money(@size.price)}
       </span>
     </button>
     """
   end
 
-  defp modifier_row(assigns) do
+  defp size_subtitle(size) do
+    case size.name do
+      "Personal" -> "Personal"
+      "Small" -> "Small"
+      "Medium" -> "Medium"
+      "Large" -> "Large"
+      "Atelier" -> "Atelier"
+      _ -> "Portion"
+    end
+  end
+
+  defp modifier_card(assigns) do
     ~H"""
     <button
       id={"modifier-#{@modifier.id}"}
-      phx-click={
-        JS.toggle_attribute({"data-selected", "true", "false"}, to: "#modifier-#{@modifier.id}")
-        |> JS.push("toggle_modifier")
-      }
+      phx-click={JS.push("toggle_modifier")}
       phx-value-modifier_id={@modifier.id}
       phx-target={@myself}
-      data-selected={to_string(@selected)}
-      class="group w-full flex items-center justify-between px-5 py-3.5 rounded-xl transition-all duration-300 text-left data-[selected=true]:bg-primary/5 data-[selected=true]:shadow-[0px_8px_24px_rgba(185,0,39,0.06)] data-[selected=true]:translate-x-1 data-[selected=false]:bg-surface-container-lowest data-[selected=false]:shadow-[0px_4px_12px_rgba(93,63,62,0.04)] data-[selected=false]:hover:bg-surface-container-low data-[selected=false]:hover:-translate-y-0.5"
+      class={[
+        "group flex items-center justify-between p-4 rounded-xl transition-all duration-300 text-left",
+        if(@selected,
+          do: "bg-surface-container shadow-sm border-b-2 border-primary-container",
+          else: "bg-surface-container-low hover:bg-surface-container opacity-80 hover:opacity-100"
+        )
+      ]}
     >
-      <div class="flex-1 min-w-0 pr-4">
-        <div class="text-base font-headline font-black transition-colors group-data-[selected=true]:text-primary group-data-[selected=false]:text-on-surface">
-          {@modifier.name}
-        </div>
-        <div class="text-xs font-black mt-1 uppercase tracking-widest transition-colors group-data-[selected=true]:text-primary/70 group-data-[selected=false]:text-on-surface-variant group-data-[selected=false]:opacity-70">
-          {modifier_price_label(@item, @modifier)}
+      <div class="flex items-center gap-4">
+        <span class={[
+          "material-symbols-outlined transition-colors",
+          if(@selected, do: "text-primary", else: "opacity-40")
+        ]}>
+          {modifier_icon(@modifier)}
+        </span>
+        <div>
+          <p class="font-bold text-sm">{@modifier.name}</p>
+          <p :if={@modifier.price_delta} class="text-xs opacity-60">
+            +{format_money(@modifier.price_delta)}
+          </p>
         </div>
       </div>
-      <div class="w-7 h-7 rounded-lg border-2 flex items-center justify-center shrink-0 transition-all duration-300 border-on-surface-variant/30 group-hover:border-primary/50 rotate-90 group-data-[selected=true]:bg-primary group-data-[selected=true]:border-primary group-data-[selected=true]:rotate-0 group-data-[selected=true]:scale-110">
-        <span
-          class="material-symbols-outlined text-on-primary font-black group-data-[selected=false]:hidden"
-          style="font-size: 18px;"
+
+      <div class="flex items-center gap-3">
+        <div
+          :if={@group.max_selections == 1}
+          class={[
+            "w-5 h-5 rounded-full border border-outline-variant flex items-center justify-center transition-all",
+            if(@selected, do: "bg-primary border-primary", else: "")
+          ]}
         >
-          check
-        </span>
+          <div :if={@selected} class="w-1.5 h-1.5 rounded-full bg-white" />
+        </div>
+
+        <div
+          :if={@group.max_selections != 1}
+          class={[
+            "w-8 h-8 flex items-center justify-center rounded transition-all",
+            if(@selected,
+              do: "bg-primary text-white border-b-2 border-primary-container scale-95",
+              else: "bg-surface-container-low text-on-surface opacity-40 border-b-2 border-outline-variant"
+            )
+          ]}
+        >
+          <span class="material-symbols-outlined text-sm">
+            {if(@selected, do: "check", else: "add")}
+          </span>
+        </div>
       </div>
     </button>
     """
+  end
+
+  defp modifier_icon(modifier) do
+    name = String.downcase(modifier.name)
+
+    cond do
+      String.contains?(name, "cheese") -> "egg"
+      String.contains?(name, "tomato") -> "nutrition"
+      String.contains?(name, "basil") -> "spa"
+      String.contains?(name, "oil") -> "water_drop"
+      String.contains?(name, "dough") or String.contains?(name, "crust") -> "bakery_dining"
+      String.contains?(name, "meat") or String.contains?(name, "prosciutto") -> "flatware"
+      true -> "add_circle"
+    end
   end
 
   defp compute_total(item, selected_size_id, selected_modifiers) do
@@ -306,22 +310,9 @@ defmodule SupervisedSlicesWeb.MenuLive.ItemComponent do
     end
   end
 
-  defp modifier_price_label(item, modifier) do
-    cond do
-      modifier.price_delta -> "+#{format_money(modifier.price_delta)}"
-      item.price -> format_money(item.price)
-      true -> "Included"
-    end
-  end
-
   defp format_money(money) do
     Money.to_string!(money)
   rescue
     _ -> "#{money}"
-  end
-
-  defp get_item_qty(cart_items_map, item_id) do
-    key = {to_string(item_id), nil, nil}
-    get_in(cart_items_map, [key, :quantity]) || 0
   end
 end

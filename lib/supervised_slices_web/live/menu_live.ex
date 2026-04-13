@@ -461,13 +461,13 @@ defmodule SupervisedSlicesWeb.MenuLive do
 
   def render(assigns) do
     ~H"""
-    <header class="fixed top-0 w-full z-50 bg-background/90 backdrop-blur-xl border-b border-on-surface/[0.03] flex items-center gap-4 px-6 py-4 shadow-sm shadow-black/[0.02]">
+    <header class="fixed top-0 w-full z-50 bg-background/80 backdrop-blur-md flex items-center gap-4 px-6 py-4 shadow-soft">
       <.link
         :if={@live_action == :show}
         id="back-button"
         navigate={~p"/menu/#{@org.slug}"}
         phx-click={JS.add_class("phx-click-loading", to: "self")}
-        class="flex items-center justify-center w-11 h-11 rounded-full bg-surface-container-low hover:bg-surface-container transition-all text-on-surface active:scale-90 active:bg-surface-container-highest phx-click-loading:scale-90 phx-click-loading:opacity-60 phx-click-loading:bg-surface-container-highest shadow-sm"
+        class="flex items-center justify-center w-11 h-11 rounded-full bg-surface-container-low hover:bg-surface-container transition-all text-on-surface active:scale-90 active:bg-surface-container-highest phx-click-loading:scale-90 phx-click-loading:opacity-60 phx-click-loading:bg-surface-container-highest"
         aria-label="Back to menu"
       >
         <span class="relative flex items-center justify-center w-5 h-5">
@@ -488,7 +488,7 @@ defmodule SupervisedSlicesWeb.MenuLive do
           alt={@org.name}
           class="h-8 max-w-[120px] object-contain"
         />
-        <h1 class="font-headline text-lg font-black tracking-tighter text-primary leading-none uppercase italic">
+        <h1 class="font-headline text-2xl font-black tracking-[-0.02em] text-on-surface leading-none">
           {@org.name}
         </h1>
       </div>
@@ -496,12 +496,14 @@ defmodule SupervisedSlicesWeb.MenuLive do
 
     <div
       :if={!@store_open}
-      class="mt-16 mx-4 rounded-2xl bg-primary-container/30 border border-primary/20 px-6 py-4 flex items-center gap-4"
+      class="mt-28 mx-6 bg-surface-container-high px-6 py-5 flex items-start gap-4"
     >
-      <span class="material-symbols-outlined text-primary text-3xl">storefront</span>
+      <span class="material-symbols-outlined text-primary text-2xl mt-0.5">storefront</span>
       <div>
-        <p class="font-headline font-black text-on-surface">We're currently closed</p>
-        <p class="font-body text-sm text-on-surface-variant mt-0.5">
+        <h3 class="font-headline text-lg font-bold text-on-surface leading-none">
+          We're currently closed
+        </h3>
+        <p class="font-body text-sm text-on-surface-variant mt-2 leading-relaxed">
           You can browse the menu, but orders aren't being accepted right now. Check back soon!
         </p>
       </div>
@@ -514,6 +516,7 @@ defmodule SupervisedSlicesWeb.MenuLive do
       categories={@categories}
       cart_items_map={@cart_items_map}
       org={@org}
+      store_open={@store_open}
     />
 
     <.live_component
@@ -566,8 +569,8 @@ defmodule SupervisedSlicesWeb.MenuLive do
         <button
           phx-click={open_basket_js() |> JS.push("toggle_basket")}
           class={[
-            "w-full flex items-center justify-between bg-gradient-to-r from-primary to-primary-container text-on-primary rounded-2xl px-6 py-4",
-            "shadow-[0px_24px_48px_rgba(185,0,39,0.3)] hover:scale-[1.03] hover:shadow-[0px_32px_64px_rgba(185,0,39,0.4)]",
+            "w-full flex items-center justify-between bg-gradient-to-br from-primary to-primary-container text-on-primary rounded-xl px-8 py-5",
+            "shadow-soft hover:scale-[1.03] hover:shadow-lg",
             "transition-all duration-300 active:scale-95 group"
           ]}
         >

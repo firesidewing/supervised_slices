@@ -8,8 +8,8 @@
    ============================================================ */
 @theme {
     /* Primary – Tomato Red */
-    --color-primary: #b90027;
-    --color-primary-container: #e31837;
+    --color-primary: #8c161a;
+    --color-primary-container: #ad302f;
     --color-primary-fixed: #ffdad8;
     --color-primary-fixed-dim: #ffb3b1;
     --color-on-primary: #ffffff;
@@ -19,46 +19,46 @@
     --color-inverse-primary: #ffb3b1;
 
     /* Secondary – Basil Green */
-    --color-secondary: #3a6843;
-    --color-secondary-container: #b9ecbd;
-    --color-secondary-fixed: #bcefc0;
-    --color-secondary-fixed-dim: #a0d3a5;
+    --color-secondary: #45645e;
+    --color-secondary-container: #c5e7df;
+    --color-secondary-fixed: #c8eae2;
+    --color-secondary-fixed-dim: #accdc6;
     --color-on-secondary: #ffffff;
-    --color-on-secondary-container: #3e6d47;
-    --color-on-secondary-fixed: #00210a;
-    --color-on-secondary-fixed-variant: #22502d;
+    --color-on-secondary-container: #496962;
+    --color-on-secondary-fixed: #00201c;
+    --color-on-secondary-fixed-variant: #2e4c47;
 
     /* Tertiary */
-    --color-tertiary: #615b47;
-    --color-tertiary-container: #7a735f;
-    --color-tertiary-fixed: #ece2c9;
-    --color-tertiary-fixed-dim: #cfc6ae;
+    --color-tertiary: #474742;
+    --color-tertiary-container: #5f5e59;
+    --color-tertiary-fixed: #e5e2db;
+    --color-tertiary-fixed-dim: #c9c6c0;
     --color-on-tertiary: #ffffff;
-    --color-on-tertiary-container: #fffaf5;
-    --color-on-tertiary-fixed: #201b0c;
-    --color-on-tertiary-fixed-variant: #4c4634;
+    --color-on-tertiary-container: #dad8d1;
+    --color-on-tertiary-fixed: #1c1c18;
+    --color-on-tertiary-fixed-variant: #474742;
 
     /* Surface stack (warm white / flour) – no borders, only tone shifts */
-    --color-background: #faf9f6;
-    --color-surface: #faf9f6;
-    --color-surface-bright: #faf9f6;
-    --color-surface-dim: #dbdad7;
-    --color-surface-variant: #e3e2e0;
-    --color-surface-tint: #bf0029;
+    --color-background: #fcf9f2;
+    --color-surface: #fcf9f2;
+    --color-surface-bright: #fcf9f2;
+    --color-surface-dim: #dcdad3;
+    --color-surface-variant: #e5e2db;
+    --color-surface-tint: #ad302f;
     --color-surface-container-lowest: #ffffff;
-    --color-surface-container-low: #f4f3f1;
-    --color-surface-container: #efeeeb;
-    --color-surface-container-high: #e9e8e5;
-    --color-surface-container-highest: #e3e2e0;
-    --color-on-surface: #1a1c1a;
-    --color-on-surface-variant: #5d3f3e;
-    --color-on-background: #1a1c1a;
-    --color-inverse-surface: #2f312f;
-    --color-inverse-on-surface: #f2f1ee;
+    --color-surface-container-low: #f6f3ec;
+    --color-surface-container: #f0eee7;
+    --color-surface-container-high: #ebe8e1;
+    --color-surface-container-highest: #e5e2db;
+    --color-on-surface: #1c1c18;
+    --color-on-surface-variant: #58413f;
+    --color-on-background: #1c1c18;
+    --color-inverse-surface: #31312c;
+    --color-inverse-on-surface: #f3f0ea;
 
     /* Outline / Ghost Border */
-    --color-outline: #916e6d;
-    --color-outline-variant: #e6bdbb;
+    --color-outline: #8c716e;
+    --color-outline-variant: #e0bfbc;
 
     /* Error */
     --color-error: #ba1a1a;
@@ -67,18 +67,18 @@
     --color-on-error-container: #93000a;
 
     /* Typography */
-    --font-headline: "Plus Jakarta Sans", sans-serif;
-    --font-body: "Be Vietnam Pro", sans-serif;
-    --font-label: "Be Vietnam Pro", sans-serif;
+    --font-headline: "Noto Serif", serif;
+    --font-body: "Plus Jakarta Sans", sans-serif;
+    --font-label: "Plus Jakarta Sans", sans-serif;
 
     /* Border radius – organic, hand-tossed feel */
-    --radius: 1rem;
-    --radius-lg: 2rem;
-    --radius-xl: 3rem;
-    --radius-full: 9999px;
+    --radius: 0.125rem;
+    --radius-lg: 0.25rem;
+    --radius-xl: 0.5rem;
+    --radius-full: 0.75rem;
 
     /* Shadows */
-    --shadow-soft: 0px 12px 32px rgba(93, 63, 62, 0.08);
+    --shadow-soft: 0px 40px 40px -10px rgba(28, 28, 24, 0.06);
 }
 
 /* Material Symbols Outlined icon font */
@@ -151,17 +151,17 @@
     default: true;
     prefersdark: false;
     color-scheme: "light";
-    --color-base-100: #faf9f6;
-    --color-base-200: #f4f3f1;
-    --color-base-300: #efeeeb;
-    --color-base-content: #1a1c1a;
-    --color-primary: #b90027;
+    --color-base-100: #fcf9f2;
+    --color-base-200: #f6f3ec;
+    --color-base-300: #f0eee7;
+    --color-base-content: #1c1c18;
+    --color-primary: #8c161a;
     --color-primary-content: #ffffff;
-    --color-secondary: #3a6843;
+    --color-secondary: #45645e;
     --color-secondary-content: #ffffff;
-    --radius-selector: 1rem;
-    --radius-field: 1.5rem;
-    --radius-box: 2rem;
+    --radius-selector: 0.25rem;
+    --radius-field: 0.125rem;
+    --radius-box: 0.5rem;
     --border: 0px;
     --depth: 0;
     --noise: 0;
@@ -181,18 +181,18 @@
 /* Design system color enforcement — we assert the design system palette here. */
 :root {
     color-scheme: light;
-    --color-primary: #b90027;
-    --color-primary-container: #e31837;
+    --color-primary: #8c161a;
+    --color-primary-container: #ad302f;
     --color-on-primary: #ffffff;
-    --color-secondary: #3a6843;
-    --color-secondary-container: #b9ecbd;
+    --color-secondary: #45645e;
+    --color-secondary-container: #c5e7df;
     --color-on-secondary: #ffffff;
-    --color-surface: #faf9f6;
+    --color-surface: #fcf9f2;
     --color-surface-container-lowest: #ffffff;
-    --color-surface-container-low: #f4f3f1;
-    --color-surface-container: #efeeeb;
-    --color-on-surface: #1a1c1a;
-    --color-on-surface-variant: #5d3f3e;
+    --color-surface-container-low: #f6f3ec;
+    --color-surface-container: #f0eee7;
+    --color-on-surface: #1c1c18;
+    --color-on-surface-variant: #58413f;
 }
 
 /* Smooth anchor scroll */

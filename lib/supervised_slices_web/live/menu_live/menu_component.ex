@@ -7,21 +7,33 @@ defmodule SupervisedSlicesWeb.MenuLive.MenuComponent do
 
   def render(assigns) do
     ~H"""
-    <main class="bg-background min-h-screen pt-28 pb-28 px-4 max-w-2xl mx-auto">
-      <section :for={category <- @categories} class="mb-12 last:mb-0">
-        <div class="flex flex-col gap-1 mb-6 px-2">
-          <h2 class="font-headline text-3xl font-black tracking-tighter text-on-surface uppercase italic">
+    <main class="bg-background min-h-screen pt-32 pb-32 px-4 max-w-2xl mx-auto">
+      <section :for={category <- @categories} class="mb-16 last:mb-0">
+        <div class="flex items-end justify-between mb-8 px-2">
+          <h2 class="font-headline text-3xl font-bold tracking-tight text-on-surface">
             {category.name}
           </h2>
+          <span class="font-label text-[0.65rem] uppercase tracking-[0.2em] text-outline mb-1">
+            Artisan Selection
+          </span>
         </div>
 
-        <div class="grid grid-cols-1 gap-4">
-          <.menu_item_card
-            :for={item <- category.menu_items}
-            item={item}
-            cart_items_map={@cart_items_map}
-            org={@org}
-          />
+        <div class={if is_grid?(category), do: "grid grid-cols-2 gap-4", else: "space-y-4"}>
+          <%= for item <- category.menu_items do %>
+            <.menu_item_card
+              :if={customizable?(item)}
+              item={item}
+              cart_items_map={@cart_items_map}
+              org={@org}
+            />
+            <.menu_item_row
+              :if={!customizable?(item)}
+              item={item}
+              cart_items_map={@cart_items_map}
+              org={@org}
+              store_open={@store_open}
+            />
+          <% end %>
         </div>
       </section>
 
@@ -35,119 +47,128 @@ defmodule SupervisedSlicesWeb.MenuLive.MenuComponent do
 
   defp menu_item_card(assigns) do
     qty = get_item_qty(assigns.cart_items_map, assigns.item.id)
-
-    customizable? =
-      not Enum.empty?(assigns.item.sizes || []) or
-        not Enum.empty?(assigns.item.modifier_groups || [])
-
-    assigns = assign(assigns, qty: qty, customizable?: customizable?)
+    assigns = assign(assigns, qty: qty)
 
     ~H"""
-    <div class={[
-      "bg-surface-container-lowest rounded-xl p-5 transition-all duration-300",
-      "shadow-[0px_12px_32px_rgba(93,63,62,0.08)] hover:shadow-[0px_16px_48px_rgba(93,63,62,0.12)]",
-      "hover:scale-[1.02] group"
-    ]}>
-      <div class="flex gap-5 items-start">
-        <.link
+    <.link
+      navigate={~p"/menu/#{@org.slug}/item/#{@item.id}"}
+      class="group flex flex-col bg-surface-container-lowest rounded-xl overflow-hidden transition-all duration-300 active:scale-[0.98] shadow-soft hover:translate-y-[-4px]"
+    >
+      <div class="aspect-square overflow-hidden relative">
+        <img
           :if={@item.image_url}
-          navigate={~p"/menu/#{@org.slug}/item/#{@item.id}"}
-          class="shrink-0 relative overflow-visible"
-          aria-label={@item.name}
+          src={@item.image_url}
+          alt={@item.name}
+          class="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
+          style={"view-transition-name: item-img-#{@item.id};"}
+        />
+        <div
+          :if={!@item.image_url}
+          class="w-full h-full bg-surface-container-low flex items-center justify-center"
         >
-          <div class="w-24 h-24 rounded-lg overflow-hidden bg-surface-container-low shadow-inner">
-            <img
-              src={@item.image_url}
-              alt={@item.name}
-              class="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
-              style={"view-transition-name: item-img-#{@item.id};"}
-            />
-          </div>
-          <div
-            :if={@qty > 0}
-            class="absolute -top-2 -right-2 w-7 h-7 bg-primary text-on-primary rounded-full flex items-center justify-center text-xs font-black shadow-lg animate-in zoom-in duration-300"
-          >
-            {@qty}
-          </div>
-        </.link>
-
-        <div class="flex-1 min-w-0 py-1">
-          <div class="flex justify-between items-start gap-2">
-            <.link navigate={~p"/menu/#{@org.slug}/item/#{@item.id}"} class="block group/title">
-              <h3 class="font-headline text-lg font-black leading-tight text-on-surface group-hover/title:text-primary transition-colors">
-                {@item.name}
-              </h3>
-            </.link>
-            <span class="font-headline text-base font-black text-primary shrink-0">
-              {price_label(@item)}
-            </span>
-          </div>
-
-          <p
-            :if={@item.description}
-            class="text-sm text-on-surface-variant line-clamp-2 leading-relaxed mt-2 font-medium opacity-80"
-          >
-            {@item.description}
-          </p>
-
-          <div class="flex items-center justify-end mt-4">
-            <.link
-              :if={@customizable?}
-              id={"customize-#{@item.id}"}
-              navigate={~p"/menu/#{@org.slug}/item/#{@item.id}"}
-              phx-click={JS.add_class("phx-click-loading", to: "self")}
-              class="flex items-center gap-2 bg-gradient-to-r from-primary to-primary-container text-on-primary text-xs font-black px-5 py-2.5 rounded-lg hover:shadow-lg hover:shadow-primary/20 transition-all active:scale-90 active:brightness-75 phx-click-loading:scale-90 phx-click-loading:opacity-80 phx-click-loading:brightness-75 shadow-sm"
-            >
-              CUSTOMIZE
-              <span class="relative flex items-center justify-center w-4 h-4">
-                <span class="phx-click-loading:!hidden">
-                  <span class="material-symbols-outlined !text-[16px]">
-                    arrow_forward
-                  </span>
-                </span>
-                <span class="hidden phx-click-loading:!flex absolute inset-0 items-center justify-center">
-                  <.icon name="hero-arrow-path" class="size-4 animate-spin" />
-                </span>
-              </span>
-            </.link>
-
-            <div :if={not @customizable?} class="flex items-center gap-3">
-              <button
-                :if={@qty > 0}
-                phx-click="update_quantity"
-                phx-value-item_id={@item.id}
-                phx-value-delta="-1"
-                class="w-9 h-9 rounded-full bg-surface-container flex items-center justify-center hover:bg-surface-container-high transition-all active:scale-90 phx-click-loading:opacity-40 phx-click-loading:scale-95"
-                aria-label="Remove one"
-              >
-                <span
-                  class="material-symbols-outlined text-on-surface"
-                  style="font-size: 20px;"
-                >
-                  remove
-                </span>
-              </button>
-
-              <button
-                phx-click="update_quantity"
-                phx-value-item_id={@item.id}
-                phx-value-delta="1"
-                class="w-9 h-9 rounded-full bg-gradient-to-r from-primary to-primary-container text-on-primary flex items-center justify-center hover:shadow-lg hover:shadow-primary/20 transition-all active:scale-90 phx-click-loading:opacity-40 phx-click-loading:scale-95"
-                aria-label="Add one"
-              >
-                <span
-                  class="material-symbols-outlined"
-                  style="font-size: 20px;"
-                >
-                  add
-                </span>
-              </button>
-            </div>
-          </div>
+          <span class="material-symbols-outlined text-outline opacity-20 text-4xl">local_pizza</span>
         </div>
+
+        <div
+          :if={@qty > 0}
+          class="absolute top-3 right-3 w-8 h-8 bg-primary text-on-primary rounded-full flex items-center justify-center text-xs font-black shadow-lg animate-in zoom-in duration-300"
+        >
+          {@qty}
+        </div>
+      </div>
+
+      <div class="p-4 flex flex-col grow">
+        <h3 class="font-headline text-lg font-bold leading-tight mb-1 text-on-surface group-hover:text-primary transition-colors">
+          {@item.name}
+        </h3>
+        <p
+          :if={@item.description}
+          class="font-body text-xs text-on-surface-variant mb-4 grow line-clamp-2 leading-relaxed opacity-80"
+        >
+          {@item.description}
+        </p>
+        <div class="flex justify-between items-center mt-auto">
+          <span class="font-label text-sm font-bold text-primary">
+            {price_label(@item)}
+          </span>
+          <span class="material-symbols-outlined text-outline text-lg group-hover:translate-x-1 transition-transform">
+            arrow_forward_ios
+          </span>
+        </div>
+      </div>
+    </.link>
+    """
+  end
+
+  defp menu_item_row(assigns) do
+    qty = get_item_qty(assigns.cart_items_map, assigns.item.id)
+    assigns = assign(assigns, qty: qty)
+
+    ~H"""
+    <div class="flex items-center gap-4 bg-surface-container-low p-3 rounded-xl transition-all duration-300 hover:bg-surface-container group">
+      <div class="w-20 h-20 rounded-lg overflow-hidden shrink-0 relative">
+        <img
+          :if={@item.image_url}
+          src={@item.image_url}
+          alt={@item.name}
+          class="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
+          style={"view-transition-name: item-img-#{@item.id};"}
+        />
+        <div
+          :if={!@item.image_url}
+          class="w-full h-full bg-surface-container-lowest flex items-center justify-center"
+        >
+          <span class="material-symbols-outlined text-outline opacity-20 text-2xl">restaurant</span>
+        </div>
+      </div>
+
+      <div class="flex-1 min-w-0">
+        <h3 class="font-headline text-base font-bold truncate text-on-surface group-hover:text-primary transition-colors">
+          {@item.name}
+        </h3>
+        <p :if={@item.description} class="font-body text-[0.7rem] text-on-surface-variant truncate opacity-80">
+          {@item.description}
+        </p>
+        <span class="font-label text-sm font-bold text-primary mt-1 block">
+          {format_money(@item.price)}
+        </span>
+      </div>
+
+      <div class="flex items-center gap-3 bg-surface-container-lowest px-2 py-1.5 rounded-lg border border-outline-variant/20 shadow-sm transition-all group-hover:shadow-md group-hover:border-outline-variant/40">
+        <button
+          phx-click="update_quantity"
+          phx-value-item_id={@item.id}
+          phx-value-delta="-1"
+          disabled={@qty == 0}
+          class="w-7 h-7 flex items-center justify-center text-primary disabled:opacity-20 transition-all active:scale-90 hover:bg-primary/5 rounded-full"
+          aria-label="Remove one"
+        >
+          <span class="material-symbols-outlined text-base font-black">remove</span>
+        </button>
+        <span class="font-label text-sm font-black w-4 text-center text-on-surface">
+          {@qty}
+        </span>
+        <button
+          phx-click="update_quantity"
+          phx-value-item_id={@item.id}
+          phx-value-delta="1"
+          disabled={not @store_open}
+          class="w-7 h-7 flex items-center justify-center text-on-primary-container bg-primary-container rounded-lg shadow-sm hover:bg-primary-container-high transition-all active:scale-90 disabled:opacity-20 disabled:grayscale"
+          aria-label="Add one"
+        >
+          <span class="material-symbols-outlined text-base font-black">add</span>
+        </button>
       </div>
     </div>
     """
+  end
+
+  defp is_grid?(category) do
+    Enum.any?(category.menu_items, &customizable?/1)
+  end
+
+  defp customizable?(item) do
+    not Enum.empty?(item.sizes || []) or not Enum.empty?(item.modifier_groups || [])
   end
 
   defp price_label(item) do

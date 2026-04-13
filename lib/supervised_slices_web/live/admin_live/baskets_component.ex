@@ -7,71 +7,76 @@ defmodule SupervisedSlicesWeb.AdminLive.BasketsComponent do
 
   def render(assigns) do
     ~H"""
-    <section class="p-8 space-y-8">
+    <div class="space-y-8">
       <div class="flex items-center justify-between">
         <div>
           <h2 class="font-headline text-xl font-bold text-on-surface">
-            Active Baskets
+            Basket Monitor
           </h2>
           <p class="text-sm text-on-surface-variant mt-1">
             Real-time view of what customers have in their carts
           </p>
         </div>
-        <div class="bg-primary-fixed text-on-primary-fixed-variant px-5 py-2 rounded-full text-sm font-bold">
+        <div class="bg-primary text-white px-5 py-2 rounded-md text-sm font-bold uppercase tracking-wider">
           {length(@active_carts)} active
         </div>
       </div>
 
       <%= if Enum.empty?(@active_carts) do %>
-        <div class="flex flex-col items-center py-20 text-on-surface-variant">
-          <span class="material-symbols-outlined text-6xl opacity-30">shopping_cart</span>
-          <p class="mt-4 text-lg font-medium">No active baskets</p>
-          <p class="text-sm opacity-60 mt-1">Customer carts will appear here in real-time</p>
+        <div class="flex flex-col items-center py-24 text-on-surface-variant/20">
+          <span class="material-symbols-outlined text-8xl">shopping_cart</span>
+          <p class="mt-4 text-xl font-black font-headline uppercase tracking-widest opacity-40">
+            No active baskets
+          </p>
         </div>
       <% else %>
-        <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
           <%= for cart <- @active_carts do %>
-            <div class="bg-surface-container-lowest rounded-xl p-5 space-y-4">
+            <div class="bg-surface-container-low rounded-md p-6 space-y-4 shadow-sm">
               <div class="flex items-center justify-between">
                 <div class="flex items-center gap-2">
-                  <span class="material-symbols-outlined text-on-surface-variant text-lg">
+                  <span class="material-symbols-outlined text-primary text-lg">
                     shopping_bag
                   </span>
-                  <span class="font-body text-xs font-bold text-on-surface-variant uppercase tracking-wider">
-                    Session …{String.slice(cart.session_id || "anon", -6, 6)}
+                  <span class="font-body text-xs font-black text-on-surface uppercase tracking-widest">
+                    SESSION …{String.slice(cart.session_id || "anon", -6, 6)}
                   </span>
                 </div>
-                <span class="text-xs text-on-surface-variant">{time_ago(cart.inserted_at)}</span>
+                <span class="text-[0.65rem] font-bold uppercase tracking-widest text-on-surface-variant/60">
+                  {time_ago(cart.inserted_at)}
+                </span>
               </div>
 
               <div class="space-y-2">
                 <%= for cart_item <- (cart.cart_items || []) do %>
-                  <div class="flex items-center justify-between py-1.5 px-3 rounded-lg bg-surface-container-low">
-                    <span class="text-sm font-medium text-on-surface truncate">
+                  <div class="flex items-center justify-between py-2 px-3 rounded bg-surface-container-high/50">
+                    <span class="text-sm font-bold text-on-surface truncate">
                       {(cart_item.menu_item && cart_item.menu_item.name) || "Item"}
                     </span>
-                    <span class="text-xs font-bold text-primary ml-2 shrink-0">
-                      ×{cart_item.quantity}
+                    <span class="text-xs font-black text-primary ml-2 shrink-0">
+                      {cart_item.quantity}x
                     </span>
                   </div>
                 <% end %>
 
                 <%= if Enum.empty?(cart.cart_items || []) do %>
-                  <p class="text-xs text-on-surface-variant italic px-1">Empty cart</p>
+                  <p class="text-[0.65rem] font-bold uppercase tracking-widest text-on-surface-variant/40 italic px-1">
+                    Empty cart
+                  </p>
                 <% end %>
               </div>
 
-              <div class="pt-1 border-t border-surface-container-low flex justify-between text-xs text-on-surface-variant">
+              <div class="pt-4 border-t border-on-surface/5 flex justify-between items-center text-[0.65rem] font-bold uppercase tracking-widest text-on-surface-variant/60">
                 <span>{length(cart.cart_items || [])} line items</span>
-                <span class="font-bold text-on-surface">
-                  {(cart.cart_items || []) |> Enum.reduce(0, &(&1.quantity + &2))} total items
+                <span class="text-on-surface font-black">
+                  {(cart.cart_items || []) |> Enum.reduce(0, &(&1.quantity + &2))} items
                 </span>
               </div>
             </div>
           <% end %>
         </div>
       <% end %>
-    </section>
+    </div>
     """
   end
 

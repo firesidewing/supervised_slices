@@ -345,38 +345,37 @@ defmodule SupervisedSlicesWeb.AdminLive.MenuEditorComponent do
 
   def render(assigns) do
     ~H"""
-    <section class="p-8 space-y-8">
+    <div class="space-y-8">
       <div class="flex items-center justify-between">
         <div>
-          <h2 class="text-xl font-bold text-on-surface">
-            Menu Editor
+          <h2 class="font-headline text-2xl font-black text-on-surface">
+            Menu Atelier
           </h2>
           <p class="text-sm text-on-surface-variant mt-1">
-            Manage modifier groups, categories, and items
+            Curate your artisan offerings and modifiers
           </p>
         </div>
         <button
           phx-click="add_category"
           phx-target={@myself}
-          class="flex items-center gap-2 bg-primary text-white px-5 py-2.5 rounded-xl font-bold text-sm hover:opacity-90 transition-opacity"
+          class="flex items-center gap-2 bg-primary text-white px-6 py-2.5 rounded-md font-bold text-sm uppercase tracking-wide transition-all active:scale-95 shadow-sm"
         >
-          <span class="material-symbols-outlined" style="font-size: 18px;">add</span> New Category
+          <span class="material-symbols-outlined text-lg">add</span> New Category
         </button>
       </div>
 
-      <div class="bg-surface-container-lowest rounded-xl p-5 space-y-3">
+      <div class="bg-surface-container-low rounded-md p-6 space-y-6">
         <div class="flex items-center justify-between">
-          <p class="text-xs font-bold text-on-surface-variant uppercase tracking-wider">
+          <p class="text-[0.65rem] font-black text-on-surface-variant uppercase tracking-[0.2em]">
             Modifier Groups
           </p>
           <button
             phx-click="add_modifier_group"
             phx-target={@myself}
             type="button"
-            class="flex items-center gap-1 text-sm text-primary hover:opacity-80 font-bold"
+            class="flex items-center gap-1.5 text-[0.65rem] text-primary hover:opacity-80 font-black uppercase tracking-widest"
           >
-            <span class="material-symbols-outlined" style="font-size: 16px;">add_circle</span>
-            New Group
+            <span class="material-symbols-outlined text-sm">add_circle</span> New Group
           </button>
         </div>
 
@@ -531,74 +530,37 @@ defmodule SupervisedSlicesWeb.AdminLive.MenuEditorComponent do
         <% end %>
       </div>
 
-      <%= if @creating_category do %>
-        <form
-          phx-submit="create_category"
-          phx-target={@myself}
-          class="bg-white rounded-xl border-2 border-primary/20 p-5 flex items-center gap-3"
-        >
-          <input
-            type="text"
-            name="category[name]"
-            required
-            autofocus
-            placeholder="Category name…"
-            class="flex-1 text-base font-bold bg-surface-container-low border-0 rounded-lg px-4 py-2.5 focus:ring-2 focus:ring-primary outline-none"
-          />
-          <input
-            type="number"
-            name="category[sort_order]"
-            placeholder="Sort order"
-            value="0"
-            class="w-28 bg-surface-container-low border-0 rounded-lg px-3 py-2.5 text-sm focus:ring-2 focus:ring-primary outline-none"
-          />
-          <button
-            type="submit"
-            class="bg-primary text-white px-5 py-2.5 rounded-xl text-sm font-bold hover:opacity-90"
-          >
-            Add
-          </button>
-          <button
-            type="button"
-            phx-click="cancel_add_category"
-            phx-target={@myself}
-            class="text-on-surface-variant hover:text-on-surface px-3 py-2.5"
-          >
-            <span class="material-symbols-outlined" style="font-size: 18px;">close</span>
-          </button>
-        </form>
-      <% end %>
-
       <%= if Enum.empty?(@categories) do %>
-        <div class="flex flex-col items-center py-20 text-on-surface-variant">
-          <span class="material-symbols-outlined text-6xl opacity-30">restaurant_menu</span>
-          <p class="mt-4 text-lg font-medium">No categories yet</p>
-          <p class="text-sm opacity-60 mt-1">Add a category above to get started</p>
+        <div class="flex flex-col items-center py-24 text-on-surface-variant/20">
+          <span class="material-symbols-outlined text-8xl">restaurant_menu</span>
+          <p class="mt-4 text-xl font-black font-headline uppercase tracking-widest opacity-40">
+            No categories yet
+          </p>
         </div>
       <% end %>
 
       <%= for category <- @categories do %>
-        <div class="space-y-3">
+        <div class="space-y-4">
           <%= if @editing_item_id == "cat:#{category.id}" do %>
-            <form phx-submit="save_category" phx-target={@myself} class="flex items-center gap-3 px-2">
+            <form phx-submit="save_category" phx-target={@myself} class="flex items-center gap-4 bg-surface-container-low p-4 rounded-md">
               <input type="hidden" name="category[id]" value={category.id} />
               <input
                 type="text"
                 name="category[name]"
                 value={category.name}
-                class="flex-1 text-lg font-extrabold bg-white border-0 rounded-lg px-4 py-2 focus:ring-2 focus:ring-primary outline-none"
+                class="flex-1 text-lg font-black bg-surface-container-highest border-0 rounded px-4 py-2 focus:ring-1 focus:ring-primary outline-none"
                 autofocus
               />
               <input
                 type="number"
                 name="category[sort_order]"
                 value={category.sort_order}
-                class="w-20 bg-white border-0 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-primary outline-none"
+                class="w-20 bg-surface-container-highest border-0 rounded px-3 py-2 text-sm focus:ring-1 focus:ring-primary outline-none"
                 placeholder="Order"
               />
               <button
                 type="submit"
-                class="bg-primary text-white px-4 py-2 rounded-lg text-sm font-bold hover:opacity-90"
+                class="bg-primary text-white px-5 py-2 rounded-md text-sm font-bold uppercase tracking-wide"
               >
                 Save
               </button>
@@ -608,28 +570,27 @@ defmodule SupervisedSlicesWeb.AdminLive.MenuEditorComponent do
                 phx-target={@myself}
                 class="text-on-surface-variant hover:text-on-surface px-3 py-2"
               >
-                <span class="material-symbols-outlined" style="font-size: 18px;">close</span>
+                <span class="material-symbols-outlined text-xl">close</span>
               </button>
             </form>
           <% else %>
-            <div class="flex items-center gap-3 px-2 group">
-              <div class="h-7 w-1 rounded-full bg-primary shrink-0"></div>
-              <h3 class="text-xl font-extrabold text-on-surface flex-1">
+            <div class="flex items-center gap-4 group">
+              <h3 class="text-2xl font-black text-on-surface flex-1 font-headline tracking-tight">
                 {category.name}
               </h3>
               <button
                 phx-click="edit_category"
                 phx-value-id={category.id}
                 phx-target={@myself}
-                class="opacity-0 group-hover:opacity-100 text-on-surface-variant hover:text-on-surface transition-all p-1 rounded-lg"
+                class="opacity-0 group-hover:opacity-100 text-on-surface-variant/40 hover:text-primary transition-all p-1"
                 title="Edit category"
               >
-                <span class="material-symbols-outlined" style="font-size: 18px;">edit</span>
+                <span class="material-symbols-outlined text-lg">edit</span>
               </button>
             </div>
           <% end %>
 
-          <div class="space-y-2 pl-4">
+          <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8">
             <%= for item <- category.menu_items do %>
               <%= if @editing_item_id == item.id do %>
                 <div class="bg-surface-container-lowest rounded-xl p-5 space-y-5">
@@ -880,87 +841,82 @@ defmodule SupervisedSlicesWeb.AdminLive.MenuEditorComponent do
                   </div>
                 </div>
               <% else %>
-                <div class="bg-surface-container-lowest rounded-xl p-4 flex items-center gap-4 group hover:shadow-sm transition-shadow">
-                  <div class="w-14 h-14 rounded-lg overflow-hidden shrink-0 bg-surface-container-low">
+                <div class={[
+                  "bg-surface-container-low rounded-md flex flex-col shadow-sm overflow-hidden transition-all duration-300 group",
+                  if(not item.available, do: "opacity-50 grayscale")
+                ]}>
+                  <div class="aspect-square relative overflow-hidden bg-surface-container-high">
                     <%= if item.image_url do %>
                       <img
                         src={item.image_url}
                         alt={item.name}
-                        class="w-full h-full object-cover"
+                        class="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
                       />
                     <% else %>
-                      <div class="w-full h-full flex items-center justify-center text-on-surface-variant">
-                        <span class="material-symbols-outlined" style="font-size: 20px;">
-                          image
-                        </span>
+                      <div class="w-full h-full flex items-center justify-center text-on-surface-variant/20">
+                        <span class="material-symbols-outlined text-4xl">image</span>
                       </div>
                     <% end %>
-                  </div>
-
-                  <div class="flex-1 min-w-0">
-                    <div class="flex items-center gap-2">
-                      <span class="font-bold text-on-surface text-sm truncate">
-                        {item.name}
-                      </span>
-                      <%= if not item.available do %>
-                        <span class="bg-error-container text-error text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full shrink-0">
-                          Off
-                        </span>
-                      <% end %>
-                      <%= if not Enum.empty?(item.sizes || []) do %>
-                        <span class="bg-surface-container text-on-surface-variant text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full shrink-0">
-                          {length(item.sizes)} sizes
-                        </span>
-                      <% end %>
-                      <%= if not Enum.empty?(item.modifier_groups || []) do %>
-                        <span class="bg-surface-container text-on-surface-variant text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full shrink-0">
-                          {length(item.modifier_groups)} mod groups
-                        </span>
-                      <% end %>
+                    <div class="absolute top-3 right-3 flex gap-2">
+                      <button
+                        phx-click="toggle_available"
+                        phx-value-id={item.id}
+                        phx-target={@myself}
+                        class={[
+                          "px-2 py-1 rounded text-[10px] font-black uppercase tracking-widest shadow-lg backdrop-blur-md",
+                          if(item.available,
+                            do: "bg-secondary-container/90 text-on-secondary-container",
+                            else: "bg-surface-container-highest/90 text-on-surface-variant"
+                          )
+                        ]}
+                      >
+                        {if item.available, do: "LIVE", else: "OFF"}
+                      </button>
                     </div>
-                    <p class="text-xs text-on-surface-variant line-clamp-1">{item.description}</p>
                   </div>
 
-                  <span class="text-sm font-bold text-primary shrink-0">
-                    <%= cond do %>
-                      <% item.price -> %>
-                        {format_money(item.price)}
-                      <% not Enum.empty?(item.sizes || []) -> %>
-                        From {item.sizes
-                        |> Enum.min_by(& &1.price.amount)
-                        |> then(& &1.price)
-                        |> format_money()}
-                      <% true -> %>
-                        —
-                    <% end %>
-                  </span>
+                  <div class="p-5 flex-1 flex flex-col">
+                    <div class="flex justify-between items-start gap-2 mb-2">
+                      <h4 class="font-bold text-on-surface text-sm leading-tight group-hover:text-primary transition-colors">
+                        {item.name}
+                      </h4>
+                      <span class="text-sm font-black text-primary shrink-0">
+                        <%= cond do %>
+                          <% item.price -> %>
+                            {format_money(item.price)}
+                          <% not Enum.empty?(item.sizes || []) -> %>
+                            From {item.sizes |> Enum.min_by(& &1.price.amount) |> then(& &1.price) |> format_money()}
+                          <% true -> %>
+                            —
+                        <% end %>
+                      </span>
+                    </div>
+                    <p class="text-xs text-on-surface-variant/60 line-clamp-2 mb-4 leading-relaxed italic">
+                      {item.description}
+                    </p>
 
-                  <div class="flex items-center gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
-                    <button
-                      phx-click="toggle_available"
-                      phx-value-id={item.id}
-                      phx-target={@myself}
-                      class={[
-                        "px-3 py-1.5 rounded-lg text-xs font-bold transition-colors",
-                        if(item.available,
-                          do: "bg-secondary-container/50 text-secondary hover:bg-secondary-container",
-                          else:
-                            "bg-surface-container text-on-surface-variant hover:bg-surface-container-high"
-                        )
-                      ]}
-                      title={if(item.available, do: "Disable item", else: "Enable item")}
-                    >
-                      {if item.available, do: "Available", else: "Disabled"}
-                    </button>
-                    <button
-                      phx-click="edit_item"
-                      phx-value-id={item.id}
-                      phx-target={@myself}
-                      class="p-2 rounded-lg text-on-surface-variant hover:bg-surface-container hover:text-on-surface transition-colors"
-                      title="Edit item"
-                    >
-                      <span class="material-symbols-outlined" style="font-size: 16px;">edit</span>
-                    </button>
+                    <div class="mt-auto flex items-center justify-between gap-4 pt-4 border-t border-on-surface/5">
+                      <div class="flex gap-1.5 overflow-hidden">
+                        <%= if not Enum.empty?(item.sizes || []) do %>
+                          <span class="bg-surface-container-highest text-[9px] font-black uppercase tracking-widest px-2 py-0.5 rounded text-on-surface-variant">
+                            {length(item.sizes)} SIZES
+                          </span>
+                        <% end %>
+                        <%= if not Enum.empty?(item.modifier_groups || []) do %>
+                          <span class="bg-surface-container-highest text-[9px] font-black uppercase tracking-widest px-2 py-0.5 rounded text-on-surface-variant">
+                            {length(item.modifier_groups)} MODS
+                          </span>
+                        <% end %>
+                      </div>
+                      <button
+                        phx-click="edit_item"
+                        phx-value-id={item.id}
+                        phx-target={@myself}
+                        class="text-on-surface-variant/40 hover:text-primary transition-colors"
+                      >
+                        <span class="material-symbols-outlined text-lg">edit</span>
+                      </button>
+                    </div>
                   </div>
                 </div>
               <% end %>
@@ -970,15 +926,15 @@ defmodule SupervisedSlicesWeb.AdminLive.MenuEditorComponent do
               <form
                 phx-submit="create_item"
                 phx-target={@myself}
-                class="bg-white rounded-xl border-2 border-primary/20 p-5 space-y-4"
+                class="bg-surface-container-low rounded-md p-6 space-y-4 shadow-sm border-2 border-primary/20"
               >
                 <input type="hidden" name="item[category_id]" value={category.id} />
-                <h4 class="text-sm font-bold text-on-surface">
-                  New Item
+                <h4 class="text-xs font-black text-on-surface uppercase tracking-[0.2em]">
+                  New artisan offering
                 </h4>
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div>
-                    <label class="block text-xs font-bold text-on-surface-variant uppercase tracking-wider mb-1">
+                    <label class="block text-[10px] font-black text-on-surface-variant uppercase tracking-widest mb-1.5">
                       Name
                     </label>
                     <input
@@ -987,63 +943,45 @@ defmodule SupervisedSlicesWeb.AdminLive.MenuEditorComponent do
                       required
                       autofocus
                       placeholder="e.g. Classic Margherita"
-                      class="w-full bg-surface-container-low border-0 rounded-lg px-4 py-2.5 text-sm focus:ring-2 focus:ring-primary outline-none"
+                      class="w-full bg-surface-container-highest border-0 rounded px-4 py-2.5 text-sm focus:ring-1 focus:ring-primary outline-none"
                     />
                   </div>
                   <div>
-                    <label class="block text-xs font-bold text-on-surface-variant uppercase tracking-wider mb-1">
-                      Base Price (CAD) — leave blank if using sizes
+                    <label class="block text-[10px] font-black text-on-surface-variant uppercase tracking-widest mb-1.5">
+                      Base Price (CAD)
                     </label>
                     <input
                       type="text"
                       name="item[price]"
                       placeholder="14.50"
                       inputmode="decimal"
-                      class="w-full bg-surface-container-low border-0 rounded-lg px-4 py-2.5 text-sm focus:ring-2 focus:ring-primary outline-none"
+                      class="w-full bg-surface-container-highest border-0 rounded px-4 py-2.5 text-sm focus:ring-1 focus:ring-primary outline-none"
                     />
                   </div>
                   <div class="md:col-span-2">
-                    <label class="block text-xs font-bold text-on-surface-variant uppercase tracking-wider mb-1">
+                    <label class="block text-[10px] font-black text-on-surface-variant uppercase tracking-widest mb-1.5">
                       Description
                     </label>
                     <textarea
                       name="item[description]"
                       rows="2"
                       placeholder="Describe the dish…"
-                      class="w-full bg-surface-container-low border-0 rounded-lg px-4 py-2.5 text-sm focus:ring-2 focus:ring-primary outline-none resize-none"
+                      class="w-full bg-surface-container-highest border-0 rounded px-4 py-2.5 text-sm focus:ring-1 focus:ring-primary outline-none resize-none"
                     ></textarea>
                   </div>
-                  <div class="md:col-span-2 space-y-2">
-                    <label class="block text-xs font-bold text-on-surface-variant uppercase tracking-wider">
-                      Image
-                    </label>
-                    <.live_file_input
-                      upload={@uploads.item_image}
-                      class="text-sm text-on-surface-variant file:mr-3 file:py-1.5 file:px-3 file:rounded-lg file:border-0 file:bg-surface-container file:text-xs file:font-bold file:uppercase file:tracking-wider file:cursor-pointer"
-                    />
-                    <p class="text-[10px] text-on-surface-variant">
-                      Or paste a URL below (upload takes priority)
-                    </p>
-                    <input
-                      type="text"
-                      name="item[image_url]"
-                      placeholder="https://…"
-                      class="w-full bg-surface-container-low border-0 rounded-lg px-4 py-2.5 text-sm focus:ring-2 focus:ring-primary outline-none"
-                    />
-                  </div>
                 </div>
-                <div class="flex items-center gap-3">
+                <div class="flex items-center gap-3 pt-2">
                   <button
                     type="submit"
-                    class="bg-primary text-white px-6 py-2.5 rounded-xl font-bold hover:opacity-90 transition-opacity"
+                    class="bg-primary text-white px-6 py-2.5 rounded-md font-bold text-xs uppercase tracking-widest transition-all active:scale-95"
                   >
-                    Add Item
+                    Add Offering
                   </button>
                   <button
                     type="button"
                     phx-click="cancel_edit"
                     phx-target={@myself}
-                    class="text-on-surface-variant hover:text-on-surface font-medium px-4 py-2.5"
+                    class="text-on-surface-variant/40 hover:text-on-surface font-bold text-xs uppercase tracking-widest px-4 py-2.5"
                   >
                     Cancel
                   </button>
@@ -1054,18 +992,18 @@ defmodule SupervisedSlicesWeb.AdminLive.MenuEditorComponent do
                 phx-click="add_item"
                 phx-value-category_id={category.id}
                 phx-target={@myself}
-                class="w-full flex items-center gap-3 px-4 py-3 rounded-xl text-on-surface-variant hover:bg-surface-container-low hover:text-on-surface transition-colors text-sm font-medium group"
+                class="flex flex-col items-center justify-center gap-3 p-8 rounded-md border-2 border-dashed border-on-surface/5 hover:border-primary/20 hover:bg-surface-container-low transition-all group"
               >
-                <span class="material-symbols-outlined text-primary" style="font-size: 18px;">
+                <span class="material-symbols-outlined text-primary/40 group-hover:text-primary transition-colors text-3xl">
                   add_circle
                 </span>
-                <span>Add item to {category.name}</span>
+                <span class="text-[10px] font-black text-on-surface-variant uppercase tracking-[0.2em]">Add item to {category.name}</span>
               </button>
             <% end %>
           </div>
         </div>
       <% end %>
-    </section>
+    </div>
     """
   end
 

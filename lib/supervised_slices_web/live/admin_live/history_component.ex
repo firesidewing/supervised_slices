@@ -55,20 +55,20 @@ defmodule SupervisedSlicesWeb.AdminLive.HistoryComponent do
   end
 
   defp status_badge_class(:completed), do: "bg-secondary-container text-on-secondary-container"
-  defp status_badge_class(:cancelled), do: "bg-error-container text-on-error-container"
+  defp status_badge_class(:cancelled), do: "bg-surface-container-highest text-on-surface-variant"
   defp status_badge_class(_), do: "bg-surface-container text-on-surface-variant"
 
-  defp status_label(:completed), do: "Done"
-  defp status_label(:cancelled), do: "Cancelled"
+  defp status_label(:completed), do: "DONE"
+  defp status_label(:cancelled), do: "CANCELLED"
   defp status_label(s), do: s |> to_string() |> String.capitalize()
 
   def render(assigns) do
     ~H"""
-    <section class="p-8 space-y-8">
+    <div class="space-y-8">
       <%!-- Header: date picker + summary stats --%>
       <div class="flex flex-col sm:flex-row sm:items-center gap-4 justify-between">
         <div>
-          <h2 class="font-headline text-xl font-bold text-on-surface">Order History</h2>
+          <h2 class="font-headline text-xl font-bold text-on-surface">Archive Atelier</h2>
           <p class="font-body text-sm text-on-surface-variant mt-0.5">
             Completed and cancelled orders
           </p>
@@ -83,14 +83,14 @@ defmodule SupervisedSlicesWeb.AdminLive.HistoryComponent do
             name="date"
             value={Date.to_iso8601(@history_date)}
             max={Date.to_iso8601(Date.utc_today())}
-            class="rounded-xl bg-surface-container-low px-3 py-2 text-sm font-medium text-on-surface border-0 focus:ring-2 focus:ring-primary/30 outline-none"
+            class="rounded-md bg-surface-container-low px-3 py-2 text-sm font-medium text-on-surface border-0 focus:ring-2 focus:ring-primary/30 outline-none"
           />
         </form>
       </div>
 
       <%!-- Summary cards --%>
-      <div class="grid grid-cols-2 gap-4">
-        <div class="bg-surface-container-low rounded-xl p-6 flex flex-col justify-center">
+      <div class="grid grid-cols-2 gap-8">
+        <div class="bg-surface-container-low rounded-md p-6 flex flex-col justify-center">
           <span class="font-body text-xs uppercase tracking-widest font-bold text-on-surface-variant mb-2">
             Orders
           </span>
@@ -98,11 +98,11 @@ defmodule SupervisedSlicesWeb.AdminLive.HistoryComponent do
             {length(@history_orders)}
           </span>
         </div>
-        <div class="bg-secondary-container/30 rounded-xl p-6 flex flex-col justify-center">
-          <span class="font-body text-xs uppercase tracking-widest font-bold text-secondary mb-2">
+        <div class="bg-secondary-container rounded-md p-6 flex flex-col justify-center">
+          <span class="font-body text-xs uppercase tracking-widest font-bold text-on-secondary-container mb-2">
             Revenue
           </span>
-          <span class="font-headline text-3xl font-black text-secondary">
+          <span class="font-headline text-3xl font-black text-on-secondary-container">
             {if @history_orders == [], do: "$0.00", else: format_money(total_revenue(@history_orders))}
           </span>
         </div>
@@ -110,14 +110,15 @@ defmodule SupervisedSlicesWeb.AdminLive.HistoryComponent do
 
       <%!-- Orders list --%>
       <%= if @history_orders == [] do %>
-        <div class="flex flex-col items-center py-20 text-on-surface-variant">
-          <span class="material-symbols-outlined text-6xl opacity-30">receipt_long</span>
-          <p class="mt-4 text-lg font-medium">No orders for this date</p>
-          <p class="text-sm opacity-60 mt-1">Try selecting a different day</p>
+        <div class="flex flex-col items-center py-24 text-on-surface-variant/20">
+          <span class="material-symbols-outlined text-8xl">receipt_long</span>
+          <p class="mt-4 text-xl font-black font-headline uppercase tracking-widest opacity-40">
+            No history for this date
+          </p>
         </div>
       <% else %>
-        <div class="space-y-2">
-          <div class="hidden md:grid grid-cols-[60px_1fr_1fr_1fr_100px_80px] gap-4 px-4 pb-2 text-[10px] font-bold uppercase tracking-widest text-on-surface-variant">
+        <div class="space-y-4">
+          <div class="hidden md:grid grid-cols-[60px_1fr_1fr_1fr_100px_80px] gap-8 px-4 pb-2 text-[10px] font-bold uppercase tracking-widest text-on-surface-variant/40">
             <span>#</span>
             <span>Customer</span>
             <span>Items</span>
@@ -127,8 +128,8 @@ defmodule SupervisedSlicesWeb.AdminLive.HistoryComponent do
           </div>
 
           <%= for order <- @history_orders do %>
-            <div class="bg-surface-container-lowest rounded-xl px-4 py-3 grid grid-cols-1 md:grid-cols-[60px_1fr_1fr_1fr_100px_80px] gap-2 md:gap-4 items-center hover:bg-surface-container/30 transition-colors">
-              <div class="bg-primary text-white w-9 h-9 rounded-lg flex items-center justify-center font-headline text-sm font-black italic">
+            <div class="bg-surface-container-low rounded-md px-4 py-3 grid grid-cols-1 md:grid-cols-[60px_1fr_1fr_1fr_100px_80px] gap-2 md:gap-8 items-center transition-all hover:bg-surface-container-high">
+              <div class="bg-primary text-white w-9 h-9 rounded flex items-center justify-center font-headline text-sm font-black italic shrink-0">
                 #{order_number(order)}
               </div>
 
@@ -136,7 +137,7 @@ defmodule SupervisedSlicesWeb.AdminLive.HistoryComponent do
                 <p class="font-body text-sm font-bold text-on-surface truncate">
                   {order.customer_name}
                 </p>
-                <p class="font-body text-[11px] text-on-surface-variant truncate">
+                <p class="font-body text-[11px] text-on-surface-variant truncate opacity-60">
                   {order.customer_email}
                 </p>
               </div>
@@ -145,7 +146,7 @@ defmodule SupervisedSlicesWeb.AdminLive.HistoryComponent do
                 {order.order_items |> Enum.map(&"#{&1.quantity}x #{&1.item_name}") |> Enum.join(", ")}
               </div>
 
-              <div class="font-body text-xs text-on-surface-variant">
+              <div class="font-body text-xs text-on-surface-variant opacity-60">
                 {Calendar.strftime(order.inserted_at, "%I:%M %p")}
               </div>
 
@@ -155,7 +156,7 @@ defmodule SupervisedSlicesWeb.AdminLive.HistoryComponent do
 
               <div class="flex justify-end">
                 <span class={[
-                  "px-2.5 py-1 rounded-full text-[10px] font-bold uppercase tracking-widest",
+                  "px-2.5 py-1 rounded text-[10px] font-bold uppercase tracking-widest",
                   status_badge_class(order.status)
                 ]}>
                   {status_label(order.status)}
@@ -165,7 +166,7 @@ defmodule SupervisedSlicesWeb.AdminLive.HistoryComponent do
           <% end %>
         </div>
       <% end %>
-    </section>
+    </div>
     """
   end
 end

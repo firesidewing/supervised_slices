@@ -1,124 +1,131 @@
-<aside class="h-screen w-72 fixed left-0 top-0 bg-surface-container-low flex flex-col py-8 gap-2 z-40">
-  <div class="px-6 pb-4">
-    <%= if @org.logo_url do %>
-      <img src={@org.logo_url} alt={@org.name} class="h-10 max-w-full object-contain mb-1" />
-    <% else %>
-      <div class="font-headline text-xl font-black text-primary italic">
-        Kitchen Command
-      </div>
-    <% end %>
-    <div class="font-body text-xs text-on-surface-variant mt-0.5">
-      {@org.name}
+<header class="fixed top-0 w-full z-50 bg-background/80 backdrop-blur-md shadow-[0_40px_40px_-10px_rgba(28,28,24,0.06)]">
+  <nav class="flex justify-between items-center px-8 py-4 max-w-[1440px] mx-auto">
+    <div class="text-2xl font-headline font-black tracking-tighter text-on-surface flex items-center gap-3">
+      <%= if @org.logo_url do %>
+        <img src={@org.logo_url} alt={@org.name} class="h-8 w-auto object-contain" />
+      <% end %>
+      <span>{@org.name}</span>
     </div>
-  </div>
 
-  <nav class="flex flex-col gap-1 px-4">
-    <.link
-      navigate={~p"/kitchen/#{@org.slug}"}
-      class={[
-        "flex items-center gap-4 px-6 py-4 rounded-2xl font-medium transition-all duration-200 font-headline",
-        if(@live_action == :orders,
-          do: "bg-white text-primary shadow-sm",
-          else: "text-on-surface-variant hover:bg-surface-container hover:translate-x-0.5"
-        )
-      ]}
-    >
-      <span class="material-symbols-outlined">pending_actions</span>
-      <span>Live Orders</span>
-    </.link>
-
-    <.link
-      navigate={~p"/kitchen/#{@org.slug}/baskets"}
-      class={[
-        "flex items-center gap-4 px-6 py-4 rounded-2xl font-medium transition-all duration-200 font-headline",
-        if(@live_action == :baskets,
-          do: "bg-white text-primary shadow-sm",
-          else: "text-on-surface-variant hover:bg-surface-container hover:translate-x-0.5"
-        )
-      ]}
-    >
-      <span class="material-symbols-outlined">shopping_cart_checkout</span>
-      <span>Basket Monitor</span>
-    </.link>
-
-    <.link
-      navigate={~p"/kitchen/#{@org.slug}/history"}
-      class={[
-        "flex items-center gap-4 px-6 py-4 rounded-2xl font-medium transition-all duration-200 font-headline",
-        if(@live_action == :history,
-          do: "bg-white text-primary shadow-sm",
-          else: "text-on-surface-variant hover:bg-surface-container hover:translate-x-0.5"
-        )
-      ]}
-    >
-      <span class="material-symbols-outlined">history</span>
-      <span>Order History</span>
-    </.link>
-
-    <%= if @current_membership.role == :admin do %>
+    <div class="hidden md:flex items-center space-x-8 font-headline font-bold tracking-tight">
       <.link
-        navigate={~p"/kitchen/#{@org.slug}/menu"}
+        navigate={~p"/kitchen/#{@org.slug}"}
         class={[
-          "flex items-center gap-4 px-6 py-4 rounded-2xl font-medium transition-all duration-200 font-headline",
-          if(@live_action == :menu,
-            do: "bg-white text-primary shadow-sm",
-            else: "text-on-surface-variant hover:bg-surface-container hover:translate-x-0.5"
+          "transition-all duration-300 pb-1",
+          if(@live_action == :orders,
+            do: "text-primary border-b-2 border-primary",
+            else: "text-on-surface opacity-80 hover:opacity-100"
           )
         ]}
       >
-        <span class="material-symbols-outlined">edit_note</span>
-        <span>Menu Editor</span>
+        Atelier
       </.link>
 
       <.link
-        navigate={~p"/kitchen/#{@org.slug}/settings"}
+        navigate={~p"/kitchen/#{@org.slug}/baskets"}
         class={[
-          "flex items-center gap-4 px-6 py-4 rounded-2xl font-medium transition-all duration-200 font-headline",
-          if(@live_action == :settings,
-            do: "bg-white text-primary shadow-sm",
-            else: "text-on-surface-variant hover:bg-surface-container hover:translate-x-0.5"
+          "transition-all duration-300 pb-1",
+          if(@live_action == :baskets,
+            do: "text-primary border-b-2 border-primary",
+            else: "text-on-surface opacity-80 hover:opacity-100"
           )
         ]}
       >
-        <span class="material-symbols-outlined">manage_accounts</span>
-        <span>Settings</span>
+        Baskets
       </.link>
-    <% end %>
+
+      <.link
+        navigate={~p"/kitchen/#{@org.slug}/history"}
+        class={[
+          "transition-all duration-300 pb-1",
+          if(@live_action == :history,
+            do: "text-primary border-b-2 border-primary",
+            else: "text-on-surface opacity-80 hover:opacity-100"
+          )
+        ]}
+      >
+        History
+      </.link>
+
+      <%= if @current_membership.role == :admin do %>
+        <.link
+          navigate={~p"/kitchen/#{@org.slug}/menu"}
+          class={[
+            "transition-all duration-300 pb-1",
+            if(@live_action == :menu,
+              do: "text-primary border-b-2 border-primary",
+              else: "text-on-surface opacity-80 hover:opacity-100"
+            )
+          ]}
+        >
+          Editor
+        </.link>
+
+        <.link
+          navigate={~p"/kitchen/#{@org.slug}/settings"}
+          class={[
+            "transition-all duration-300 pb-1",
+            if(@live_action == :settings,
+              do: "text-primary border-b-2 border-primary",
+              else: "text-on-surface opacity-80 hover:opacity-100"
+            )
+          ]}
+        >
+          Settings
+        </.link>
+      <% end %>
+    </div>
+
+    <div class="flex items-center space-x-6">
+      <div class="hidden sm:flex items-center gap-2 text-xs font-bold uppercase tracking-widest text-on-surface-variant/60">
+        <span class="w-1.5 h-1.5 rounded-full bg-primary animate-pulse"></span>
+        {@visitor_count} Browsing Menu
+      </div>
+      <.link
+        href={~p"/menu/#{@org.slug}"}
+        target="_blank"
+        class="bg-primary text-white px-6 py-2 rounded-md font-bold text-sm uppercase tracking-wide transition-transform active:scale-95"
+      >
+        View Store
+      </.link>
+    </div>
   </nav>
-
-  <div class="mt-auto px-4">
-    <div class="rounded-xl bg-surface-container p-2 space-y-3">
-      <div class="flex items-center gap-2">
-        <span class="material-symbols-outlined">person</span>
-        <span class="text-sm">{@visitor_count} browsing now</span>
-      </div>
-    </div>
-  </div>
-</aside>
+</header>
 
 <div id="kitchen-alert" phx-hook="KitchenAlert" class="hidden"></div>
 
-<main class="ml-72 min-h-screen bg-background">
-  <header class="bg-background/90 backdrop-blur-sm sticky top-0 z-30 flex justify-between items-center px-8 py-4">
-    <div class="flex items-center gap-4">
-      <h1 class="font-headline text-2xl font-black text-primary italic">
+<main class="pt-24 pb-12 px-8 max-w-[1440px] mx-auto min-h-screen">
+  <div class="flex flex-col md:flex-row justify-between items-end mb-10 gap-6">
+    <div>
+      <span class="text-xs font-bold uppercase tracking-[0.2em] text-secondary mb-2 block">
+        Live Kitchen Workspace
+      </span>
+      <h1 class="text-4xl md:text-5xl font-black tracking-tighter text-on-surface font-headline">
         {case @live_action do
-          :orders -> "Live Orders"
+          :orders -> "Order Atelier"
           :baskets -> "Basket Monitor"
-          :history -> "Order History"
-          :menu -> "Menu Editor"
-          :settings -> "Settings"
+          :history -> "Archive Atelier"
+          :menu -> "Menu Atelier"
+          :settings -> "System Settings"
         end}
       </h1>
     </div>
-    <div class="flex items-center gap-6">
-      <div class="flex items-center gap-2 text-sm text-on-surface-variant">
-        <span class="material-symbols-outlined text-lg">visibility</span>
-        <span class="font-semibold">{@visitor_count}</span>
-        <span>on menu</span>
+
+    <div class="flex gap-4">
+      <div class="bg-surface-container-low px-6 py-3 rounded-md flex items-center gap-3">
+        <span class="w-2 h-2 rounded-full bg-primary animate-pulse"></span>
+        <span class="text-sm font-bold uppercase tracking-wider text-on-surface">
+          {@ticket_count} Active Tickets
+        </span>
+      </div>
+      <div class="bg-secondary-container px-6 py-3 rounded-md flex items-center gap-3">
+        <span class="material-symbols-outlined text-on-secondary-container text-xl">timer</span>
+        <span class="text-sm font-bold uppercase tracking-wider text-on-secondary-container">
+          Avg. Fire Time: 14m
+        </span>
       </div>
     </div>
-  </header>
+  </div>
 
   <%= if @live_action == :orders do %>
     <.live_component
@@ -166,6 +173,23 @@
     />
   <% end %>
 </main>
+
+<footer class="bg-surface-container-low w-full py-12 px-8 border-t border-on-surface/5 mt-auto">
+  <div class="max-w-[1440px] mx-auto flex flex-col md:flex-row justify-between items-center gap-10">
+    <div class="font-headline text-lg font-black text-on-surface tracking-tighter uppercase">
+      {@org.name}
+    </div>
+    <div class="flex flex-wrap justify-center gap-x-8 gap-y-4">
+      <a href="#" class="font-body text-[10px] tracking-[0.2em] uppercase text-on-surface-variant/60 hover:text-primary transition-colors">Support</a>
+      <a href="#" class="font-body text-[10px] tracking-[0.2em] uppercase text-on-surface-variant/60 hover:text-primary transition-colors">Documentation</a>
+      <a href="#" class="font-body text-[10px] tracking-[0.2em] uppercase text-on-surface-variant/60 hover:text-primary transition-colors">Status</a>
+      <a href="#" class="font-body text-[10px] tracking-[0.2em] uppercase text-on-surface-variant/60 hover:text-primary transition-colors">Privacy</a>
+    </div>
+    <p class="text-[9px] uppercase tracking-[0.2em] text-on-surface-variant/40 text-center md:text-right">
+      © 2026 {@org.name}. The Digital Atelier for the Modern Pizzaiolo.
+    </p>
+  </div>
+</footer>
 
 <div class="fixed bottom-20 right-10 opacity-[0.07] pointer-events-none rotate-12 hidden lg:block">
   <span class="material-symbols-outlined text-secondary" style="font-size: 160px;">eco</span>
