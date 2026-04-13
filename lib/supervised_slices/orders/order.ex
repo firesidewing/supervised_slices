@@ -184,17 +184,17 @@ defmodule SupervisedSlices.Orders.Order do
     end
 
     policy action(:update_status) do
-      authorize_if SupervisedSlices.Orgs.Checks.IsOrgAdmin
+      authorize_if SupervisedSlices.Orgs.Checks.IsOrgKitchenMember
     end
 
     policy action(:send_update) do
-      authorize_if SupervisedSlices.Orgs.Checks.IsOrgAdmin
+      authorize_if SupervisedSlices.Orgs.Checks.IsOrgKitchenMember
     end
 
     policy action_type(:read) do
       authorize_if relates_to_actor_via(:user)
       authorize_if expr(session_id == ^actor(:id))
-      authorize_if SupervisedSlices.Orgs.Checks.IsOrgAdmin
+      authorize_if SupervisedSlices.Orgs.Checks.IsOrgKitchenMember
     end
   end
 

@@ -1,6 +1,8 @@
 defmodule SupervisedSlicesWeb.AdminLive do
   use SupervisedSlicesWeb, :live_view
 
+  require Ash.Query
+
   on_mount {SupervisedSlicesWeb.LiveUserAuth, :live_user_and_subscription_required}
 
   alias SupervisedSlices.Cart.Cart
@@ -10,29 +12,51 @@ defmodule SupervisedSlicesWeb.AdminLive do
   alias SupervisedSlicesWeb.AdminLive.OrdersComponent
 
   def mount(_params, _session, socket) do
-    %{org: org, ash_scope: scope} = socket.assigns
+    %{org: org, ash_scope: scope, current_user: current_user} = socket.assigns
 
-    orders = load_active_orders(scope)
-    active_carts = load_active_carts(scope)
-    visitor_count = org.id |> OrgPresence.list_visitors() |> map_size()
+    membership =
+      SupervisedSlices.Orgs.Membership
+      |> Ash.Query.filter(user_id == ^current_user.id and organization_id == ^org.id)
+      |> Ash.read_one(authorize?: false)
+      |> case do
+        {:ok, %SupervisedSlices.Orgs.Membership{} = m} -> m
+        _ -> nil
+      end
 
-    if connected?(socket) do
-      PubSubNotifier.subscribe_to_org_orders(org.id)
-      PubSubNotifier.subscribe_to_org_carts(org.id)
-      OrgPresence.subscribe(org.id)
+    if is_nil(membership) or membership.role == :customer do
+      {:ok, Phoenix.LiveView.redirect(socket, to: ~p"/")}
+    else
+      orders = load_active_orders(scope)
+      active_carts = load_active_carts(scope)
+      visitor_count = org.id |> OrgPresence.list_visitors() |> map_size()
+
+      if connected?(socket) do
+        PubSubNotifier.subscribe_to_org_orders(org.id)
+        PubSubNotifier.subscribe_to_org_carts(org.id)
+        OrgPresence.subscribe(org.id)
+      end
+
+      {:ok,
+       socket
+       |> assign(:current_membership, membership)
+       |> assign(:visitor_count, visitor_count)
+       |> assign(:active_carts, active_carts)
+       |> assign(:orders_initial, orders)
+       |> assign(:ticket_count, length(orders))
+       |> assign(:page_title, "Kitchen Command")}
     end
-
-    {:ok,
-     socket
-     |> assign(:visitor_count, visitor_count)
-     |> assign(:active_carts, active_carts)
-     |> assign(:orders_initial, orders)
-     |> assign(:ticket_count, length(orders))
-     |> assign(:page_title, "Kitchen Command")}
   end
 
   def handle_params(_params, _uri, socket) do
-    {:noreply, socket}
+    membership = socket.assigns[:current_membership]
+
+    if membership && membership.role == :staff &&
+         socket.assigns.live_action in [:menu, :settings] do
+      {:noreply,
+       Phoenix.LiveView.push_navigate(socket, to: ~p"/kitchen/#{socket.assigns.org.slug}")}
+    else
+      {:noreply, socket}
+    end
   end
 
   def handle_info({:new_order, order}, socket) do

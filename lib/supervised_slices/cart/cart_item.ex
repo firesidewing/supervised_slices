@@ -33,7 +33,7 @@ defmodule SupervisedSlices.Cart.CartItem do
     policy action_type(:read) do
       authorize_if relates_to_actor_via([:cart, :user])
       authorize_if expr(cart.session_id == ^actor(:id))
-      authorize_if SupervisedSlices.Orgs.Checks.IsOrgAdmin
+      authorize_if SupervisedSlices.Orgs.Checks.IsOrgKitchenMember
     end
 
     policy action_type(:create) do

@@ -103,13 +103,13 @@ defmodule SupervisedSlices.Cart.Cart do
     end
 
     policy action(:active_for_org) do
-      authorize_if SupervisedSlices.Orgs.Checks.IsOrgAdmin
+      authorize_if SupervisedSlices.Orgs.Checks.IsOrgKitchenMember
     end
 
     policy action_type(:read) do
       authorize_if relates_to_actor_via(:user)
       authorize_if expr(session_id == ^actor(:id))
-      authorize_if SupervisedSlices.Orgs.Checks.IsOrgAdmin
+      authorize_if SupervisedSlices.Orgs.Checks.IsOrgKitchenMember
     end
 
     policy action_type(:update) do
