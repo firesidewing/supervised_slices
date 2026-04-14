@@ -26,40 +26,46 @@ defmodule SupervisedSlicesWeb.AdminLive do
     if is_nil(membership) or membership.role == :customer do
       {:ok, Phoenix.LiveView.redirect(socket, to: ~p"/")}
     else
-      if org.plan == :basic do
-        {:ok, Phoenix.LiveView.redirect(socket, to: ~p"/billing/setup/#{org.slug}")}
-      else
-        orders = load_active_orders(scope)
-        active_carts = load_active_carts(scope)
-        visitor_count = org.id |> OrgPresence.list_visitors() |> map_size()
+      orders = load_active_orders(scope)
+      active_carts = load_active_carts(scope)
+      visitor_count = org.id |> OrgPresence.list_visitors() |> map_size()
 
-        if connected?(socket) do
-          PubSubNotifier.subscribe_to_org_orders(org.id)
-          PubSubNotifier.subscribe_to_org_carts(org.id)
-          OrgPresence.subscribe(org.id)
-        end
-
-        {:ok,
-         socket
-         |> assign(:current_membership, membership)
-         |> assign(:visitor_count, visitor_count)
-         |> assign(:active_carts, active_carts)
-         |> assign(:orders_initial, orders)
-         |> assign(:ticket_count, length(orders))
-         |> assign(:page_title, "Kitchen Command")}
+      if connected?(socket) do
+        PubSubNotifier.subscribe_to_org_orders(org.id)
+        PubSubNotifier.subscribe_to_org_carts(org.id)
+        OrgPresence.subscribe(org.id)
       end
+
+      {:ok,
+       socket
+       |> assign(:current_membership, membership)
+       |> assign(:visitor_count, visitor_count)
+       |> assign(:active_carts, active_carts)
+       |> assign(:orders_initial, orders)
+       |> assign(:ticket_count, length(orders))
+       |> assign(:page_title, "Kitchen Command")}
     end
   end
 
   def handle_params(_params, _uri, socket) do
     membership = socket.assigns[:current_membership]
+    org = socket.assigns.org
+    live_action = socket.assigns.live_action
 
-    if membership && membership.role == :staff &&
-         socket.assigns.live_action in [:menu, :settings] do
-      {:noreply,
-       Phoenix.LiveView.push_navigate(socket, to: ~p"/kitchen/#{socket.assigns.org.slug}")}
-    else
-      {:noreply, socket}
+    cond do
+      membership && membership.role == :staff &&
+          live_action in [:menu, :settings] ->
+        {:noreply,
+         Phoenix.LiveView.push_navigate(socket, to: ~p"/kitchen/#{org.slug}")}
+
+      org.plan == :basic && live_action == :history ->
+        {:noreply,
+         socket
+         |> put_flash(:error, "Order History & Analytics is a Pro feature.")
+         |> Phoenix.LiveView.push_navigate(to: ~p"/kitchen/#{org.slug}")}
+
+      true ->
+        {:noreply, socket}
     end
   end
 

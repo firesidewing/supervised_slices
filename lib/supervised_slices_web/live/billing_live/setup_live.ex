@@ -40,7 +40,7 @@ defmodule SupervisedSlicesWeb.BillingLive.Setup do
             <div class="bg-surface border border-outline-variant/10 rounded-2xl p-6 flex flex-col">
               <div class="mb-4">
                 <h3 class="font-headline text-xl font-black mb-1">Base Dough</h3>
-                <p class="text-2xl font-headline font-black text-primary">$29<span class="text-xs text-on-surface-variant/60 font-body">/mo</span></p>
+                <p class="text-2xl font-headline font-black text-primary">$79<span class="text-xs text-on-surface-variant/60 font-body">/mo</span></p>
               </div>
               <ul class="space-y-3 mb-8 text-sm text-on-surface/70 flex-grow">
                 <li class="flex items-center gap-2">
@@ -50,7 +50,7 @@ defmodule SupervisedSlicesWeb.BillingLive.Setup do
                   <span class="text-primary font-bold">✓</span> Menu Studio
                 </li>
                 <li class="flex items-center gap-2">
-                  <span class="text-primary font-bold">✓</span> Basic Analytics
+                  <span class="text-primary font-bold">✓</span> Kitchen Command (The Rail)
                 </li>
               </ul>
               <button
@@ -78,17 +78,17 @@ defmodule SupervisedSlicesWeb.BillingLive.Setup do
               </div>
               <div class="mb-4">
                 <h3 class="font-headline text-xl font-black mb-1">Pro Crust</h3>
-                <p class="text-2xl font-headline font-black text-primary">$79<span class="text-xs text-white/40 font-body">/mo</span></p>
+                <p class="text-2xl font-headline font-black text-primary">$149<span class="text-xs text-white/40 font-body">/mo</span></p>
               </div>
               <ul class="space-y-3 mb-8 text-sm text-white/70 flex-grow">
                 <li class="flex items-center gap-2">
                   <span class="text-primary font-bold">✓</span> Everything in Base
                 </li>
                 <li class="flex items-center gap-2">
-                  <span class="text-primary font-bold">✓</span> The Rail (Kitchen)
+                  <span class="text-primary font-bold">✓</span> Order History & Analytics
                 </li>
                 <li class="flex items-center gap-2">
-                  <span class="text-primary font-bold">✓</span> Live Order Tracking
+                  <span class="text-primary font-bold">✓</span> Marketing & Upselling
                 </li>
               </ul>
               <button
@@ -106,6 +106,25 @@ defmodule SupervisedSlicesWeb.BillingLive.Setup do
                     Select Pro
                   <% end %>
                 <% end %>
+              </button>
+            </div>
+          </div>
+
+          <%!-- Add-on: Menu Import --%>
+          <div class="bg-surface-container-high border border-outline-variant/10 rounded-2xl p-6 mb-12 flex items-center justify-between">
+            <div class="flex items-center gap-4">
+              <div class="p-3 bg-secondary/10 rounded-xl text-secondary">
+                <span class="material-symbols-outlined">menu_book</span>
+              </div>
+              <div>
+                <h4 class="font-headline font-black text-on-surface">Menu Import Concierge</h4>
+                <p class="text-[11px] text-on-surface-variant/60 font-body">One-time setup fee per menu import.</p>
+              </div>
+            </div>
+            <div class="text-right">
+              <p class="font-headline font-black text-lg text-on-surface">$150</p>
+              <button class="text-[10px] font-black uppercase tracking-wider text-secondary hover:underline">
+                Request Import
               </button>
             </div>
           </div>
