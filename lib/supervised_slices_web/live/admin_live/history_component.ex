@@ -63,9 +63,57 @@ defmodule SupervisedSlicesWeb.AdminLive.HistoryComponent do
 
   defp total_revenue(orders) do
     orders
+    |> Enum.filter(&(&1.status == :completed))
     |> Enum.reduce(Money.new!(:CAD, "0"), fn order, acc ->
       Money.add!(acc, order.total_price)
     end)
+  end
+
+  defp total_completed_items_qty(orders) do
+    orders
+    |> Enum.filter(&(&1.status == :completed))
+    |> Enum.flat_map(&(&1.order_items || []))
+    |> Enum.map(& &1.quantity)
+    |> Enum.sum()
+  end
+
+  defp top_items(orders) do
+    orders
+    |> Enum.filter(&(&1.status == :completed))
+    |> Enum.flat_map(&(&1.order_items || []))
+    |> Enum.group_by(& &1.item_name)
+    |> Enum.map(fn {name, items} ->
+      %{name: name, quantity: Enum.sum(Enum.map(items, & &1.quantity))}
+    end)
+    |> Enum.sort_by(& &1.quantity, :desc)
+    |> Enum.take(5)
+  end
+
+  defp orders_by_hour(orders) do
+    # Group by hour (0..23)
+    orders
+    |> Enum.group_by(fn order ->
+      order.inserted_at.hour
+    end)
+    |> Enum.map(fn {hour, orders} -> {hour, length(orders)} end)
+    |> Enum.into(%{})
+  end
+
+  defp avg_completion_time(orders) do
+    completed_orders = Enum.filter(orders, &(&1.status == :completed))
+
+    if Enum.empty?(completed_orders) do
+      nil
+    else
+      total_seconds =
+        completed_orders
+        |> Enum.map(fn order ->
+          DateTime.diff(order.updated_at, order.inserted_at)
+        end)
+        |> Enum.sum()
+
+      trunc(total_seconds / length(completed_orders) / 60)
+    end
   end
 
   defp status_badge_class(:completed), do: "bg-secondary-container text-on-secondary-container"
@@ -110,7 +158,7 @@ defmodule SupervisedSlicesWeb.AdminLive.HistoryComponent do
       </div>
 
       <%!-- Summary cards --%>
-      <div class="grid grid-cols-2 gap-8">
+      <div class="grid grid-cols-2 md:grid-cols-4 gap-8">
         <div class="bg-surface-container-low rounded-md p-6 flex flex-col justify-center">
           <span class="font-body text-xs uppercase tracking-widest font-bold text-on-surface-variant mb-2">
             Orders
@@ -137,6 +185,100 @@ defmodule SupervisedSlicesWeb.AdminLive.HistoryComponent do
             <% end %>
           </span>
         </div>
+        <div class="bg-surface-container-low rounded-md p-6 flex flex-col justify-center">
+          <span class="font-body text-xs uppercase tracking-widest font-bold text-on-surface-variant mb-2">
+            Avg. Prep Time
+          </span>
+          <span class="font-headline text-3xl font-black text-on-surface">
+            <%= if @history_orders.loading do %>
+              <span class="inline-block h-9 w-16 bg-surface-container animate-pulse rounded" />
+            <% else %>
+              {avg_completion_time(@history_orders.result || []) || "-"}
+              <span class="text-xs font-body font-normal opacity-60 ml-1">mins</span>
+            <% end %>
+          </span>
+        </div>
+        <div class="bg-surface-container-low rounded-md p-6 flex flex-col justify-center">
+          <span class="font-body text-xs uppercase tracking-widest font-bold text-on-surface-variant mb-2">
+            Top Selling
+          </span>
+          <span class="font-headline text-xl font-bold text-on-surface truncate">
+            <%= if @history_orders.loading do %>
+              <span class="inline-block h-7 w-32 bg-surface-container animate-pulse rounded" />
+            <% else %>
+              {case top_items(@history_orders.result || []) do
+                [%{name: name} | _] -> name
+                _ -> "-"
+              end}
+            <% end %>
+          </span>
+        </div>
+      </div>
+
+      <%!-- Insights Grid --%>
+      <%= if !@history_orders.loading && !Enum.empty?(@history_orders.result || []) do %>
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+          <%!-- Order Volume Chart --%>
+          <div class="bg-surface-container-low rounded-md p-8">
+            <h3 class="font-headline text-sm font-bold text-on-surface uppercase tracking-widest mb-8">
+              Order Volume Distribution
+            </h3>
+            <div class="flex items-end gap-1 h-32">
+              <% volumes = orders_by_hour(@history_orders.result) %>
+              <% max_volume = volumes |> Map.values() |> Enum.max(fn -> 1 end) %>
+              <%= for hour <- 0..23 do %>
+                <% vol = Map.get(volumes, hour, 0) %>
+                <% height = if max_volume > 0, do: trunc(vol / max_volume * 100), else: 0 %>
+                <div class="group relative flex-1">
+                  <div
+                    class="w-full bg-primary/20 rounded-t-sm transition-all hover:bg-primary"
+                    style={"height: #{max(height, 2)}%;"}
+                  >
+                  </div>
+                  <div class="absolute -bottom-6 left-1/2 -translate-x-1/2 hidden group-hover:block whitespace-nowrap bg-on-surface text-surface text-[10px] px-2 py-1 rounded-sm z-10">
+                    {hour}:00 — {vol} orders
+                  </div>
+                </div>
+              <% end %>
+            </div>
+            <div class="flex justify-between mt-4 text-[9px] font-bold uppercase tracking-[0.2em] text-on-surface-variant/40">
+              <span>Midnight</span>
+              <span>Noon</span>
+              <span>11 PM</span>
+            </div>
+          </div>
+
+          <%!-- Top Items List --%>
+          <div class="bg-surface-container-low rounded-md p-8">
+            <h3 class="font-headline text-sm font-bold text-on-surface uppercase tracking-widest mb-6">
+              Menu Performance
+            </h3>
+            <div class="space-y-4">
+              <%= for %{name: name, quantity: qty} <- top_items(@history_orders.result) do %>
+                <div class="flex items-center justify-between">
+                  <span class="font-body text-sm font-bold text-on-surface">{name}</span>
+                  <div class="flex items-center gap-4 flex-1 max-w-[200px] ml-4">
+                    <% total_qty = total_completed_items_qty(@history_orders.result) %>
+                    <% percent = if total_qty > 0, do: trunc(qty / total_qty * 100), else: 0 %>
+                    <div class="h-1.5 flex-1 bg-surface-container rounded-full overflow-hidden">
+                      <div class="h-full bg-secondary" style={"width: #{percent}%"}></div>
+                    </div>
+                    <span class="font-body text-xs font-bold text-on-surface-variant w-8 text-right">
+                      {qty}
+                    </span>
+                  </div>
+                </div>
+              <% end %>
+            </div>
+          </div>
+        </div>
+      <% end %>
+
+      <%!-- Orders list header --%>
+      <div class="pt-4">
+        <h3 class="font-headline text-lg font-bold text-on-surface border-b-0">
+          Transaction Journal
+        </h3>
       </div>
 
       <%!-- Orders list --%>
