@@ -1,4 +1,9 @@
 <!-- Hero Section -->
+<nav class="absolute top-0 right-0 p-8 z-50 flex gap-6 font-label text-xs tracking-widest uppercase font-black text-on-surface">
+  <a :if={assigns[:kitchen_org]} href={~p"/kitchen/#{@kitchen_org.slug}"} class="hover:text-primary transition-colors">Kitchen</a>
+  <a :if={assigns[:current_user]} href={~p"/sign-out"} class="hover:text-primary transition-colors">Sign Out</a>
+  <a :if={!assigns[:current_user]} href={~p"/sign-in"} class="hover:text-primary transition-colors">Sign In</a>
+</nav>
 <section class="max-w-[1440px] mx-auto px-8 py-24 md:py-32 grid grid-cols-1 md:grid-cols-12 gap-16 items-center overflow-hidden">
   <div class="md:col-span-6 z-10">
     <p class="font-label text-primary uppercase tracking-[0.2em] text-xs mb-6 font-bold">

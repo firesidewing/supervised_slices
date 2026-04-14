@@ -25,13 +25,31 @@ defmodule SupervisedSlicesWeb.AuthController do
         _ -> "You are now signed in"
       end
 
+    kitchen_org = get_kitchen_org(user)
+
+    redirect_to =
+      if return_to == ~p"/" and kitchen_org do
+        ~p"/kitchen/#{kitchen_org.slug}"
+      else
+        return_to
+      end
+
     conn
     |> delete_session(:return_to)
     |> store_in_session(user)
     # If your resource has a different name, update the assign name here (i.e :current_admin)
     |> assign(:current_user, user)
     |> put_flash(:info, message)
-    |> redirect(to: return_to)
+    |> redirect(to: redirect_to)
+  end
+
+  defp get_kitchen_org(user) do
+    user.id
+    |> SupervisedSlices.Orgs.Membership.get_kitchen_membership(authorize?: false)
+    |> case do
+      {:ok, [membership | _]} -> membership.organization
+      _ -> nil
+    end
   end
 
   defp get_admin_org(user) do

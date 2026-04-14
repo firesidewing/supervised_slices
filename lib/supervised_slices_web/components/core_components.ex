@@ -988,13 +988,6 @@ defmodule SupervisedSlicesWeb.CoreComponents do
     if cart && cart.delivery_type == :delivery, do: org.delivery_fee, else: nil
   end
 
-  defp basket_delivery_fee_string(cart, org) do
-    case basket_delivery_fee_money(cart, org) do
-      nil -> ""
-      fee -> Money.to_string!(fee)
-    end
-  end
-
   defp basket_total(cart, tax_rate, org) do
     case basket_subtotal_money(cart) do
       nil ->

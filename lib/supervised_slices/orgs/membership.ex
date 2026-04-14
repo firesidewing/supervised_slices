@@ -14,6 +14,7 @@ defmodule SupervisedSlices.Orgs.Membership do
     define :update_role, action: :update_role
     define :destroy, action: :destroy
     define :for_org, action: :for_org
+    define :get_kitchen_membership, action: :get_kitchen_membership, args: [:user_id]
   end
 
   actions do
@@ -29,6 +30,12 @@ defmodule SupervisedSlices.Orgs.Membership do
 
     read :for_org do
       prepare build(load: [:user])
+    end
+
+    read :get_kitchen_membership do
+      argument :user_id, :uuid, allow_nil?: false
+      filter expr(user_id == ^arg(:user_id) and role in [:admin, :staff])
+      prepare build(load: [:organization], sort: [inserted_at: :desc])
     end
 
     create :invite do
