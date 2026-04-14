@@ -26,24 +26,28 @@ defmodule SupervisedSlicesWeb.AdminLive do
     if is_nil(membership) or membership.role == :customer do
       {:ok, Phoenix.LiveView.redirect(socket, to: ~p"/")}
     else
-      orders = load_active_orders(scope)
-      active_carts = load_active_carts(scope)
-      visitor_count = org.id |> OrgPresence.list_visitors() |> map_size()
+      if org.plan == :basic do
+        {:ok, Phoenix.LiveView.redirect(socket, to: ~p"/billing/setup/#{org.slug}")}
+      else
+        orders = load_active_orders(scope)
+        active_carts = load_active_carts(scope)
+        visitor_count = org.id |> OrgPresence.list_visitors() |> map_size()
 
-      if connected?(socket) do
-        PubSubNotifier.subscribe_to_org_orders(org.id)
-        PubSubNotifier.subscribe_to_org_carts(org.id)
-        OrgPresence.subscribe(org.id)
+        if connected?(socket) do
+          PubSubNotifier.subscribe_to_org_orders(org.id)
+          PubSubNotifier.subscribe_to_org_carts(org.id)
+          OrgPresence.subscribe(org.id)
+        end
+
+        {:ok,
+         socket
+         |> assign(:current_membership, membership)
+         |> assign(:visitor_count, visitor_count)
+         |> assign(:active_carts, active_carts)
+         |> assign(:orders_initial, orders)
+         |> assign(:ticket_count, length(orders))
+         |> assign(:page_title, "Kitchen Command")}
       end
-
-      {:ok,
-       socket
-       |> assign(:current_membership, membership)
-       |> assign(:visitor_count, visitor_count)
-       |> assign(:active_carts, active_carts)
-       |> assign(:orders_initial, orders)
-       |> assign(:ticket_count, length(orders))
-       |> assign(:page_title, "Kitchen Command")}
     end
   end
 

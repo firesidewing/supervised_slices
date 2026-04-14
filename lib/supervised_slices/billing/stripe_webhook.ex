@@ -5,7 +5,7 @@ defmodule SupervisedSlices.Billing.StripeWebhook do
 
   defmodule Subscription do
     @derive [Jason.Encoder]
-    defstruct [:id, :customer, :status]
+    defstruct [:id, :customer, :status, :metadata]
   end
 
   defmodule Event do
@@ -23,11 +23,17 @@ defmodule SupervisedSlices.Billing.StripeWebhook do
     }
   end
 
-  defp parse_subscription(%{"id" => id, "customer" => customer, "status" => status}) do
+  defp parse_subscription(%{
+         "id" => id,
+         "customer" => customer,
+         "status" => status,
+         "metadata" => metadata
+       }) do
     %Subscription{
       id: id,
       customer: customer,
-      status: status
+      status: status,
+      metadata: metadata
     }
   end
 

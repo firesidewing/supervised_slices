@@ -84,17 +84,27 @@ defmodule SupervisedSlicesWeb.StripeWebhookController do
     customer_id = subscription.customer
     subscription_id = subscription.id
     status = Billing.parse_subscription_status(subscription.status)
+    plan = subscription.metadata["plan"]
 
     case Organization.by_stripe_customer(customer_id, authorize?: false) do
       {:ok, nil} ->
         :ok
 
       {:ok, org} ->
-        org
-        |> Ash.Changeset.for_update(:update_billing, %{
+        params = %{
           stripe_subscription_id: subscription_id,
           subscription_status: status
-        })
+        }
+
+        params =
+          if plan in ["basic", "pro"] do
+            Map.put(params, :plan, String.to_existing_atom(plan))
+          else
+            params
+          end
+
+        org
+        |> Ash.Changeset.for_update(:update_billing, params)
         |> Ash.update(authorize?: false)
         |> case do
           {:ok, _} -> :ok

@@ -30,13 +30,14 @@ defmodule SupervisedSlices.Billing do
   Creates a Stripe Checkout Session for a new subscription.
   Returns `{:ok, session}` where `session.url` is the hosted checkout URL.
   """
-  def create_checkout_session(customer_id, success_url, cancel_url) do
-    price_id = Application.get_env(:supervised_slices, :stripe)[:price_id]
-
+  def create_checkout_session(customer_id, price_id, plan_name, success_url, cancel_url) do
     Stripe.Checkout.Session.create(%{
       customer: customer_id,
       mode: "subscription",
       line_items: [%{price: price_id, quantity: 1}],
+      subscription_data: %{
+        metadata: %{plan: to_string(plan_name)}
+      },
       success_url: success_url <> "?session_id={CHECKOUT_SESSION_ID}",
       cancel_url: cancel_url,
       payment_method_collection: "always"
