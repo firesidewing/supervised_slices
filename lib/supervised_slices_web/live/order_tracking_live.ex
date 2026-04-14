@@ -182,7 +182,9 @@ defmodule SupervisedSlicesWeb.OrderTrackingLive do
               class="bg-secondary-container p-6 rounded-xl shadow-md border border-secondary flex flex-col items-center justify-center min-w-[180px] animate-bounce"
             >
               <span class="material-symbols-outlined text-secondary text-3xl mb-1">shopping_bag</span>
-              <span class="font-serif text-xl font-bold text-on-secondary-container">Ready for Pickup</span>
+              <span class="font-serif text-xl font-bold text-on-secondary-container">
+                Ready for Pickup
+              </span>
             </div>
           </div>
         </section>
@@ -309,16 +311,20 @@ defmodule SupervisedSlicesWeb.OrderTrackingLive do
                     "flex items-start gap-4 p-4 rounded-xl shadow-sm border border-outline-variant/5 transition-all duration-300",
                     if(update.message,
                       do: "bg-primary-container text-on-primary-container",
-                      else: "bg-surface-container-lowest")
+                      else: "bg-surface-container-lowest"
+                    )
                   ]}>
                     <div class={[
                       "w-8 h-8 rounded-full flex items-center justify-center shrink-0 shadow-sm",
                       if(update.message,
                         do: "bg-white text-primary",
-                        else: "bg-surface-container-highest text-on-surface-variant")
+                        else: "bg-surface-container-highest text-on-surface-variant"
+                      )
                     ]}>
                       <span class="material-symbols-outlined text-sm">
-                        {if update.message, do: "chat_bubble", else: status_timeline_icon(update.status)}
+                        {if update.message,
+                          do: "chat_bubble",
+                          else: status_timeline_icon(update.status)}
                       </span>
                     </div>
                     <div class="flex-1 min-w-0 pt-0.5">
@@ -357,7 +363,7 @@ defmodule SupervisedSlicesWeb.OrderTrackingLive do
                           {item.size_snapshot["name"]}
                         </p>
                         <p
-                          :for={mod <- (item.modifiers_snapshot || [])}
+                          :for={mod <- item.modifiers_snapshot || []}
                           class="text-xs text-on-surface-variant italic leading-tight"
                         >
                           + {mod["name"]}
@@ -445,9 +451,12 @@ defmodule SupervisedSlicesWeb.OrderTrackingLive do
     <div class="flex flex-col items-center gap-3 relative">
       <div class={[
         "z-10 transition-all duration-500",
-        @active && "w-12 h-12 -mt-1 rounded-full bg-white border-4 border-primary flex items-center justify-center shadow-xl",
-        !@active && @completed && "w-10 h-10 rounded-full bg-primary text-white flex items-center justify-center shadow-lg shadow-primary/20",
-        !@active && !@completed && "w-10 h-10 rounded-full bg-surface-container-highest text-stone-400 flex items-center justify-center"
+        @active &&
+          "w-12 h-12 -mt-1 rounded-full bg-white border-4 border-primary flex items-center justify-center shadow-xl",
+        !@active && @completed &&
+          "w-10 h-10 rounded-full bg-primary text-white flex items-center justify-center shadow-lg shadow-primary/20",
+        !@active && !@completed &&
+          "w-10 h-10 rounded-full bg-surface-container-highest text-stone-400 flex items-center justify-center"
       ]}>
         <span class={[
           "material-symbols-outlined text-lg",

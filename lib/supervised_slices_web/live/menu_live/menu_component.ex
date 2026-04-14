@@ -126,7 +126,10 @@ defmodule SupervisedSlicesWeb.MenuLive.MenuComponent do
         <h3 class="font-headline text-base font-bold truncate text-on-surface group-hover:text-primary transition-colors">
           {@item.name}
         </h3>
-        <p :if={@item.description} class="font-body text-[0.7rem] text-on-surface-variant truncate opacity-80">
+        <p
+          :if={@item.description}
+          class="font-body text-[0.7rem] text-on-surface-variant truncate opacity-80"
+        >
           {@item.description}
         </p>
         <span class="font-label text-sm font-bold text-primary mt-1 block">

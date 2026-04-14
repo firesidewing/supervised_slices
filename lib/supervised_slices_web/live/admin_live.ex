@@ -64,11 +64,17 @@ defmodule SupervisedSlicesWeb.AdminLive do
     send_update(OrdersComponent, id: "orders", action: {:insert, loaded})
     updated = [loaded | socket.assigns.orders_initial]
 
+    socket =
+      if loaded.status == :pending do
+        push_event(socket, "new_order_alert", %{})
+      else
+        socket
+      end
+
     {:noreply,
      socket
      |> assign(:orders_initial, updated)
-     |> assign(:ticket_count, length(updated))
-     |> push_event("new_order_alert", %{})}
+     |> assign(:ticket_count, length(updated))}
   end
 
   def handle_info({:order_updated, order}, socket) do

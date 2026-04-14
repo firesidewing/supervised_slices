@@ -69,7 +69,9 @@ defmodule SupervisedSlicesWeb.MenuLive.ItemComponent do
             :if={!@selected_item.image_url}
             class="w-full h-full bg-surface-container-low flex items-center justify-center"
           >
-            <span class="material-symbols-outlined text-outline opacity-20 text-9xl">local_pizza</span>
+            <span class="material-symbols-outlined text-outline opacity-20 text-9xl">
+              local_pizza
+            </span>
           </div>
           <div class="absolute bottom-0 left-0 w-full h-2/3 bg-gradient-to-t from-surface to-transparent" />
           <!-- Headline Overlay -->
@@ -93,7 +95,9 @@ defmodule SupervisedSlicesWeb.MenuLive.ItemComponent do
           <section :if={not Enum.empty?(@selected_item.sizes || [])}>
             <div class="flex items-baseline justify-between mb-6">
               <h3 class="font-headline text-xl font-bold">Select Diameter</h3>
-              <span class="font-label text-xs tracking-widest uppercase opacity-60">Essential Scale</span>
+              <span class="font-label text-xs tracking-widest uppercase opacity-60">
+                Essential Scale
+              </span>
             </div>
             <div class="flex overflow-x-auto gap-4 pb-4 no-scrollbar">
               <.size_card
@@ -104,8 +108,8 @@ defmodule SupervisedSlicesWeb.MenuLive.ItemComponent do
               />
             </div>
           </section>
-
-          <!-- Modifier Groups -->
+          
+    <!-- Modifier Groups -->
           <section :for={group <- @selected_item.modifier_groups} class="space-y-6">
             <div class="flex items-baseline justify-between">
               <h3 class="font-headline text-xl font-bold">{group.name}</h3>
@@ -124,8 +128,8 @@ defmodule SupervisedSlicesWeb.MenuLive.ItemComponent do
               />
             </div>
           </section>
-
-          <!-- Preparation Notes (Mock) -->
+          
+    <!-- Preparation Notes (Mock) -->
           <section>
             <div class="flex items-baseline justify-between mb-6">
               <h3 class="font-headline text-xl font-bold">Preparation Notes</h3>
@@ -137,12 +141,14 @@ defmodule SupervisedSlicesWeb.MenuLive.ItemComponent do
           </section>
         </div>
       </main>
-
-      <!-- Sticky Footer Action -->
+      
+    <!-- Sticky Footer Action -->
       <footer class="fixed bottom-0 left-0 w-full bg-surface/90 backdrop-blur-xl px-8 py-6 z-50 shadow-[0_-10px_40px_rgba(28,28,24,0.06)]">
         <div class="max-w-3xl mx-auto flex items-center justify-between gap-6">
           <div class="flex flex-col">
-            <span class="font-label text-[10px] tracking-widest uppercase opacity-60">Total Value</span>
+            <span class="font-label text-[10px] tracking-widest uppercase opacity-60">
+              Total Value
+            </span>
             <span :if={@total_price} class="font-headline text-2xl font-black text-on-surface">
               {format_money(@total_price)}
             </span>
@@ -250,7 +256,8 @@ defmodule SupervisedSlicesWeb.MenuLive.ItemComponent do
             "w-8 h-8 flex items-center justify-center rounded transition-all",
             if(@selected,
               do: "bg-primary text-white border-b-2 border-primary-container scale-95",
-              else: "bg-surface-container-low text-on-surface opacity-40 border-b-2 border-outline-variant"
+              else:
+                "bg-surface-container-low text-on-surface opacity-40 border-b-2 border-outline-variant"
             )
           ]}
         >

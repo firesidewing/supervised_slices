@@ -634,7 +634,9 @@ defmodule SupervisedSlicesWeb.AdminLive.SettingsComponent do
                       value={open_time}
                       class="rounded bg-surface-container-highest border-0 text-xs font-bold px-3 py-1.5 text-on-surface focus:ring-1 focus:ring-primary outline-none"
                     />
-                    <span class="text-[10px] font-black text-on-surface-variant/20 uppercase">to</span>
+                    <span class="text-[10px] font-black text-on-surface-variant/20 uppercase">
+                      to
+                    </span>
                     <input
                       type="time"
                       name={"#{key}_close_time"}
@@ -649,10 +651,14 @@ defmodule SupervisedSlicesWeb.AdminLive.SettingsComponent do
 
           <div class="pt-10 flex flex-col gap-4">
             <%= if @save_status == :ok do %>
-              <p class="text-[10px] font-black uppercase tracking-[0.2em] text-secondary text-center">Settings saved successfully</p>
+              <p class="text-[10px] font-black uppercase tracking-[0.2em] text-secondary text-center">
+                Settings saved successfully
+              </p>
             <% end %>
             <%= if @save_status == :error do %>
-              <p class="text-[10px] font-black uppercase tracking-[0.2em] text-primary text-center">Invalid input values</p>
+              <p class="text-[10px] font-black uppercase tracking-[0.2em] text-primary text-center">
+                Invalid input values
+              </p>
             <% end %>
 
             <button
@@ -710,7 +716,9 @@ defmodule SupervisedSlicesWeb.AdminLive.SettingsComponent do
                   value={@primary_color_input}
                   class="w-10 h-10 rounded cursor-pointer bg-transparent p-0"
                 />
-                <span class="font-body text-xs font-black uppercase tracking-widest text-on-surface">{@primary_color_input}</span>
+                <span class="font-body text-xs font-black uppercase tracking-widest text-on-surface">
+                  {@primary_color_input}
+                </span>
               </div>
             </div>
 
@@ -725,17 +733,23 @@ defmodule SupervisedSlicesWeb.AdminLive.SettingsComponent do
                   value={@secondary_color_input}
                   class="w-10 h-10 rounded cursor-pointer bg-transparent p-0"
                 />
-                <span class="font-body text-xs font-black uppercase tracking-widest text-on-surface">{@secondary_color_input}</span>
+                <span class="font-body text-xs font-black uppercase tracking-widest text-on-surface">
+                  {@secondary_color_input}
+                </span>
               </div>
             </div>
           </div>
 
           <div class="pt-10 flex flex-col gap-4">
             <%= if @branding_status == :ok do %>
-              <p class="text-[10px] font-black uppercase tracking-[0.2em] text-secondary text-center">Branding updated</p>
+              <p class="text-[10px] font-black uppercase tracking-[0.2em] text-secondary text-center">
+                Branding updated
+              </p>
             <% end %>
             <%= if @branding_status == :error do %>
-              <p class="text-[10px] font-black uppercase tracking-[0.2em] text-primary text-center">Invalid hex values</p>
+              <p class="text-[10px] font-black uppercase tracking-[0.2em] text-primary text-center">
+                Invalid hex values
+              </p>
             <% end %>
 
             <button
@@ -830,10 +844,14 @@ defmodule SupervisedSlicesWeb.AdminLive.SettingsComponent do
 
           <div class="flex flex-col gap-4">
             <%= if @invite_status == :ok do %>
-              <p class="text-[10px] font-black uppercase tracking-[0.2em] text-secondary text-center">Invitation sent</p>
+              <p class="text-[10px] font-black uppercase tracking-[0.2em] text-secondary text-center">
+                Invitation sent
+              </p>
             <% end %>
             <%= if @invite_status == :error do %>
-              <p class="text-[10px] font-black uppercase tracking-[0.2em] text-primary text-center">Failed to send invitation</p>
+              <p class="text-[10px] font-black uppercase tracking-[0.2em] text-primary text-center">
+                Failed to send invitation
+              </p>
             <% end %>
 
             <button

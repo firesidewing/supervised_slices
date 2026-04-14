@@ -98,7 +98,8 @@ defmodule SupervisedSlicesWeb.AdminLive.OrdersComponent do
               ]}>
                 <%= if order.status == :pending do %>
                   <span class="relative flex h-2 w-2">
-                    <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-white opacity-75"></span>
+                    <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-white opacity-75">
+                    </span>
                     <span class="relative inline-flex rounded-full h-2 w-2 bg-white"></span>
                   </span>
                 <% end %>
@@ -248,6 +249,7 @@ defmodule SupervisedSlicesWeb.AdminLive.OrdersComponent do
   defp status_badge_class(_), do: "bg-surface-container text-on-surface-variant"
 
   defp action_button_class(:pending), do: "bg-primary text-white hover:opacity-90"
+
   defp action_button_class(:confirmed),
     do: "border-2 border-secondary text-secondary hover:bg-secondary hover:text-white"
 

@@ -321,7 +321,9 @@ defmodule SupervisedSlicesWeb.AdminLive.HistoryComponent do
                 </div>
 
                 <div class="font-body text-xs text-on-surface-variant truncate">
-                  {order.order_items |> Enum.map(&"#{&1.quantity}x #{&1.item_name}") |> Enum.join(", ")}
+                  {order.order_items
+                  |> Enum.map(&"#{&1.quantity}x #{&1.item_name}")
+                  |> Enum.join(", ")}
                 </div>
 
                 <div class="font-body text-xs text-on-surface-variant opacity-60">

@@ -542,7 +542,11 @@ defmodule SupervisedSlicesWeb.AdminLive.MenuEditorComponent do
       <%= for category <- @categories do %>
         <div class="space-y-4">
           <%= if @editing_item_id == "cat:#{category.id}" do %>
-            <form phx-submit="save_category" phx-target={@myself} class="flex items-center gap-4 bg-surface-container-low p-4 rounded-md">
+            <form
+              phx-submit="save_category"
+              phx-target={@myself}
+              class="flex items-center gap-4 bg-surface-container-low p-4 rounded-md"
+            >
               <input type="hidden" name="category[id]" value={category.id} />
               <input
                 type="text"
@@ -590,7 +594,7 @@ defmodule SupervisedSlicesWeb.AdminLive.MenuEditorComponent do
             </div>
           <% end %>
 
-          <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8">
+          <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
             <%= for item <- category.menu_items do %>
               <%= if @editing_item_id == item.id do %>
                 <div class="bg-surface-container-lowest rounded-xl p-5 space-y-5">
@@ -885,7 +889,10 @@ defmodule SupervisedSlicesWeb.AdminLive.MenuEditorComponent do
                           <% item.price -> %>
                             {format_money(item.price)}
                           <% not Enum.empty?(item.sizes || []) -> %>
-                            From {item.sizes |> Enum.min_by(& &1.price.amount) |> then(& &1.price) |> format_money()}
+                            From {item.sizes
+                            |> Enum.min_by(& &1.price.amount)
+                            |> then(& &1.price)
+                            |> format_money()}
                           <% true -> %>
                             —
                         <% end %>
@@ -997,7 +1004,9 @@ defmodule SupervisedSlicesWeb.AdminLive.MenuEditorComponent do
                 <span class="material-symbols-outlined text-primary/40 group-hover:text-primary transition-colors text-3xl">
                   add_circle
                 </span>
-                <span class="text-[10px] font-black text-on-surface-variant uppercase tracking-[0.2em]">Add item to {category.name}</span>
+                <span class="text-[10px] font-black text-on-surface-variant uppercase tracking-[0.2em]">
+                  Add item to {category.name}
+                </span>
               </button>
             <% end %>
           </div>

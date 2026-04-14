@@ -46,10 +46,18 @@ defmodule SupervisedSlicesWeb.Layouts do
       <div class="flex-none">
         <ul class="flex px-1 space-x-6 items-center">
           <li>
-            <a href="#instruments" class="text-sm font-label font-bold uppercase tracking-widest text-on-surface opacity-60 hover:opacity-100 transition-opacity">Instruments</a>
+            <a
+              href="#instruments"
+              class="text-sm font-label font-bold uppercase tracking-widest text-on-surface opacity-60 hover:opacity-100 transition-opacity"
+            >
+              Instruments
+            </a>
           </li>
           <li>
-            <a href="/register" class="bg-primary text-white px-6 py-2 rounded-md font-body font-bold text-sm hover:bg-primary-container transition-colors scale-95 active:scale-90 shadow-soft">
+            <a
+              href="/register"
+              class="bg-primary text-white px-6 py-2 rounded-md font-body font-bold text-sm hover:bg-primary-container transition-colors scale-95 active:scale-90 shadow-soft"
+            >
               Get Started
             </a>
           </li>

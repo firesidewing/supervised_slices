@@ -13,6 +13,8 @@ When you're done executing code, try to compile the code, and check the logs or 
 ## Design
 Refer to DESIGN.md for UI/front end design
 
+## Phoenix
+Use new phoenix syntax :if={}/:for={} over older syntax <%= if ... do %>/<%= for ... do %>
 
 # CLAUDE.md
 
