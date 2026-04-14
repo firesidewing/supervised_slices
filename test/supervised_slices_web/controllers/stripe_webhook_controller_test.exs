@@ -164,6 +164,95 @@ defmodule SupervisedSlicesWeb.StripeWebhookControllerTest do
       assert response(conn, 200) == "ok"
     end
 
+    test "successfully updates organization on checkout.session.completed for menu upload", %{conn: conn} do
+      org =
+        Organization
+        |> Ash.Changeset.for_create(:create, %{name: "Test Org"})
+        |> Ash.create!(authorize?: false)
+        |> Ash.Changeset.for_update(:update_billing, %{stripe_customer_id: "cus_123"})
+        |> Ash.update!(authorize?: false)
+
+      assert org.menu_upload_purchased == false
+
+      payload =
+        %{
+          id: "evt_123",
+          type: "checkout.session.completed",
+          data: %{
+            object: %{
+              id: "cs_123",
+              customer: "cus_123",
+              status: "complete",
+              mode: "payment",
+              payment_status: "paid",
+              metadata: %{
+                menu_upload: "true",
+                org_id: org.id
+              },
+              subscription: nil
+            }
+          }
+        }
+        |> Jason.encode!()
+
+      sig = generate_signature(payload, @secret)
+
+      conn =
+        conn
+        |> put_req_header("content-type", "application/json")
+        |> put_req_header("stripe-signature", sig)
+        |> post("/webhooks/stripe", payload)
+
+      assert response(conn, 200) == "ok"
+
+      org = Organization.by_stripe_customer!("cus_123", authorize?: false)
+      assert org.menu_upload_purchased == true
+    end
+
+    test "successfully updates organization on checkout.session.completed for subscription", %{conn: conn} do
+      _org =
+        Organization
+        |> Ash.Changeset.for_create(:create, %{name: "Test Org"})
+        |> Ash.create!(authorize?: false)
+        |> Ash.Changeset.for_update(:update_billing, %{stripe_customer_id: "cus_123"})
+        |> Ash.update!(authorize?: false)
+
+      payload =
+        %{
+          id: "evt_123",
+          type: "checkout.session.completed",
+          data: %{
+            object: %{
+              id: "cs_123",
+              customer: "cus_123",
+              status: "complete",
+              mode: "subscription",
+              payment_status: "paid",
+              metadata: %{
+                plan: "pro"
+              },
+              subscription: "sub_pro_123"
+            }
+          }
+        }
+        |> Jason.encode!()
+
+      sig = generate_signature(payload, @secret)
+
+      conn =
+        conn
+        |> put_req_header("content-type", "application/json")
+        |> put_req_header("stripe-signature", sig)
+        |> post("/webhooks/stripe", payload)
+
+      assert response(conn, 200) == "ok"
+
+      org = Organization.by_stripe_customer!("cus_123", authorize?: false)
+      assert org.stripe_subscription_id == "sub_pro_123"
+      assert org.plan == :pro
+      assert org.subscription_status == :active
+    end
+
     test "returns 200 ok if organization not found", %{conn: conn} do
       payload =
         %{

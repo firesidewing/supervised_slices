@@ -123,9 +123,23 @@ defmodule SupervisedSlicesWeb.BillingLive.Setup do
             </div>
             <div class="text-right">
               <p class="font-headline font-black text-lg text-on-surface">$150</p>
-              <button class="text-[10px] font-black uppercase tracking-wider text-secondary hover:underline">
-                Request Import
-              </button>
+              <%= if @org.menu_upload_purchased do %>
+                <span class="text-[10px] font-black uppercase tracking-wider text-primary">
+                  Purchased
+                </span>
+              <% else %>
+                <button
+                  phx-click="purchase_menu_upload"
+                  disabled={@loading == "menu_upload"}
+                  class="text-[10px] font-black uppercase tracking-wider text-secondary hover:underline disabled:opacity-60"
+                >
+                  <%= if @loading == "menu_upload" do %>
+                    Processing...
+                  <% else %>
+                    Request Import
+                  <% end %>
+                </button>
+              <% end %>
             </div>
           </div>
 
@@ -178,6 +192,41 @@ defmodule SupervisedSlicesWeb.BillingLive.Setup do
              org.stripe_customer_id,
              price_id,
              plan,
+             success_url,
+             cancel_url
+           ) do
+      {:noreply, redirect(socket, external: session.url)}
+    else
+      {:error, reason} ->
+        {:noreply,
+         socket
+         |> assign(:loading, false)
+         |> put_flash(:error, "Could not start checkout: #{inspect(reason)}")}
+    end
+  end
+
+  def handle_event("purchase_menu_upload", _params, socket) do
+    socket = assign(socket, :loading, "menu_upload")
+    org = socket.assigns.org
+    user = socket.assigns.user
+
+    price_id = Application.get_env(:supervised_slices, :stripe)[:price_id_menu_upload]
+
+    base_url = SupervisedSlicesWeb.Endpoint.url()
+    success_url = base_url <> ~p"/billing/success/#{org.slug}"
+    cancel_url = base_url <> ~p"/billing/setup/#{org.slug}"
+
+    metadata = %{
+      "menu_upload" => "true",
+      "org_id" => org.id
+    }
+
+    with {:ok, org} <- Billing.create_customer_for_org(org, user.email),
+         {:ok, session} <-
+           Billing.create_one_time_checkout_session(
+             org.stripe_customer_id,
+             price_id,
+             metadata,
              success_url,
              cancel_url
            ) do

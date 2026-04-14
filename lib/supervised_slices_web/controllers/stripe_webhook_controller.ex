@@ -10,6 +10,7 @@ defmodule SupervisedSlicesWeb.StripeWebhookController do
     customer.subscription.created
     customer.subscription.updated
     customer.subscription.deleted
+    checkout.session.completed
   )
 
   def event(conn, _params) do
@@ -56,7 +57,7 @@ defmodule SupervisedSlicesWeb.StripeWebhookController do
         # Now parse it into our own structs for clarity
         event = StripeWebhook.parse!(raw_body)
 
-        case handle_subscription_event(event) do
+        case handle_webhook_event(event) do
           :ok ->
             send_resp(conn, 200, "ok")
 
@@ -80,7 +81,57 @@ defmodule SupervisedSlicesWeb.StripeWebhookController do
     end
   end
 
-  defp handle_subscription_event(%StripeWebhook.Event{subscription: subscription}) do
+  defp handle_webhook_event(%StripeWebhook.Event{type: "checkout.session.completed", checkout_session: session}) do
+    customer_id = session.customer
+
+    case Organization.by_stripe_customer(customer_id, authorize?: false) do
+      {:ok, nil} -> :ok
+      {:ok, org} ->
+        params =
+          cond do
+            session.mode == "subscription" and is_binary(session.subscription) ->
+              status = if session.payment_status == "paid", do: :active, else: :incomplete
+              plan = session.metadata["plan"]
+
+              p = %{
+                stripe_subscription_id: session.subscription,
+                subscription_status: status
+              }
+
+              if plan in ["basic", "pro"] do
+                Map.put(p, :plan, String.to_existing_atom(plan))
+              else
+                p
+              end
+
+            session.mode == "payment" and session.metadata["menu_upload"] == "true" ->
+              if session.payment_status == "paid" do
+                %{menu_upload_purchased: true}
+              else
+                %{}
+              end
+
+            true ->
+              %{}
+          end
+
+        if params != %{} do
+          org
+          |> Ash.Changeset.for_update(:update_billing, params)
+          |> Ash.update(authorize?: false)
+          |> case do
+            {:ok, _} -> :ok
+            {:error, reason} -> {:error, reason}
+          end
+        else
+          :ok
+        end
+
+      {:error, reason} -> {:error, reason}
+    end
+  end
+
+  defp handle_webhook_event(%StripeWebhook.Event{subscription: subscription}) when not is_nil(subscription) do
     customer_id = subscription.customer
     subscription_id = subscription.id
     status = Billing.parse_subscription_status(subscription.status)
@@ -118,4 +169,6 @@ defmodule SupervisedSlicesWeb.StripeWebhookController do
         {:error, reason}
     end
   end
+
+  defp handle_webhook_event(_), do: :ok
 end

@@ -22,7 +22,10 @@ end
 
 config :supervised_slices, :stripe,
   webhook_secret: System.get_env("STRIPE_WEBHOOK_SECRET", "whsec_placeholder"),
-  price_id: System.get_env("STRIPE_PRICE_ID", "price_placeholder")
+  price_id_basic: System.get_env("STRIPE_PRICE_ID_BASIC", "price_basic_placeholder"),
+  price_id_pro: System.get_env("STRIPE_PRICE_ID_PRO", "price_pro_placeholder"),
+  price_id_menu_upload:
+    System.get_env("STRIPE_PRICE_ID_MENU_UPLOAD", "price_menu_upload_placeholder")
 
 config :ex_aws,
   access_key_id: System.get_env("TIGRIS_ACCESS_KEY_ID"),
@@ -138,28 +141,9 @@ if config_env() == :prod do
   # For other adapters, see the Swoosh documentation:
   # https://hexdocs.pm/swoosh/Swoosh.html#module-installation
 
-  if mailgun_api_key = System.get_env("MAILGUN_API_KEY") do
-    config :supervised_slices, SupervisedSlices.Mailer,
-      adapter: Swoosh.Adapters.Mailgun,
-      api_key: mailgun_api_key,
-      domain: System.get_env("MAILGUN_DOMAIN")
-  end
-
   if resend_api_key = System.get_env("RESEND_API_KEY") do
     config :supervised_slices, SupervisedSlices.Mailer,
-      adapter: Swoosh.Adapters.Resend,
+      adapter: Swoosh.Adapters.Logger,
       api_key: resend_api_key
-  end
-
-  if postmark_api_key = System.get_env("POSTMARK_API_KEY") do
-    config :supervised_slices, SupervisedSlices.Mailer,
-      adapter: Swoosh.Adapters.Postmark,
-      api_key: postmark_api_key
-  end
-
-  if sendgrid_api_key = System.get_env("SENDGRID_API_KEY") do
-    config :supervised_slices, SupervisedSlices.Mailer,
-      adapter: Swoosh.Adapters.SendGrid,
-      api_key: sendgrid_api_key
   end
 end

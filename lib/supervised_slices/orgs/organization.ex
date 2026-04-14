@@ -94,7 +94,7 @@ defmodule SupervisedSlices.Orgs.Organization do
     end
 
     update :update_billing do
-      accept [:stripe_customer_id, :stripe_subscription_id, :subscription_status, :plan]
+      accept [:stripe_customer_id, :stripe_subscription_id, :subscription_status, :plan, :menu_upload_purchased]
     end
 
     read :by_stripe_customer do
@@ -261,6 +261,12 @@ defmodule SupervisedSlices.Orgs.Organization do
     attribute :plan, :atom do
       default :basic
       constraints one_of: [:basic, :pro]
+      allow_nil? false
+      public? true
+    end
+
+    attribute :menu_upload_purchased, :boolean do
+      default false
       allow_nil? false
       public? true
     end

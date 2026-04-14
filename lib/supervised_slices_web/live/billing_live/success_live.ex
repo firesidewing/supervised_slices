@@ -13,14 +13,18 @@ defmodule SupervisedSlicesWeb.BillingLive.Success do
           </div>
 
           <h1 class="font-headline font-black text-3xl tracking-tighter uppercase italic text-on-surface mb-3">
-            You're Subscribed!
+            <%= if @is_subscription, do: "You're Subscribed!", else: "Payment Successful!" %>
           </h1>
 
           <p class="text-on-surface/60 text-sm mb-2">
-            <strong class="text-on-surface font-semibold">{@org.name}</strong> is now active.
+            <%= if @is_subscription do %>
+              <strong class="text-on-surface font-semibold">{@org.name}</strong> is now active.
+            <% else %>
+              <strong class="text-on-surface font-semibold">{@org.name}</strong>: Menu Upload purchase confirmed.
+            <% end %>
           </p>
           <p class="text-on-surface-variant/50 text-xs mb-8">
-            Your subscription is being confirmed — this usually takes just a moment.
+            Your purchase is being confirmed — this usually takes just a moment.
           </p>
 
           <.link
@@ -45,19 +49,31 @@ defmodule SupervisedSlicesWeb.BillingLive.Success do
     if is_nil(org) do
       {:ok, redirect(socket, to: ~p"/")}
     else
-      org =
+      {org, is_subscription} =
         case params do
           %{"session_id" => session_id} ->
-            case SupervisedSlices.Billing.fulfill_from_checkout_session(org, session_id) do
-              {:ok, updated_org} -> updated_org
-              _ -> org
+            case Stripe.Checkout.Session.retrieve(session_id) do
+              {:ok, session} ->
+                updated_org =
+                  case SupervisedSlices.Billing.fulfill_from_checkout_session(org, session_id) do
+                    {:ok, u} -> u
+                    _ -> org
+                  end
+
+                {updated_org, session.mode == "subscription"}
+
+              _ ->
+                {org, true}
             end
 
           _ ->
-            org
+            {org, true}
         end
 
-      {:ok, assign(socket, :org, org)}
+      {:ok,
+       socket
+       |> assign(:org, org)
+       |> assign(:is_subscription, is_subscription)}
     end
   end
 end

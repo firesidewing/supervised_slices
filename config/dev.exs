@@ -80,7 +80,8 @@ config :stripity_stripe, api_key: System.get_env("STRIPE_SECRET_KEY", "sk_test_p
 config :supervised_slices, :stripe,
   webhook_secret: System.get_env("STRIPE_WEBHOOK_SECRET", "whsec_placeholder"),
   price_id_basic: System.get_env("STRIPE_PRICE_ID_BASIC", "price_basic_placeholder"),
-  price_id_pro: System.get_env("STRIPE_PRICE_ID_PRO", "price_pro_placeholder")
+  price_id_pro: System.get_env("STRIPE_PRICE_ID_PRO", "price_pro_placeholder"),
+  price_id_menu_upload: System.get_env("STRIPE_PRICE_ID_MENU_UPLOAD", "price_menu_upload_placeholder")
 
 config :supervised_slices,
        :tigris_bucket,

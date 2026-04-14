@@ -38,6 +38,7 @@ defmodule SupervisedSlices.Billing do
       subscription_data: %{
         metadata: %{plan: to_string(plan_name)}
       },
+      metadata: %{plan: to_string(plan_name)},
       success_url: success_url <> "?session_id={CHECKOUT_SESSION_ID}",
       cancel_url: cancel_url,
       payment_method_collection: "always"
@@ -57,23 +58,67 @@ defmodule SupervisedSlices.Billing do
   end
 
   @doc """
+  Creates a Stripe Checkout Session for a one-time purchase.
+  Returns `{:ok, session}` where `session.url` is the hosted checkout URL.
+  """
+  def create_one_time_checkout_session(customer_id, price_id, metadata, success_url, cancel_url) do
+    Stripe.Checkout.Session.create(%{
+      customer: customer_id,
+      mode: "payment",
+      line_items: [%{price: price_id, quantity: 1}],
+      metadata: metadata,
+      success_url: success_url <> "?session_id={CHECKOUT_SESSION_ID}",
+      cancel_url: cancel_url,
+      payment_method_collection: "always"
+    })
+  end
+
+  @doc """
   Retrieves a Stripe Checkout Session and, if it is complete, immediately
-  updates the org's subscription fields so access is granted without waiting
-  for the webhook. Safe to call multiple times (idempotent).
+  updates the org's subscription or purchase fields so access is granted
+  without waiting for the webhook. Safe to call multiple times (idempotent).
   """
   def fulfill_from_checkout_session(%Organization{} = org, session_id)
       when is_binary(session_id) do
     with {:ok, session} <- Stripe.Checkout.Session.retrieve(session_id),
-         true <- session.status == "complete",
-         subscription_id when is_binary(subscription_id) <- session.subscription do
-      status = if session.payment_status == "paid", do: :active, else: :incomplete
+         true <- session.status == "complete" do
+      params =
+        cond do
+          # Subscription mode
+          session.mode == "subscription" and is_binary(session.subscription) ->
+            status = if session.payment_status == "paid", do: :active, else: :incomplete
+            plan = session.metadata["plan"]
 
-      org
-      |> Ash.Changeset.for_update(:update_billing, %{
-        stripe_subscription_id: subscription_id,
-        subscription_status: status
-      })
-      |> Ash.update(authorize?: false)
+            p = %{
+              stripe_subscription_id: session.subscription,
+              subscription_status: status
+            }
+
+            if plan in ["basic", "pro"] do
+              Map.put(p, :plan, String.to_existing_atom(plan))
+            else
+              p
+            end
+
+          # Payment mode (one-time)
+          session.mode == "payment" and session.metadata["menu_upload"] == "true" ->
+            if session.payment_status == "paid" do
+              %{menu_upload_purchased: true}
+            else
+              %{}
+            end
+
+          true ->
+            %{}
+        end
+
+      if params != %{} do
+        org
+        |> Ash.Changeset.for_update(:update_billing, params)
+        |> Ash.update(authorize?: false)
+      else
+        {:ok, org}
+      end
     else
       _ -> {:ok, org}
     end
