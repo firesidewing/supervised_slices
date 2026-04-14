@@ -93,9 +93,15 @@ defmodule SupervisedSlicesWeb.AdminLive.OrdersComponent do
                 </div>
               </div>
               <span class={[
-                "text-[0.6rem] font-black px-2 py-1 rounded tracking-[0.15em] uppercase",
+                "text-[0.6rem] font-black px-2 py-1 rounded tracking-[0.15em] uppercase flex items-center gap-1.5",
                 status_badge_class(order.status)
               ]}>
+                <%= if order.status == :pending do %>
+                  <span class="relative flex h-2 w-2">
+                    <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-white opacity-75"></span>
+                    <span class="relative inline-flex rounded-full h-2 w-2 bg-white"></span>
+                  </span>
+                <% end %>
                 {status_label(order.status)}
               </span>
             </div>

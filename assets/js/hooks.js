@@ -160,26 +160,52 @@ export const KitchenAlert = {
 
   playChime() {
     try {
-      const ctx = new (window.AudioContext || window.webkitAudioContext)()
-      const notes = [523.25, 659.25, 783.99] // C5, E5, G5
+      const AudioContext = window.AudioContext || window.webkitAudioContext
+      if (!AudioContext) return
+      const ctx = new AudioContext()
 
-      notes.forEach((freq, i) => {
-        const osc = ctx.createOscillator()
+      // Generate a short buffer of white noise
+      const bufferSize = ctx.sampleRate * 0.1
+      const noiseBuffer = ctx.createBuffer(1, bufferSize, ctx.sampleRate)
+      const output = noiseBuffer.getChannelData(0)
+      for (let i = 0; i < bufferSize; i++) {
+        output[i] = Math.random() * 2 - 1
+      }
+
+      // Filter the noise to sound more like a mechanical printer pin strike
+      const filter = ctx.createBiquadFilter()
+      filter.type = "bandpass"
+      filter.frequency.value = 3200
+      filter.Q.value = 1.0
+      filter.connect(ctx.destination)
+
+      // Dot matrix "chit printing" sound: rhythmic bursts of noise
+      const bursts = [
+        {time: 0.00, duration: 0.03, volume: 0.15},
+        {time: 0.06, duration: 0.03, volume: 0.15},
+        {time: 0.12, duration: 0.03, volume: 0.15},
+        {time: 0.18, duration: 0.04, volume: 0.20},
+        {time: 0.28, duration: 0.03, volume: 0.15},
+        {time: 0.34, duration: 0.03, volume: 0.15},
+        {time: 0.40, duration: 0.03, volume: 0.15},
+        {time: 0.46, duration: 0.04, volume: 0.20},
+        {time: 0.60, duration: 0.05, volume: 0.25} // Final "paper cut" sound
+      ]
+
+      bursts.forEach(b => {
+        const source = ctx.createBufferSource()
+        source.buffer = noiseBuffer
         const gain = ctx.createGain()
+        source.connect(gain)
+        gain.connect(filter)
 
-        osc.connect(gain)
-        gain.connect(ctx.destination)
-
-        osc.type = "sine"
-        osc.frequency.value = freq
-
-        const startAt = ctx.currentTime + i * 0.15
+        const startAt = ctx.currentTime + b.time
         gain.gain.setValueAtTime(0, startAt)
-        gain.gain.linearRampToValueAtTime(0.35, startAt + 0.02)
-        gain.gain.exponentialRampToValueAtTime(0.001, startAt + 0.4)
+        gain.gain.linearRampToValueAtTime(b.volume, startAt + 0.005)
+        gain.gain.linearRampToValueAtTime(0, startAt + b.duration)
 
-        osc.start(startAt)
-        osc.stop(startAt + 0.4)
+        source.start(startAt)
+        source.stop(startAt + b.duration)
       })
     } catch (_e) {
       // AudioContext unavailable — skip sound, visual flash still works
