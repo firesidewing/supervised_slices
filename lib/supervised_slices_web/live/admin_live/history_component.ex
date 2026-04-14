@@ -10,9 +10,18 @@ defmodule SupervisedSlicesWeb.AdminLive.HistoryComponent do
       socket
       |> assign(:ash_scope, assigns.ash_scope)
       |> assign_new(:history_date, fn -> Date.utc_today() end)
-      |> assign_new(:history_orders, fn ->
-        load_history(assigns.ash_scope, Date.utc_today())
-      end)
+
+    socket =
+      if Map.has_key?(socket.assigns, :history_orders) do
+        socket
+      else
+        scope = assigns.ash_scope
+        date = socket.assigns.history_date
+
+        assign_async(socket, :history_orders, fn ->
+          {:ok, %{history_orders: load_history(scope, date)}}
+        end)
+      end
 
     {:ok, socket}
   end
@@ -20,10 +29,15 @@ defmodule SupervisedSlicesWeb.AdminLive.HistoryComponent do
   def handle_event("set_history_date", %{"date" => date_str}, socket) do
     case Date.from_iso8601(date_str) do
       {:ok, date} ->
+        scope = socket.assigns.ash_scope
+
         {:noreply,
          socket
          |> assign(:history_date, date)
-         |> assign(:history_orders, load_history(socket.assigns.ash_scope, date))}
+         |> cancel_async(:history_orders)
+         |> assign_async(:history_orders, fn ->
+           {:ok, %{history_orders: load_history(scope, date)}}
+         end)}
 
       _ ->
         {:noreply, socket}
@@ -85,6 +99,13 @@ defmodule SupervisedSlicesWeb.AdminLive.HistoryComponent do
             max={Date.to_iso8601(Date.utc_today())}
             class="rounded-md bg-surface-container-low px-3 py-2 text-sm font-medium text-on-surface border-0 focus:ring-2 focus:ring-primary/30 outline-none"
           />
+          <span
+            :if={@history_orders.loading}
+            class="ml-1 text-on-surface-variant/40"
+            title="Loading..."
+          >
+            <.icon name="hero-arrow-path" class="size-4 animate-spin" />
+          </span>
         </form>
       </div>
 
@@ -95,7 +116,11 @@ defmodule SupervisedSlicesWeb.AdminLive.HistoryComponent do
             Orders
           </span>
           <span class="font-headline text-4xl font-black text-on-surface">
-            {length(@history_orders)}
+            <%= if @history_orders.loading do %>
+              <span class="inline-block h-10 w-12 bg-surface-container animate-pulse rounded" />
+            <% else %>
+              {length(@history_orders.result || [])}
+            <% end %>
           </span>
         </div>
         <div class="bg-secondary-container rounded-md p-6 flex flex-col justify-center">
@@ -103,68 +128,80 @@ defmodule SupervisedSlicesWeb.AdminLive.HistoryComponent do
             Revenue
           </span>
           <span class="font-headline text-3xl font-black text-on-secondary-container">
-            {if @history_orders == [], do: "$0.00", else: format_money(total_revenue(@history_orders))}
+            <%= if @history_orders.loading do %>
+              <span class="inline-block h-9 w-24 bg-secondary-container-high animate-pulse rounded" />
+            <% else %>
+              {if Enum.empty?(@history_orders.result || []),
+                do: "$0.00",
+                else: format_money(total_revenue(@history_orders.result))}
+            <% end %>
           </span>
         </div>
       </div>
 
       <%!-- Orders list --%>
-      <%= if @history_orders == [] do %>
+      <%= if @history_orders.loading do %>
         <div class="flex flex-col items-center py-24 text-on-surface-variant/20">
-          <span class="material-symbols-outlined text-8xl">receipt_long</span>
-          <p class="mt-4 text-xl font-black font-headline uppercase tracking-widest opacity-40">
-            No history for this date
-          </p>
+          <.icon name="hero-arrow-path" class="size-10 animate-spin opacity-30" />
         </div>
       <% else %>
-        <div class="space-y-4">
-          <div class="hidden md:grid grid-cols-[60px_1fr_1fr_1fr_100px_80px] gap-8 px-4 pb-2 text-[10px] font-bold uppercase tracking-widest text-on-surface-variant/40">
-            <span>#</span>
-            <span>Customer</span>
-            <span>Items</span>
-            <span>Time</span>
-            <span class="text-right">Total</span>
-            <span class="text-right">Status</span>
+        <%= if Enum.empty?(@history_orders.result || []) do %>
+          <div class="flex flex-col items-center py-24 text-on-surface-variant/20">
+            <span class="material-symbols-outlined text-8xl">receipt_long</span>
+            <p class="mt-4 text-xl font-black font-headline uppercase tracking-widest opacity-40">
+              No history for this date
+            </p>
           </div>
-
-          <%= for order <- @history_orders do %>
-            <div class="bg-surface-container-low rounded-md px-4 py-3 grid grid-cols-1 md:grid-cols-[60px_1fr_1fr_1fr_100px_80px] gap-2 md:gap-8 items-center transition-all hover:bg-surface-container-high">
-              <div class="bg-primary text-white w-9 h-9 rounded flex items-center justify-center font-headline text-sm font-black italic shrink-0">
-                #{order_number(order)}
-              </div>
-
-              <div class="min-w-0">
-                <p class="font-body text-sm font-bold text-on-surface truncate">
-                  {order.customer_name}
-                </p>
-                <p class="font-body text-[11px] text-on-surface-variant truncate opacity-60">
-                  {order.customer_email}
-                </p>
-              </div>
-
-              <div class="font-body text-xs text-on-surface-variant truncate">
-                {order.order_items |> Enum.map(&"#{&1.quantity}x #{&1.item_name}") |> Enum.join(", ")}
-              </div>
-
-              <div class="font-body text-xs text-on-surface-variant opacity-60">
-                {Calendar.strftime(order.inserted_at, "%I:%M %p")}
-              </div>
-
-              <div class="font-body text-sm font-black text-on-surface text-right">
-                {format_money(order.total_price)}
-              </div>
-
-              <div class="flex justify-end">
-                <span class={[
-                  "px-2.5 py-1 rounded text-[10px] font-bold uppercase tracking-widest",
-                  status_badge_class(order.status)
-                ]}>
-                  {status_label(order.status)}
-                </span>
-              </div>
+        <% else %>
+          <div class="space-y-4">
+            <div class="hidden md:grid grid-cols-[60px_1fr_1fr_1fr_100px_80px] gap-8 px-4 pb-2 text-[10px] font-bold uppercase tracking-widest text-on-surface-variant/40">
+              <span>#</span>
+              <span>Customer</span>
+              <span>Items</span>
+              <span>Time</span>
+              <span class="text-right">Total</span>
+              <span class="text-right">Status</span>
             </div>
-          <% end %>
-        </div>
+
+            <%= for order <- @history_orders.result do %>
+              <div class="bg-surface-container-low rounded-md px-4 py-3 grid grid-cols-1 md:grid-cols-[60px_1fr_1fr_1fr_100px_80px] gap-2 md:gap-8 items-center transition-all hover:bg-surface-container-high">
+                <div class="bg-primary text-white w-9 h-9 rounded flex items-center justify-center font-headline text-sm font-black italic shrink-0">
+                  #{order_number(order)}
+                </div>
+
+                <div class="min-w-0">
+                  <p class="font-body text-sm font-bold text-on-surface truncate">
+                    {order.customer_name}
+                  </p>
+                  <p class="font-body text-[11px] text-on-surface-variant truncate opacity-60">
+                    {order.customer_email}
+                  </p>
+                </div>
+
+                <div class="font-body text-xs text-on-surface-variant truncate">
+                  {order.order_items |> Enum.map(&"#{&1.quantity}x #{&1.item_name}") |> Enum.join(", ")}
+                </div>
+
+                <div class="font-body text-xs text-on-surface-variant opacity-60">
+                  {Calendar.strftime(order.inserted_at, "%I:%M %p")}
+                </div>
+
+                <div class="font-body text-sm font-black text-on-surface text-right">
+                  {format_money(order.total_price)}
+                </div>
+
+                <div class="flex justify-end">
+                  <span class={[
+                    "px-2.5 py-1 rounded text-[10px] font-bold uppercase tracking-widest",
+                    status_badge_class(order.status)
+                  ]}>
+                    {status_label(order.status)}
+                  </span>
+                </div>
+              </div>
+            <% end %>
+          </div>
+        <% end %>
       <% end %>
     </div>
     """

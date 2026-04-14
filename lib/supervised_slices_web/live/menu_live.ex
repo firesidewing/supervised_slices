@@ -3,6 +3,7 @@ defmodule SupervisedSlicesWeb.MenuLive do
 
   on_mount {SupervisedSlicesWeb.LiveUserAuth, :live_user_optional}
 
+  alias Phoenix.LiveView.AsyncResult
   alias SupervisedSlices.Accounts.{GuestSession, User}
   alias SupervisedSlices.Cart.{Cart, CartItem}
   alias SupervisedSlices.Menu.{Category, MenuItem}
@@ -18,13 +19,6 @@ defmodule SupervisedSlicesWeb.MenuLive do
   def mount(_params, _session, socket) do
     %{org: org, ash_scope: scope} = socket.assigns
 
-    categories =
-      Category.active!(
-        scope: scope,
-        authorize?: false,
-        load: [menu_items: [modifier_groups: [:modifiers], sizes: []]]
-      )
-
     cart = load_cart(scope)
     {cart_items_map, cart_count} = build_cart_state(cart)
 
@@ -34,13 +28,22 @@ defmodule SupervisedSlicesWeb.MenuLive do
 
     {:ok,
      socket
-     |> assign(:categories, categories)
+     |> assign_async(:categories, fn ->
+       categories =
+         Category.active!(
+           scope: scope,
+           authorize?: false,
+           load: [menu_items: [modifier_groups: [:modifiers], sizes: []]]
+         )
+
+       {:ok, %{categories: categories}}
+     end)
+     |> assign(:selected_item, AsyncResult.ok(nil))
      |> assign(:cart, cart)
      |> assign(:cart_items_map, cart_items_map)
      |> assign(:cart_count, cart_count)
      |> assign(:show_basket, false)
      |> assign(:checkout_step, :review)
-     |> assign(:selected_item, nil)
      |> assign(:store_open, SupervisedSlices.Orgs.Organization.open_now?(org))
      |> assign(:page_title, org.name)}
   end
@@ -50,23 +53,28 @@ defmodule SupervisedSlicesWeb.MenuLive do
   # ---------------------------------------------------------------------------
 
   def handle_params(%{"id" => id}, _uri, socket) do
-    item =
-      MenuItem.get!(id,
-        scope: socket.assigns.ash_scope,
-        authorize?: false,
-        load: [modifier_groups: [:modifiers], sizes: []]
-      )
+    scope = socket.assigns.ash_scope
 
     {:noreply,
      socket
-     |> assign(:selected_item, item)
-     |> assign(:page_title, item.name)}
+     |> cancel_async(:selected_item)
+     |> assign_async(:selected_item, fn ->
+       item =
+         MenuItem.get!(id,
+           scope: scope,
+           authorize?: false,
+           load: [modifier_groups: [:modifiers], sizes: []]
+         )
+
+       {:ok, %{selected_item: item}}
+     end)}
   end
 
   def handle_params(_params, _uri, socket) do
     {:noreply,
      socket
-     |> assign(:selected_item, nil)
+     |> cancel_async(:selected_item)
+     |> assign(:selected_item, AsyncResult.ok(nil))
      |> assign(:page_title, socket.assigns.org.name)}
   end
 
@@ -509,21 +517,25 @@ defmodule SupervisedSlicesWeb.MenuLive do
       </div>
     </div>
 
+    <%!-- Menu index: skeleton while categories load, then the real list --%>
+    <.menu_skeleton :if={@live_action == :index && @categories.loading} />
     <.live_component
-      :if={@live_action == :index}
+      :if={@live_action == :index && @categories.ok?}
       module={SupervisedSlicesWeb.MenuLive.MenuComponent}
       id="menu"
-      categories={@categories}
+      categories={@categories.result || []}
       cart_items_map={@cart_items_map}
       org={@org}
       store_open={@store_open}
     />
 
+    <%!-- Item detail: skeleton while item loads, then the component --%>
+    <.item_skeleton :if={@live_action == :show && @selected_item.loading} />
     <.live_component
-      :if={@live_action == :show && @selected_item != nil}
+      :if={@live_action == :show && @selected_item.ok? && @selected_item.result != nil}
       module={SupervisedSlicesWeb.MenuLive.ItemComponent}
       id="item"
-      selected_item={@selected_item}
+      selected_item={@selected_item.result}
       cart_items_map={@cart_items_map}
       org={@org}
     />
@@ -602,6 +614,119 @@ defmodule SupervisedSlicesWeb.MenuLive do
         </button>
       </div>
     </nav>
+    """
+  end
+
+  defp menu_skeleton(assigns) do
+    ~H"""
+    <main class="bg-background min-h-screen pt-32 pb-32 px-4 max-w-2xl mx-auto">
+      <section class="mb-16">
+        <div class="flex items-end justify-between mb-8 px-2">
+          <div class="h-9 w-48 bg-surface-container animate-pulse rounded" />
+          <div class="h-3 w-24 bg-surface-container-low animate-pulse rounded" />
+        </div>
+        <div class="grid grid-cols-2 gap-x-4 gap-y-6">
+          <div class="rounded-xl overflow-hidden bg-surface-container animate-pulse">
+            <div class="aspect-square" />
+            <div class="p-4 space-y-2">
+              <div class="h-5 w-3/4 bg-surface-container-low animate-pulse rounded" />
+              <div class="h-3 w-full bg-surface-container-low animate-pulse rounded" />
+              <div class="h-3 w-2/3 bg-surface-container-low animate-pulse rounded" />
+            </div>
+          </div>
+          <div class="rounded-xl overflow-hidden bg-surface-container animate-pulse">
+            <div class="aspect-square" />
+            <div class="p-4 space-y-2">
+              <div class="h-5 w-3/4 bg-surface-container-low animate-pulse rounded" />
+              <div class="h-3 w-full bg-surface-container-low animate-pulse rounded" />
+              <div class="h-3 w-2/3 bg-surface-container-low animate-pulse rounded" />
+            </div>
+          </div>
+          <div class="col-span-2 h-20 bg-surface-container-low animate-pulse rounded-xl" />
+          <div class="col-span-2 h-20 bg-surface-container-low animate-pulse rounded-xl" />
+        </div>
+      </section>
+      <section class="mb-16">
+        <div class="flex items-end justify-between mb-8 px-2">
+          <div class="h-9 w-36 bg-surface-container animate-pulse rounded" />
+          <div class="h-3 w-24 bg-surface-container-low animate-pulse rounded" />
+        </div>
+        <div class="grid grid-cols-2 gap-x-4 gap-y-6">
+          <div class="rounded-xl overflow-hidden bg-surface-container animate-pulse">
+            <div class="aspect-square" />
+            <div class="p-4 space-y-2">
+              <div class="h-5 w-3/4 bg-surface-container-low animate-pulse rounded" />
+              <div class="h-3 w-full bg-surface-container-low animate-pulse rounded" />
+            </div>
+          </div>
+          <div class="rounded-xl overflow-hidden bg-surface-container animate-pulse">
+            <div class="aspect-square" />
+            <div class="p-4 space-y-2">
+              <div class="h-5 w-3/4 bg-surface-container-low animate-pulse rounded" />
+              <div class="h-3 w-full bg-surface-container-low animate-pulse rounded" />
+            </div>
+          </div>
+          <div class="col-span-2 h-20 bg-surface-container-low animate-pulse rounded-xl" />
+        </div>
+      </section>
+    </main>
+    """
+  end
+
+  defp item_skeleton(assigns) do
+    ~H"""
+    <div class="bg-surface min-h-screen text-on-surface antialiased">
+      <main class="pt-[72px] pb-44">
+        <%!-- Hero image placeholder --%>
+        <div class="relative w-full aspect-[4/5] md:aspect-video overflow-hidden bg-surface-container animate-pulse" />
+
+        <div class="px-8 space-y-12 max-w-3xl mx-auto mt-6 relative z-10">
+          <%!-- Name & description --%>
+          <div class="space-y-3 pt-4">
+            <div class="h-12 w-3/4 bg-surface-container animate-pulse rounded" />
+            <div class="h-4 w-full bg-surface-container-low animate-pulse rounded" />
+            <div class="h-4 w-2/3 bg-surface-container-low animate-pulse rounded" />
+          </div>
+
+          <%!-- Size selector --%>
+          <div class="space-y-6">
+            <div class="flex items-baseline justify-between">
+              <div class="h-7 w-44 bg-surface-container animate-pulse rounded" />
+              <div class="h-3 w-24 bg-surface-container-low animate-pulse rounded" />
+            </div>
+            <div class="flex gap-4 overflow-x-auto pb-4">
+              <div class="w-28 h-36 bg-surface-container-low animate-pulse rounded-xl flex-shrink-0" />
+              <div class="w-28 h-36 bg-surface-container-low animate-pulse rounded-xl flex-shrink-0" />
+              <div class="w-28 h-36 bg-surface-container-low animate-pulse rounded-xl flex-shrink-0" />
+            </div>
+          </div>
+
+          <%!-- Modifier group --%>
+          <div class="space-y-6">
+            <div class="flex items-baseline justify-between">
+              <div class="h-7 w-52 bg-surface-container animate-pulse rounded" />
+              <div class="h-3 w-20 bg-surface-container-low animate-pulse rounded" />
+            </div>
+            <div class="grid grid-cols-1 gap-3">
+              <div class="h-16 bg-surface-container-low animate-pulse rounded-xl" />
+              <div class="h-16 bg-surface-container-low animate-pulse rounded-xl" />
+              <div class="h-16 bg-surface-container-low animate-pulse rounded-xl" />
+            </div>
+          </div>
+        </div>
+      </main>
+
+      <%!-- Sticky footer placeholder --%>
+      <footer class="fixed bottom-0 left-0 w-full bg-surface/90 backdrop-blur-xl px-8 py-6 z-50 shadow-[0_-10px_40px_rgba(28,28,24,0.06)]">
+        <div class="max-w-3xl mx-auto flex items-center justify-between gap-6">
+          <div class="space-y-2">
+            <div class="h-3 w-16 bg-surface-container-low animate-pulse rounded" />
+            <div class="h-8 w-28 bg-surface-container animate-pulse rounded" />
+          </div>
+          <div class="flex-1 h-14 bg-surface-container animate-pulse rounded-md" />
+        </div>
+      </footer>
+    </div>
     """
   end
 
