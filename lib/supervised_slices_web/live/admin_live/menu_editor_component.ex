@@ -200,6 +200,9 @@ defmodule SupervisedSlicesWeb.AdminLive.MenuEditorComponent do
       scope: scope
     )
 
+    MenuItem.get!(params["menu_item_id"], scope: scope)
+    |> MenuItem.update!(%{price: nil}, scope: scope)
+
     categories = load_categories(scope)
     {:noreply, assign(socket, categories: categories, adding_size_to_item_id: nil)}
   end
@@ -613,19 +616,23 @@ defmodule SupervisedSlicesWeb.AdminLive.MenuEditorComponent do
                           class="w-full bg-surface-container-low border-0 rounded-lg px-4 py-2.5 text-sm focus:ring-2 focus:ring-primary outline-none"
                         />
                       </div>
-                      <div>
-                        <label class="block text-xs font-bold text-on-surface-variant uppercase tracking-wider mb-1">
-                          Base Price (CAD) — leave blank if using sizes
-                        </label>
-                        <input
-                          type="text"
-                          name="item[price]"
-                          value={money_amount(item.price)}
-                          inputmode="decimal"
-                          placeholder="e.g. 14.50"
-                          class="w-full bg-surface-container-low border-0 rounded-lg px-4 py-2.5 text-sm focus:ring-2 focus:ring-primary outline-none"
-                        />
-                      </div>
+                      <%= if Enum.empty?(item.sizes || []) do %>
+                        <div>
+                          <label class="block text-xs font-bold text-on-surface-variant uppercase tracking-wider mb-1">
+                            Base Price (CAD)
+                          </label>
+                          <input
+                            type="text"
+                            name="item[price]"
+                            value={money_amount(item.price)}
+                            inputmode="decimal"
+                            placeholder="e.g. 14.50"
+                            class="w-full bg-surface-container-low border-0 rounded-lg px-4 py-2.5 text-sm focus:ring-2 focus:ring-primary outline-none"
+                          />
+                        </div>
+                      <% else %>
+                        <input type="hidden" name="item[price]" value="" />
+                      <% end %>
                       <div class="md:col-span-2">
                         <label class="block text-xs font-bold text-on-surface-variant uppercase tracking-wider mb-1">
                           Description
