@@ -258,7 +258,7 @@ defmodule SupervisedSlicesWeb.MenuLive do
     {:noreply,
      socket
      |> assign(cart: loaded_cart, cart_items_map: cart_items_map, cart_count: cart_count)
-     |> push_patch(to: ~p"/menu/#{org.slug}", transition: true)}
+     |> push_patch(to: ~p"/menu/#{org.slug}")}
   end
 
   def handle_event(
@@ -529,7 +529,8 @@ defmodule SupervisedSlicesWeb.MenuLive do
         :if={@live_action == :show}
         id="back-button"
         patch={~p"/menu/#{@org.slug}"}
-        phx-click={JS.patch(~p"/menu/#{@org.slug}", transition: true) |> JS.add_class("phx-click-loading", to: "self")}
+        phx-view-transition
+        phx-click={JS.add_class("phx-click-loading", to: "self")}
         class="flex items-center justify-center w-11 h-11 rounded-full bg-surface-container-low hover:bg-surface-container transition-all text-on-surface active:scale-90 active:bg-surface-container-highest phx-click-loading:scale-90 phx-click-loading:opacity-60 phx-click-loading:bg-surface-container-highest"
         aria-label="Back to menu"
       >

@@ -52,7 +52,7 @@ defmodule SupervisedSlicesWeb.MenuLive.MenuComponent do
     ~H"""
     <.link
       patch={~p"/menu/#{@org.slug}/item/#{@item.id}"}
-      phx-click={JS.patch(~p"/menu/#{@org.slug}/item/#{@item.id}", transition: true)}
+      phx-view-transition
       class="group flex flex-col bg-surface-container-lowest rounded-xl overflow-hidden transition-all duration-300 active:scale-[0.98] shadow-soft hover:translate-y-[-4px]"
     >
       <div :if={@item.image_url} class="aspect-square overflow-hidden relative">
