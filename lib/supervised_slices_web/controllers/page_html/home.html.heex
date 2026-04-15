@@ -1,8 +1,26 @@
 <!-- Hero Section -->
 <nav class="absolute top-0 right-0 p-8 z-50 flex gap-6 font-label text-xs tracking-widest uppercase font-black text-on-surface">
-  <a :if={assigns[:kitchen_org]} href={~p"/kitchen/#{@kitchen_org.slug}"} class="hover:text-primary transition-colors">Kitchen</a>
-  <a :if={assigns[:current_user]} href={~p"/sign-out"} class="hover:text-primary transition-colors">Sign Out</a>
-  <a :if={!assigns[:current_user]} href={~p"/sign-in"} class="hover:text-primary transition-colors">Sign In</a>
+  <a
+    :if={assigns[:kitchen_org]}
+    href={~p"/kitchen/#{@kitchen_org.slug}"}
+    class="hover:text-primary transition-colors"
+  >
+    Kitchen
+  </a>
+  <a
+    :if={assigns[:current_user]}
+    href={~p"/sign-out"}
+    class="hover:text-primary transition-colors"
+  >
+    Sign Out
+  </a>
+  <a
+    :if={!assigns[:current_user]}
+    href={~p"/sign-in"}
+    class="hover:text-primary transition-colors"
+  >
+    Sign In
+  </a>
 </nav>
 <section class="max-w-[1440px] mx-auto px-8 py-24 md:py-32 grid grid-cols-1 md:grid-cols-12 gap-16 items-center overflow-hidden">
   <div class="md:col-span-6 z-10">
@@ -109,7 +127,9 @@
         <div class="aspect-square bg-surface rounded-2xl p-8 shadow-soft border border-outline-variant/10 overflow-hidden relative">
           <div class="h-full w-full bg-secondary-container/20 rounded-xl p-8 group-hover:scale-105 transition-transform duration-700">
             <div class="flex justify-between items-start mb-16">
-              <span class="material-symbols-outlined text-5xl text-secondary">shopping_basket</span>
+              <span class="material-symbols-outlined text-5xl text-secondary">
+                shopping_basket
+              </span>
               <div class="bg-secondary text-white text-[10px] font-bold px-3 py-1 rounded-full tracking-widest">
                 LIVE
               </div>
@@ -211,7 +231,7 @@
         Choose the tier that matches your pizzeria's scale and ambition. All plans include a one-time concierge setup for $150.
       </p>
     </div>
-    
+
     <div class="grid grid-cols-1 md:grid-cols-2 gap-12 max-w-5xl mx-auto mb-24">
       <!-- Base Dough Tier -->
       <div class="bg-surface-container-low p-12 rounded-[2rem] border border-outline-variant/10 flex flex-col hover:shadow-xl transition-all duration-500 group">
@@ -241,12 +261,15 @@
             Live Order Tracking
           </li>
         </ul>
-        <a href="/register" class="w-full py-5 bg-on-surface text-white rounded-xl font-body font-black text-center hover:bg-primary transition-colors">
+        <a
+          href="/register"
+          class="w-full py-5 bg-on-surface text-white rounded-xl font-body font-black text-center hover:bg-primary transition-colors"
+        >
           Start with Base
         </a>
       </div>
-
-      <!-- Pro Crust Tier -->
+      
+<!-- Pro Crust Tier -->
       <div class="bg-on-surface p-12 rounded-[2rem] text-white flex flex-col shadow-2xl transform md:-translate-y-4 hover:-translate-y-6 transition-all duration-500 relative overflow-hidden">
         <div class="absolute top-0 right-0 bg-primary text-white px-6 py-2 font-label text-xs font-black tracking-widest uppercase rounded-bl-xl">
           Recommended
@@ -281,13 +304,16 @@
             Priority Support
           </li>
         </ul>
-        <a href="/register" class="w-full py-5 bg-primary text-white rounded-xl font-body font-black text-center hover:bg-primary-container transition-colors shadow-lg">
+        <a
+          href="/register"
+          class="w-full py-5 bg-primary text-white rounded-xl font-body font-black text-center hover:bg-primary-container transition-colors shadow-lg"
+        >
           Go Pro
         </a>
       </div>
     </div>
-
-    <!-- Concierge Add-on -->
+    
+<!-- Concierge Add-on -->
     <div class="max-w-3xl mx-auto bg-surface-container-high p-8 md:p-12 rounded-[2rem] border border-outline-variant/10 flex flex-col md:flex-row items-center justify-between gap-8">
       <div>
         <h3 class="font-headline text-2xl font-black mb-2">Menu Import Concierge</h3>
@@ -298,7 +324,10 @@
       <div class="text-center md:text-right min-w-[200px]">
         <span class="text-4xl font-headline font-black">$150</span>
         <p class="text-on-surface-variant font-body text-sm mb-4">One-time Fee</p>
-        <a href="/register" class="inline-block px-8 py-3 bg-secondary text-white rounded-xl font-body font-black text-sm hover:opacity-90 transition-opacity">
+        <a
+          href="/register"
+          class="inline-block px-8 py-3 bg-secondary text-white rounded-xl font-body font-black text-sm hover:opacity-90 transition-opacity"
+        >
           Add to Commission
         </a>
       </div>

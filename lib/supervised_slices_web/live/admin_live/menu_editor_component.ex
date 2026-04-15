@@ -835,14 +835,21 @@ defmodule SupervisedSlicesWeb.AdminLive.MenuEditorComponent do
                           />
                         <% else %>
                           <div class="w-8 h-8 rounded bg-surface-container-high flex items-center justify-center shrink-0">
-                            <span class="material-symbols-outlined text-on-surface-variant/30" style="font-size: 16px;">image</span>
+                            <span
+                              class="material-symbols-outlined text-on-surface-variant/30"
+                              style="font-size: 16px;"
+                            >
+                              image
+                            </span>
                           </div>
                         <% end %>
                         <span class="flex-1 text-sm font-semibold text-on-surface">
                           {link.upsell_item.name}
                         </span>
                         <span class="text-xs text-primary font-bold">
-                          {if link.upsell_item.price, do: format_money(link.upsell_item.price), else: "—"}
+                          {if link.upsell_item.price,
+                            do: format_money(link.upsell_item.price),
+                            else: "—"}
                         </span>
                         <button
                           phx-click="remove_upsell"
@@ -852,7 +859,9 @@ defmodule SupervisedSlicesWeb.AdminLive.MenuEditorComponent do
                           class="text-on-surface-variant hover:text-error transition-colors p-1"
                           title="Remove upsell"
                         >
-                          <span class="material-symbols-outlined" style="font-size: 16px;">link_off</span>
+                          <span class="material-symbols-outlined" style="font-size: 16px;">
+                            link_off
+                          </span>
                         </button>
                       </div>
                     <% end %>
@@ -885,7 +894,9 @@ defmodule SupervisedSlicesWeb.AdminLive.MenuEditorComponent do
                               type="button"
                               class="flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-dashed border-on-surface-variant/30 text-xs text-on-surface-variant hover:border-primary hover:text-primary transition-colors"
                             >
-                              <span class="material-symbols-outlined" style="font-size: 14px;">add</span>
+                              <span class="material-symbols-outlined" style="font-size: 14px;">
+                                add
+                              </span>
                               {candidate.name}
                             </button>
                           <% end %>
@@ -895,7 +906,9 @@ defmodule SupervisedSlicesWeb.AdminLive.MenuEditorComponent do
                             phx-target={@myself}
                             class="flex items-center gap-1 px-3 py-1.5 rounded-lg text-xs text-on-surface-variant hover:text-on-surface transition-colors"
                           >
-                            <span class="material-symbols-outlined" style="font-size: 14px;">close</span>
+                            <span class="material-symbols-outlined" style="font-size: 14px;">
+                              close
+                            </span>
                             Cancel
                           </button>
                         </div>

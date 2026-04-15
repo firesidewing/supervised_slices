@@ -83,8 +83,7 @@ defmodule SupervisedSlicesWeb.AdminLive.PhoneOrderComponent do
   end
 
   def handle_event("select_size", %{"id" => size_id}, socket) do
-    {:noreply,
-     update(socket, :configuring, &Map.put(&1, :selected_size_id, size_id))}
+    {:noreply, update(socket, :configuring, &Map.put(&1, :selected_size_id, size_id))}
   end
 
   def handle_event("toggle_modifier", %{"id" => mod_id}, socket) do
@@ -204,7 +203,8 @@ defmodule SupervisedSlicesWeb.AdminLive.PhoneOrderComponent do
         Enum.map(line.modifiers, fn mod ->
           %{
             "name" => mod.name,
-            "price" => Money.to_string!(mod.price_delta || Money.new!(0, line.unit_price.currency))
+            "price" =>
+              Money.to_string!(mod.price_delta || Money.new!(0, line.unit_price.currency))
           }
         end)
 
@@ -279,12 +279,10 @@ defmodule SupervisedSlicesWeb.AdminLive.PhoneOrderComponent do
       </div>
 
       <%!-- Panel --%>
-      <div
-        class={[
-          "absolute inset-4 md:inset-8 lg:inset-12 bg-background rounded-md shadow-[0_40px_80px_-10px_rgba(28,28,24,0.25)] flex flex-col overflow-hidden transition-all duration-300",
-          if(@show, do: "opacity-100 scale-100", else: "opacity-0 scale-95")
-        ]}
-      >
+      <div class={[
+        "absolute inset-4 md:inset-8 lg:inset-12 bg-background rounded-md shadow-[0_40px_80px_-10px_rgba(28,28,24,0.25)] flex flex-col overflow-hidden transition-all duration-300",
+        if(@show, do: "opacity-100 scale-100", else: "opacity-0 scale-95")
+      ]}>
         <%!-- Header --%>
         <div class="flex items-center justify-between px-6 py-4 bg-surface-container-low shrink-0">
           <div>
@@ -473,7 +471,8 @@ defmodule SupervisedSlicesWeb.AdminLive.PhoneOrderComponent do
 
                 <div>
                   <label class="block text-[10px] uppercase font-bold tracking-[0.15em] text-on-surface-variant/60 mb-1">
-                    Email <span class="text-on-surface-variant/40 normal-case font-normal">(optional)</span>
+                    Email
+                    <span class="text-on-surface-variant/40 normal-case font-normal">(optional)</span>
                   </label>
                   <input
                     type="email"
@@ -488,7 +487,8 @@ defmodule SupervisedSlicesWeb.AdminLive.PhoneOrderComponent do
 
                 <div>
                   <label class="block text-[10px] uppercase font-bold tracking-[0.15em] text-on-surface-variant/60 mb-1">
-                    Notes <span class="text-on-surface-variant/40 normal-case font-normal">(optional)</span>
+                    Notes
+                    <span class="text-on-surface-variant/40 normal-case font-normal">(optional)</span>
                   </label>
                   <textarea
                     phx-blur="update_field"
@@ -504,7 +504,10 @@ defmodule SupervisedSlicesWeb.AdminLive.PhoneOrderComponent do
               <button
                 phx-click="place_phone_order"
                 phx-target={@myself}
-                disabled={@phone_cart == [] or String.trim(@customer_name) == "" or String.trim(@customer_phone) == "" or @placing}
+                disabled={
+                  @phone_cart == [] or String.trim(@customer_name) == "" or
+                    String.trim(@customer_phone) == "" or @placing
+                }
                 class="w-full mt-6 py-4 rounded-md font-bold text-sm uppercase tracking-[0.1em] bg-gradient-to-br from-primary to-primary-container text-on-primary transition-all active:scale-[0.98] disabled:opacity-40 disabled:cursor-not-allowed hover:opacity-95"
               >
                 Place Phone Order

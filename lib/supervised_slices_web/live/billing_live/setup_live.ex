@@ -40,7 +40,9 @@ defmodule SupervisedSlicesWeb.BillingLive.Setup do
             <div class="bg-surface border border-outline-variant/10 rounded-2xl p-6 flex flex-col">
               <div class="mb-4">
                 <h3 class="font-headline text-xl font-black mb-1">Base Dough</h3>
-                <p class="text-2xl font-headline font-black text-primary">$79<span class="text-xs text-on-surface-variant/60 font-body">/mo</span></p>
+                <p class="text-2xl font-headline font-black text-primary">
+                  $79<span class="text-xs text-on-surface-variant/60 font-body">/mo</span>
+                </p>
               </div>
               <ul class="space-y-3 mb-8 text-sm text-on-surface/70 flex-grow">
                 <li class="flex items-center gap-2">
@@ -56,7 +58,10 @@ defmodule SupervisedSlicesWeb.BillingLive.Setup do
               <button
                 phx-click="subscribe"
                 phx-value-plan="basic"
-                disabled={@loading or (@org.subscription_status in [:active, :trialing] and @org.plan == :basic)}
+                disabled={
+                  @loading or
+                    (@org.subscription_status in [:active, :trialing] and @org.plan == :basic)
+                }
                 class="btn btn-outline btn-primary w-full h-12 rounded-xl text-xs font-black uppercase tracking-widest disabled:opacity-60"
               >
                 <%= if @loading == "basic" do %>
@@ -78,7 +83,9 @@ defmodule SupervisedSlicesWeb.BillingLive.Setup do
               </div>
               <div class="mb-4">
                 <h3 class="font-headline text-xl font-black mb-1">Pro Crust</h3>
-                <p class="text-2xl font-headline font-black text-primary">$149<span class="text-xs text-white/40 font-body">/mo</span></p>
+                <p class="text-2xl font-headline font-black text-primary">
+                  $149<span class="text-xs text-white/40 font-body">/mo</span>
+                </p>
               </div>
               <ul class="space-y-3 mb-8 text-sm text-white/70 flex-grow">
                 <li class="flex items-center gap-2">
@@ -118,7 +125,9 @@ defmodule SupervisedSlicesWeb.BillingLive.Setup do
               </div>
               <div>
                 <h4 class="font-headline font-black text-on-surface">Menu Import Concierge</h4>
-                <p class="text-[11px] text-on-surface-variant/60 font-body">One-time setup fee per menu import.</p>
+                <p class="text-[11px] text-on-surface-variant/60 font-body">
+                  One-time setup fee per menu import.
+                </p>
               </div>
             </div>
             <div class="text-right">

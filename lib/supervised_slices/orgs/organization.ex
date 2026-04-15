@@ -94,7 +94,13 @@ defmodule SupervisedSlices.Orgs.Organization do
     end
 
     update :update_billing do
-      accept [:stripe_customer_id, :stripe_subscription_id, :subscription_status, :plan, :menu_upload_purchased]
+      accept [
+        :stripe_customer_id,
+        :stripe_subscription_id,
+        :subscription_status,
+        :plan,
+        :menu_upload_purchased
+      ]
     end
 
     read :by_stripe_customer do

@@ -226,7 +226,12 @@ defmodule SupervisedSlicesWeb.MenuLive do
     loaded_cart =
       Cart.get!(cart.id,
         scope: scope,
-        load: [cart_items: [:selected_size, menu_item: [modifier_groups: [:modifiers], upsell_links: [upsell_item: [:sizes]]]]]
+        load: [
+          cart_items: [
+            :selected_size,
+            menu_item: [modifier_groups: [:modifiers], upsell_links: [upsell_item: [:sizes]]]
+          ]
+        ]
       )
 
     PubSubNotifier.broadcast_cart_update(loaded_cart)
@@ -308,7 +313,12 @@ defmodule SupervisedSlicesWeb.MenuLive do
       loaded_cart =
         Cart.get!(cart.id,
           scope: scope,
-          load: [cart_items: [:selected_size, menu_item: [modifier_groups: [:modifiers], upsell_links: [upsell_item: [:sizes]]]]]
+          load: [
+            cart_items: [
+              :selected_size,
+              menu_item: [modifier_groups: [:modifiers], upsell_links: [upsell_item: [:sizes]]]
+            ]
+          ]
         )
 
       PubSubNotifier.broadcast_cart_update(loaded_cart)
@@ -354,7 +364,12 @@ defmodule SupervisedSlicesWeb.MenuLive do
     loaded_cart =
       Cart.get!(cart.id,
         scope: scope,
-        load: [cart_items: [:selected_size, menu_item: [modifier_groups: [:modifiers], upsell_links: [upsell_item: [:sizes]]]]]
+        load: [
+          cart_items: [
+            :selected_size,
+            menu_item: [modifier_groups: [:modifiers], upsell_links: [upsell_item: [:sizes]]]
+          ]
+        ]
       )
 
     PubSubNotifier.broadcast_cart_update(loaded_cart)
@@ -374,7 +389,10 @@ defmodule SupervisedSlicesWeb.MenuLive do
 
   defp load_cart(scope) do
     cart_load = [
-      cart_items: [:selected_size, menu_item: [modifier_groups: [:modifiers], upsell_links: [upsell_item: [:sizes]]]]
+      cart_items: [
+        :selected_size,
+        menu_item: [modifier_groups: [:modifiers], upsell_links: [upsell_item: [:sizes]]]
+      ]
     ]
 
     case scope.current_user do

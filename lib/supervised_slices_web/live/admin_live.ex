@@ -56,8 +56,7 @@ defmodule SupervisedSlicesWeb.AdminLive do
     cond do
       membership && membership.role == :staff &&
           live_action in [:menu, :settings] ->
-        {:noreply,
-         Phoenix.LiveView.push_navigate(socket, to: ~p"/kitchen/#{org.slug}")}
+        {:noreply, Phoenix.LiveView.push_navigate(socket, to: ~p"/kitchen/#{org.slug}")}
 
       org.plan == :basic && live_action == :history ->
         {:noreply,

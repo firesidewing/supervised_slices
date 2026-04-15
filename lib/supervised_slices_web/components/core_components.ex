@@ -698,7 +698,10 @@ defmodule SupervisedSlicesWeb.CoreComponents do
                               <% item.price -> %>
                                 {Money.to_string!(item.price)}
                               <% not Enum.empty?(item.sizes || []) -> %>
-                                From {item.sizes |> Enum.min_by(& &1.price.amount) |> then(& &1.price) |> Money.to_string!()}
+                                From {item.sizes
+                                |> Enum.min_by(& &1.price.amount)
+                                |> then(& &1.price)
+                                |> Money.to_string!()}
                               <% true -> %>
                                 —
                             <% end %>

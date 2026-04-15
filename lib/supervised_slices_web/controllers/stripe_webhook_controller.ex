@@ -81,11 +81,16 @@ defmodule SupervisedSlicesWeb.StripeWebhookController do
     end
   end
 
-  defp handle_webhook_event(%StripeWebhook.Event{type: "checkout.session.completed", checkout_session: session}) do
+  defp handle_webhook_event(%StripeWebhook.Event{
+         type: "checkout.session.completed",
+         checkout_session: session
+       }) do
     customer_id = session.customer
 
     case Organization.by_stripe_customer(customer_id, authorize?: false) do
-      {:ok, nil} -> :ok
+      {:ok, nil} ->
+        :ok
+
       {:ok, org} ->
         params =
           cond do
@@ -127,11 +132,13 @@ defmodule SupervisedSlicesWeb.StripeWebhookController do
           :ok
         end
 
-      {:error, reason} -> {:error, reason}
+      {:error, reason} ->
+        {:error, reason}
     end
   end
 
-  defp handle_webhook_event(%StripeWebhook.Event{subscription: subscription}) when not is_nil(subscription) do
+  defp handle_webhook_event(%StripeWebhook.Event{subscription: subscription})
+       when not is_nil(subscription) do
     customer_id = subscription.customer
     subscription_id = subscription.id
     status = Billing.parse_subscription_status(subscription.status)

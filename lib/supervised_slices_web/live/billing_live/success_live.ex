@@ -13,7 +13,7 @@ defmodule SupervisedSlicesWeb.BillingLive.Success do
           </div>
 
           <h1 class="font-headline font-black text-3xl tracking-tighter uppercase italic text-on-surface mb-3">
-            <%= if @is_subscription, do: "You're Subscribed!", else: "Payment Successful!" %>
+            {if @is_subscription, do: "You're Subscribed!", else: "Payment Successful!"}
           </h1>
 
           <p class="text-on-surface/60 text-sm mb-2">

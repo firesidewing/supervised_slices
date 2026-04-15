@@ -23,17 +23,27 @@ defmodule SupervisedSlices.Orgs.MembershipTest do
     # First membership - admin
     _m1 =
       Membership
-      |> Ash.Changeset.for_create(:create, %{user_id: user.id, organization_id: org1.id, role: :admin})
+      |> Ash.Changeset.for_create(:create, %{
+        user_id: user.id,
+        organization_id: org1.id,
+        role: :admin
+      })
       |> Ash.create!(authorize?: false)
 
     # Second membership - staff
     _m2 =
       Membership
-      |> Ash.Changeset.for_create(:create, %{user_id: user.id, organization_id: org2.id, role: :staff})
+      |> Ash.Changeset.for_create(:create, %{
+        user_id: user.id,
+        organization_id: org2.id,
+        role: :staff
+      })
       |> Ash.create!(authorize?: false)
 
     # Should return both of them (sorted by latest first)
-    assert {:ok, [membership | _] = memberships} = Membership.get_kitchen_membership(user.id, authorize?: false)
+    assert {:ok, [membership | _] = memberships} =
+             Membership.get_kitchen_membership(user.id, authorize?: false)
+
     assert length(memberships) == 2
     assert membership.organization_id in [org1.id, org2.id]
     assert membership.role in [:admin, :staff]
@@ -53,7 +63,11 @@ defmodule SupervisedSlices.Orgs.MembershipTest do
 
     _m =
       Membership
-      |> Ash.Changeset.for_create(:create, %{user_id: user.id, organization_id: org.id, role: :customer})
+      |> Ash.Changeset.for_create(:create, %{
+        user_id: user.id,
+        organization_id: org.id,
+        role: :customer
+      })
       |> Ash.create!(authorize?: false)
 
     assert {:ok, []} = Membership.get_kitchen_membership(user.id, authorize?: false)

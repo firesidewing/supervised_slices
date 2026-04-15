@@ -164,7 +164,9 @@ defmodule SupervisedSlicesWeb.StripeWebhookControllerTest do
       assert response(conn, 200) == "ok"
     end
 
-    test "successfully updates organization on checkout.session.completed for menu upload", %{conn: conn} do
+    test "successfully updates organization on checkout.session.completed for menu upload", %{
+      conn: conn
+    } do
       org =
         Organization
         |> Ash.Changeset.for_create(:create, %{name: "Test Org"})
@@ -209,7 +211,9 @@ defmodule SupervisedSlicesWeb.StripeWebhookControllerTest do
       assert org.menu_upload_purchased == true
     end
 
-    test "successfully updates organization on checkout.session.completed for subscription", %{conn: conn} do
+    test "successfully updates organization on checkout.session.completed for subscription", %{
+      conn: conn
+    } do
       _org =
         Organization
         |> Ash.Changeset.for_create(:create, %{name: "Test Org"})
