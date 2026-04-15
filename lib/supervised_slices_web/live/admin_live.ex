@@ -43,6 +43,7 @@ defmodule SupervisedSlicesWeb.AdminLive do
        |> assign(:active_carts, active_carts)
        |> assign(:orders_initial, orders)
        |> assign(:ticket_count, length(orders))
+       |> assign(:show_phone_order, false)
        |> assign(:page_title, "Kitchen Command")}
     end
   end
@@ -123,6 +124,21 @@ defmodule SupervisedSlicesWeb.AdminLive do
   def handle_info(%Phoenix.Socket.Broadcast{event: "presence_diff"}, socket) do
     count = socket.assigns.org.id |> OrgPresence.list_visitors() |> map_size()
     {:noreply, assign(socket, :visitor_count, count)}
+  end
+
+  def handle_info({:phone_order_placed}, socket) do
+    {:noreply,
+     socket
+     |> assign(:show_phone_order, false)
+     |> put_flash(:info, "Phone order placed successfully.")}
+  end
+
+  def handle_info({:close_phone_order}, socket) do
+    {:noreply, assign(socket, :show_phone_order, false)}
+  end
+
+  def handle_event("toggle_phone_order", _params, socket) do
+    {:noreply, assign(socket, :show_phone_order, !socket.assigns.show_phone_order)}
   end
 
   defp load_active_orders(scope) do

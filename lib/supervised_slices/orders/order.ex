@@ -18,6 +18,7 @@ defmodule SupervisedSlices.Orders.Order do
   code_interface do
     define :get, action: :read, get_by: :id
     define :place_order, action: :place_order
+    define :place_phone_order, action: :place_phone_order
     define :update_status, action: :update_status
     define :send_update, action: :send_update
     define :active, action: :active
@@ -40,6 +41,8 @@ defmodule SupervisedSlices.Orders.Order do
         :delivery_type,
         :delivery_fee
       ]
+
+      validate present(:customer_email)
 
       argument :delivery_address, :map
 
@@ -100,6 +103,29 @@ defmodule SupervisedSlices.Orders.Order do
           end
         else
           changeset
+        end
+      end
+    end
+
+    create :place_phone_order do
+      accept [
+        :customer_name,
+        :customer_phone,
+        :customer_email,
+        :notes,
+        :total_price,
+        :tax_amount,
+        :delivery_type,
+        :delivery_fee
+      ]
+
+      change fn changeset, context ->
+        case context.actor do
+          %SupervisedSlices.Accounts.User{id: user_id} ->
+            Ash.Changeset.force_change_attribute(changeset, :user_id, user_id)
+
+          _ ->
+            changeset
         end
       end
     end
@@ -183,6 +209,10 @@ defmodule SupervisedSlices.Orders.Order do
       authorize_if always()
     end
 
+    policy action(:place_phone_order) do
+      authorize_if SupervisedSlices.Orgs.Checks.IsOrgKitchenMember
+    end
+
     policy action(:update_status) do
       authorize_if SupervisedSlices.Orgs.Checks.IsOrgKitchenMember
     end
@@ -234,7 +264,7 @@ defmodule SupervisedSlices.Orders.Order do
     end
 
     attribute :customer_email, :string do
-      allow_nil? false
+      allow_nil? true
       public? true
     end
 
