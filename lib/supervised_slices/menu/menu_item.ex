@@ -33,7 +33,7 @@ defmodule SupervisedSlices.Menu.MenuItem do
 
     read :available do
       filter expr(available == true)
-      prepare build(sort: [sort_order: :asc], load: [:modifier_groups])
+      prepare build(sort: [sort_order: :asc], load: [:modifier_groups, :upsell_links])
     end
 
     read :for_category do
@@ -111,6 +111,11 @@ defmodule SupervisedSlices.Menu.MenuItem do
       through SupervisedSlices.Menu.MenuItemModifierGroupLink
       source_attribute_on_join_resource :menu_item_id
       destination_attribute_on_join_resource :modifier_group_id
+      public? true
+    end
+
+    has_many :upsell_links, SupervisedSlices.Menu.MenuItemUpsell do
+      destination_attribute :source_menu_item_id
       public? true
     end
   end

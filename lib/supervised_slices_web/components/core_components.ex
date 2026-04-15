@@ -529,6 +529,7 @@ defmodule SupervisedSlicesWeb.CoreComponents do
   attr :tax_rate, :any, required: true
   attr :org, :any, required: true
   attr :store_open, :boolean, default: true
+  attr :upsell_suggestions, :list, default: []
 
   def basket_drawer(assigns) do
     ~H"""
@@ -657,6 +658,65 @@ defmodule SupervisedSlicesWeb.CoreComponents do
                   </div>
                 <% end %>
               </div>
+
+              <%= if not Enum.empty?(@upsell_suggestions) do %>
+                <div class="mt-4 bg-surface-container-low rounded-xl px-4 pt-4 pb-3">
+                  <div class="flex items-center justify-between mb-3">
+                    <p class="text-[0.65rem] font-black text-on-surface-variant uppercase tracking-[0.2em]">
+                      You might also like
+                    </p>
+                    <button
+                      phx-click="dismiss_upsells"
+                      class="text-on-surface-variant/50 hover:text-on-surface transition-colors p-1"
+                      aria-label="Dismiss suggestions"
+                    >
+                      <span class="material-symbols-outlined" style="font-size: 16px;">close</span>
+                    </button>
+                  </div>
+                  <div class="flex gap-3 overflow-x-auto pb-1 no-scrollbar">
+                    <%= for item <- @upsell_suggestions do %>
+                      <div class="flex flex-col w-28 shrink-0 bg-surface-container-lowest rounded-xl overflow-hidden">
+                        <%= if item.image_url do %>
+                          <img
+                            src={item.image_url}
+                            alt={item.name}
+                            class="w-full aspect-square object-cover"
+                          />
+                        <% else %>
+                          <div class="w-full aspect-square bg-surface-container-high flex items-center justify-center">
+                            <span class="material-symbols-outlined text-on-surface-variant/20 text-3xl">
+                              restaurant
+                            </span>
+                          </div>
+                        <% end %>
+                        <div class="p-2 flex flex-col gap-1.5">
+                          <p class="text-[11px] font-bold text-on-surface leading-tight line-clamp-2">
+                            {item.name}
+                          </p>
+                          <p class="text-[11px] font-black text-primary">
+                            <%= cond do %>
+                              <% item.price -> %>
+                                {Money.to_string!(item.price)}
+                              <% not Enum.empty?(item.sizes || []) -> %>
+                                From {item.sizes |> Enum.min_by(& &1.price.amount) |> then(& &1.price) |> Money.to_string!()}
+                              <% true -> %>
+                                —
+                            <% end %>
+                          </p>
+                          <button
+                            phx-click="update_quantity"
+                            phx-value-item_id={item.id}
+                            phx-value-delta="1"
+                            class="w-full bg-gradient-to-br from-primary to-primary-container text-on-primary text-[10px] font-black uppercase tracking-wider rounded-lg py-1.5 active:scale-95 transition-all"
+                          >
+                            + Add
+                          </button>
+                        </div>
+                      </div>
+                    <% end %>
+                  </div>
+                </div>
+              <% end %>
             <% end %>
           </div>
 

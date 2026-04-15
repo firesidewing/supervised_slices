@@ -44,6 +44,7 @@ defmodule SupervisedSlicesWeb.MenuLive do
      |> assign(:cart_count, cart_count)
      |> assign(:show_basket, false)
      |> assign(:checkout_step, :review)
+     |> assign(:upsells_dismissed, false)
      |> assign(:store_open, SupervisedSlices.Orgs.Organization.open_now?(org))
      |> assign(:page_title, org.name)}
   end
@@ -91,6 +92,10 @@ defmodule SupervisedSlicesWeb.MenuLive do
 
   def handle_event("toggle_basket", _params, socket) do
     {:noreply, assign(socket, show_basket: !socket.assigns.show_basket, checkout_step: :review)}
+  end
+
+  def handle_event("dismiss_upsells", _params, socket) do
+    {:noreply, assign(socket, :upsells_dismissed, true)}
   end
 
   def handle_event("update_delivery_type", %{"delivery_type" => type}, socket) do
@@ -221,7 +226,7 @@ defmodule SupervisedSlicesWeb.MenuLive do
     loaded_cart =
       Cart.get!(cart.id,
         scope: scope,
-        load: [cart_items: [:selected_size, menu_item: [modifier_groups: [:modifiers]]]]
+        load: [cart_items: [:selected_size, menu_item: [modifier_groups: [:modifiers], upsell_links: [upsell_item: [:sizes]]]]]
       )
 
     PubSubNotifier.broadcast_cart_update(loaded_cart)
@@ -303,7 +308,7 @@ defmodule SupervisedSlicesWeb.MenuLive do
       loaded_cart =
         Cart.get!(cart.id,
           scope: scope,
-          load: [cart_items: [:selected_size, menu_item: [modifier_groups: [:modifiers]]]]
+          load: [cart_items: [:selected_size, menu_item: [modifier_groups: [:modifiers], upsell_links: [upsell_item: [:sizes]]]]]
         )
 
       PubSubNotifier.broadcast_cart_update(loaded_cart)
@@ -349,7 +354,7 @@ defmodule SupervisedSlicesWeb.MenuLive do
     loaded_cart =
       Cart.get!(cart.id,
         scope: scope,
-        load: [cart_items: [:selected_size, menu_item: [modifier_groups: [:modifiers]]]]
+        load: [cart_items: [:selected_size, menu_item: [modifier_groups: [:modifiers], upsell_links: [upsell_item: [:sizes]]]]]
       )
 
     PubSubNotifier.broadcast_cart_update(loaded_cart)
@@ -368,7 +373,9 @@ defmodule SupervisedSlicesWeb.MenuLive do
   # ---------------------------------------------------------------------------
 
   defp load_cart(scope) do
-    cart_load = [cart_items: [:selected_size, menu_item: [modifier_groups: [:modifiers]]]]
+    cart_load = [
+      cart_items: [:selected_size, menu_item: [modifier_groups: [:modifiers], upsell_links: [upsell_item: [:sizes]]]]
+    ]
 
     case scope.current_user do
       %User{id: user_id} ->
@@ -463,6 +470,22 @@ defmodule SupervisedSlicesWeb.MenuLive do
     end
   end
 
+  defp upsell_suggestions(nil, _dismissed), do: []
+  defp upsell_suggestions(_cart, true), do: []
+
+  defp upsell_suggestions(cart, false) do
+    cart_item_ids = MapSet.new(cart.cart_items, & &1.menu_item_id)
+
+    cart.cart_items
+    |> Enum.flat_map(fn item ->
+      (item.menu_item.upsell_links || [])
+      |> Enum.map(& &1.upsell_item)
+      |> Enum.filter(& &1.available)
+      |> Enum.reject(&MapSet.member?(cart_item_ids, &1.id))
+    end)
+    |> Enum.uniq_by(& &1.id)
+  end
+
   # ---------------------------------------------------------------------------
   # Template
   # ---------------------------------------------------------------------------
@@ -549,6 +572,7 @@ defmodule SupervisedSlicesWeb.MenuLive do
       tax_rate={@org.tax_rate}
       org={@org}
       store_open={@store_open}
+      upsell_suggestions={upsell_suggestions(@cart, @upsells_dismissed)}
     />
 
     <div class="fixed top-[15%] right-[-30px] opacity-[0.03] pointer-events-none transform rotate-[25deg] select-none hidden lg:block text-on-surface z-[-1]">
