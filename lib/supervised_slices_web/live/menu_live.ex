@@ -57,13 +57,14 @@ defmodule SupervisedSlicesWeb.MenuLive do
 
   def handle_params(%{"id" => id}, _uri, socket) do
     scope = socket.assigns.ash_scope
-    has_image? = has_image_for_item(socket.assigns.categories, id)
+    quick_item = find_item_in_categories(socket.assigns.categories, id)
 
     {:noreply,
      socket
      |> cancel_async(:selected_item)
      |> assign(:selected_item_id, id)
-     |> assign(:selected_item_has_image, has_image?)
+     |> assign(:selected_item_has_image, quick_item != nil && !is_nil(quick_item.image_url))
+     |> assign(:quick_item, quick_item)
      |> assign_async(:selected_item, fn ->
        item =
          MenuItem.get!(id,
@@ -82,24 +83,17 @@ defmodule SupervisedSlicesWeb.MenuLive do
      |> cancel_async(:selected_item)
      |> assign(:selected_item, AsyncResult.ok(nil))
      |> assign(:selected_item_id, nil)
+     |> assign(:quick_item, nil)
      |> assign(:page_title, socket.assigns.org.name)}
   end
 
-  defp has_image_for_item(categories, id) do
-    case categories do
-      %{ok?: true, result: categories} ->
-        categories
-        |> Enum.flat_map(& &1.menu_items)
-        |> Enum.find(&(to_string(&1.id) == id))
-        |> case do
-          %{image_url: image_url} when not is_nil(image_url) -> true
-          _ -> false
-        end
-
-      _ ->
-        false
-    end
+  defp find_item_in_categories(%{ok?: true, result: categories}, id) do
+    categories
+    |> Enum.flat_map(& &1.menu_items)
+    |> Enum.find(&(to_string(&1.id) == id))
   end
+
+  defp find_item_in_categories(_, _), do: nil
 
   def handle_info({:cart_refreshed, loaded_cart}, socket) do
     {cart_items_map, cart_count} = build_cart_state(loaded_cart)
@@ -585,17 +579,17 @@ defmodule SupervisedSlicesWeb.MenuLive do
       store_open={@store_open}
     />
 
-    <%!-- Item detail: skeleton while item loads, then the component --%>
+    <%!-- Item detail: skeleton only when navigating directly (no categories preloaded) --%>
     <.item_skeleton
-      :if={@live_action == :show && @selected_item.loading}
+      :if={@live_action == :show && @selected_item.loading && is_nil(@quick_item)}
       id={@selected_item_id}
       has_image={@selected_item_has_image}
     />
     <.live_component
-      :if={@live_action == :show && @selected_item.ok? && @selected_item.result != nil}
+      :if={@live_action == :show && ((@selected_item.ok? && @selected_item.result != nil) || not is_nil(@quick_item))}
       module={SupervisedSlicesWeb.MenuLive.ItemComponent}
       id="item"
-      selected_item={@selected_item.result}
+      selected_item={@selected_item.result || @quick_item}
       cart_items_map={@cart_items_map}
       org={@org}
     />
