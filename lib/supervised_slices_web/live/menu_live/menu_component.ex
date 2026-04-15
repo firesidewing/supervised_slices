@@ -51,24 +51,17 @@ defmodule SupervisedSlicesWeb.MenuLive.MenuComponent do
 
     ~H"""
     <.link
-      navigate={~p"/menu/#{@org.slug}/item/#{@item.id}"}
+      patch={~p"/menu/#{@org.slug}/item/#{@item.id}"}
+      phx-click={JS.patch(~p"/menu/#{@org.slug}/item/#{@item.id}", transition: true)}
       class="group flex flex-col bg-surface-container-lowest rounded-xl overflow-hidden transition-all duration-300 active:scale-[0.98] shadow-soft hover:translate-y-[-4px]"
     >
-      <div class="aspect-square overflow-hidden relative">
+      <div :if={@item.image_url} class="aspect-square overflow-hidden relative">
         <img
-          :if={@item.image_url}
           src={@item.image_url}
           alt={@item.name}
           class="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
           style={"view-transition-name: item-img-#{@item.id};"}
         />
-        <div
-          :if={!@item.image_url}
-          class="w-full h-full bg-surface-container-low flex items-center justify-center"
-        >
-          <span class="material-symbols-outlined text-outline opacity-20 text-4xl">local_pizza</span>
-        </div>
-
         <div
           :if={@qty > 0}
           class="absolute top-3 right-3 w-8 h-8 bg-primary text-on-primary rounded-full flex items-center justify-center text-xs font-black shadow-lg animate-in zoom-in duration-300"
@@ -77,13 +70,25 @@ defmodule SupervisedSlicesWeb.MenuLive.MenuComponent do
         </div>
       </div>
 
+      <%!-- Intentional fallback for no image --%>
+      <div :if={!@item.image_url} class="pt-8 px-6 pb-2 relative">
+        <div class="w-10 h-1 bg-primary/20 rounded-full mb-4" />
+        <div
+          :if={@qty > 0}
+          class="absolute top-6 right-6 w-8 h-8 bg-primary text-on-primary rounded-full flex items-center justify-center text-xs font-black shadow-lg animate-in zoom-in duration-300"
+        >
+          {@qty}
+        </div>
+      </div>
+
       <div class="p-4 flex flex-col grow">
-        <h3 class="font-headline text-lg font-bold leading-tight mb-1 text-on-surface group-hover:text-primary transition-colors">
+        <h3 class={["font-headline font-bold leading-tight mb-1 text-on-surface group-hover:text-primary transition-colors", @item.image_url && "text-lg", !@item.image_url && "text-xl"]}>
           {@item.name}
         </h3>
         <p
           :if={@item.description}
           class="font-body text-xs text-on-surface-variant mb-4 grow line-clamp-2 leading-relaxed opacity-80"
+          style={"view-transition-name: item-desc-#{@item.id};"}
         >
           {@item.description}
         </p>
@@ -106,29 +111,23 @@ defmodule SupervisedSlicesWeb.MenuLive.MenuComponent do
 
     ~H"""
     <div class="col-span-2 flex items-center gap-4 bg-surface-container-low p-3 rounded-xl transition-all duration-300 hover:bg-surface-container group">
-      <div class="w-20 h-20 rounded-lg overflow-hidden shrink-0 relative">
+      <div :if={@item.image_url} class="w-20 h-20 rounded-lg overflow-hidden shrink-0 relative">
         <img
-          :if={@item.image_url}
           src={@item.image_url}
           alt={@item.name}
           class="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
           style={"view-transition-name: item-img-#{@item.id};"}
         />
-        <div
-          :if={!@item.image_url}
-          class="w-full h-full bg-surface-container-lowest flex items-center justify-center"
-        >
-          <span class="material-symbols-outlined text-outline opacity-20 text-2xl">restaurant</span>
-        </div>
       </div>
 
-      <div class="flex-1 min-w-0">
-        <h3 class="font-headline text-base font-bold truncate text-on-surface group-hover:text-primary transition-colors">
+      <div class="flex-1 min-w-0 py-1">
+        <h3 class={["font-headline font-bold truncate text-on-surface group-hover:text-primary transition-colors", @item.image_url && "text-base", !@item.image_url && "text-lg"]}>
           {@item.name}
         </h3>
         <p
           :if={@item.description}
           class="font-body text-[0.7rem] text-on-surface-variant truncate opacity-80"
+          style={"view-transition-name: item-desc-#{@item.id};"}
         >
           {@item.description}
         </p>

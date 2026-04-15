@@ -39,6 +39,8 @@ defmodule SupervisedSlicesWeb.MenuLive do
        {:ok, %{categories: categories}}
      end)
      |> assign(:selected_item, AsyncResult.ok(nil))
+     |> assign(:selected_item_id, nil)
+     |> assign(:selected_item_has_image, false)
      |> assign(:cart, cart)
      |> assign(:cart_items_map, cart_items_map)
      |> assign(:cart_count, cart_count)
@@ -55,10 +57,13 @@ defmodule SupervisedSlicesWeb.MenuLive do
 
   def handle_params(%{"id" => id}, _uri, socket) do
     scope = socket.assigns.ash_scope
+    has_image? = has_image_for_item(socket.assigns.categories, id)
 
     {:noreply,
      socket
      |> cancel_async(:selected_item)
+     |> assign(:selected_item_id, id)
+     |> assign(:selected_item_has_image, has_image?)
      |> assign_async(:selected_item, fn ->
        item =
          MenuItem.get!(id,
@@ -67,7 +72,7 @@ defmodule SupervisedSlicesWeb.MenuLive do
            load: [modifier_groups: [:modifiers], sizes: []]
          )
 
-       {:ok, %{selected_item: item}}
+       {:ok, %{selected_item: item, selected_item_has_image: !is_nil(item.image_url)}}
      end)}
   end
 
@@ -76,12 +81,25 @@ defmodule SupervisedSlicesWeb.MenuLive do
      socket
      |> cancel_async(:selected_item)
      |> assign(:selected_item, AsyncResult.ok(nil))
+     |> assign(:selected_item_id, nil)
      |> assign(:page_title, socket.assigns.org.name)}
   end
 
-  # ---------------------------------------------------------------------------
-  # Cart events
-  # ---------------------------------------------------------------------------
+  defp has_image_for_item(categories, id) do
+    case categories do
+      %{ok?: true, result: categories} ->
+        categories
+        |> Enum.flat_map(& &1.menu_items)
+        |> Enum.find(&(to_string(&1.id) == id))
+        |> case do
+          %{image_url: image_url} when not is_nil(image_url) -> true
+          _ -> false
+        end
+
+      _ ->
+        false
+    end
+  end
 
   def handle_info({:cart_refreshed, loaded_cart}, socket) do
     {cart_items_map, cart_count} = build_cart_state(loaded_cart)
@@ -240,7 +258,7 @@ defmodule SupervisedSlicesWeb.MenuLive do
     {:noreply,
      socket
      |> assign(cart: loaded_cart, cart_items_map: cart_items_map, cart_count: cart_count)
-     |> push_navigate(to: ~p"/menu/#{org.slug}")}
+     |> push_patch(to: ~p"/menu/#{org.slug}", transition: true)}
   end
 
   def handle_event(
@@ -510,8 +528,8 @@ defmodule SupervisedSlicesWeb.MenuLive do
       <.link
         :if={@live_action == :show}
         id="back-button"
-        navigate={~p"/menu/#{@org.slug}"}
-        phx-click={JS.add_class("phx-click-loading", to: "self")}
+        patch={~p"/menu/#{@org.slug}"}
+        phx-click={JS.patch(~p"/menu/#{@org.slug}", transition: true) |> JS.add_class("phx-click-loading", to: "self")}
         class="flex items-center justify-center w-11 h-11 rounded-full bg-surface-container-low hover:bg-surface-container transition-all text-on-surface active:scale-90 active:bg-surface-container-highest phx-click-loading:scale-90 phx-click-loading:opacity-60 phx-click-loading:bg-surface-container-highest"
         aria-label="Back to menu"
       >
@@ -567,7 +585,11 @@ defmodule SupervisedSlicesWeb.MenuLive do
     />
 
     <%!-- Item detail: skeleton while item loads, then the component --%>
-    <.item_skeleton :if={@live_action == :show && @selected_item.loading} />
+    <.item_skeleton
+      :if={@live_action == :show && @selected_item.loading}
+      id={@selected_item_id}
+      has_image={@selected_item_has_image}
+    />
     <.live_component
       :if={@live_action == :show && @selected_item.ok? && @selected_item.result != nil}
       module={SupervisedSlicesWeb.MenuLive.ItemComponent}
@@ -716,13 +738,20 @@ defmodule SupervisedSlicesWeb.MenuLive do
     <div class="bg-surface min-h-screen text-on-surface antialiased">
       <main class="pt-[72px] pb-44">
         <%!-- Hero image placeholder --%>
-        <div class="relative w-full aspect-[4/5] md:aspect-video overflow-hidden bg-surface-container animate-pulse" />
+        <div
+          :if={@has_image}
+          class="relative w-full aspect-[4/5] md:aspect-video overflow-hidden bg-surface-container animate-pulse"
+          style={"view-transition-name: item-img-#{@id};"}
+        />
 
-        <div class="px-8 space-y-12 max-w-3xl mx-auto mt-6 relative z-10">
+        <div class={["px-8 space-y-12 max-w-3xl mx-auto relative z-10", @has_image && "mt-[-100px]", !@has_image && "mt-12"]}>
           <%!-- Name & description --%>
           <div class="space-y-3 pt-4">
             <div class="h-12 w-3/4 bg-surface-container animate-pulse rounded" />
-            <div class="h-4 w-full bg-surface-container-low animate-pulse rounded" />
+            <div
+              class="h-4 w-full bg-surface-container-low animate-pulse rounded"
+              style={"view-transition-name: item-desc-#{@id};"}
+            />
             <div class="h-4 w-2/3 bg-surface-container-low animate-pulse rounded" />
           </div>
 

@@ -57,22 +57,13 @@ defmodule SupervisedSlicesWeb.MenuLive.ItemComponent do
     <div class="bg-surface min-h-screen text-on-surface antialiased">
       <main class="pt-[72px] pb-44">
         <!-- Hero Section -->
-        <div class="relative w-full aspect-[4/5] md:aspect-video overflow-hidden">
+        <div :if={@selected_item.image_url} class="relative w-full aspect-[4/5] md:aspect-video overflow-hidden">
           <img
-            :if={@selected_item.image_url}
             src={@selected_item.image_url}
             alt={@selected_item.name}
             class="w-full h-full object-cover"
             style={"view-transition-name: item-img-#{@selected_item.id};"}
           />
-          <div
-            :if={!@selected_item.image_url}
-            class="w-full h-full bg-surface-container-low flex items-center justify-center"
-          >
-            <span class="material-symbols-outlined text-outline opacity-20 text-9xl">
-              local_pizza
-            </span>
-          </div>
           <div class="absolute bottom-0 left-0 w-full h-2/3 bg-gradient-to-t from-surface to-transparent" />
           <!-- Headline Overlay -->
           <div class="absolute bottom-8 left-8 right-8">
@@ -84,13 +75,35 @@ defmodule SupervisedSlicesWeb.MenuLive.ItemComponent do
             <h2 class="font-headline text-4xl md:text-5xl font-bold tracking-tight text-on-surface leading-none">
               {@selected_item.name}
             </h2>
-            <p class="mt-2 text-on-surface-variant max-w-xl text-sm md:text-base italic opacity-90">
+            <p
+              class="mt-2 text-on-surface-variant max-w-xl text-sm md:text-base italic opacity-90"
+              style={"view-transition-name: item-desc-#{@selected_item.id};"}
+            >
               {@selected_item.description}
             </p>
           </div>
         </div>
 
-        <div class="px-8 space-y-12 max-w-3xl mx-auto -mt-4 relative z-10">
+        <%!-- Fallback for no image --%>
+        <div :if={!@selected_item.image_url} class="px-8 pt-12 pb-6 max-w-3xl mx-auto">
+          <div class="flex items-center gap-2 mb-4">
+            <span class="bg-secondary-container text-on-secondary-container text-[10px] px-3 py-1 rounded-full font-label tracking-widest uppercase font-bold">
+              Artisan Selection
+            </span>
+          </div>
+          <h2 class="font-headline text-5xl md:text-6xl font-bold tracking-tight text-on-surface leading-tight">
+            {@selected_item.name}
+          </h2>
+          <p
+            class="mt-6 text-on-surface-variant max-w-2xl text-base md:text-lg italic opacity-90 leading-relaxed"
+            style={"view-transition-name: item-desc-#{@selected_item.id};"}
+          >
+            {@selected_item.description}
+          </p>
+          <div class="w-24 h-1 bg-primary/20 rounded-full mt-10" />
+        </div>
+
+        <div class={["px-8 space-y-12 max-w-3xl mx-auto relative z-10", @selected_item.image_url && "-mt-4", !@selected_item.image_url && "mt-8"]}>
           <!-- Size Selector Section -->
           <section :if={not Enum.empty?(@selected_item.sizes || [])}>
             <div class="flex items-baseline justify-between mb-6">
