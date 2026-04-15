@@ -229,7 +229,7 @@ defmodule SupervisedSlicesWeb.MenuLive do
         load: [
           cart_items: [
             :selected_size,
-            menu_item: [modifier_groups: [:modifiers], upsell_links: [upsell_item: [:sizes]]]
+            menu_item: [modifier_groups: [:modifiers]]
           ]
         ]
       )
@@ -316,7 +316,7 @@ defmodule SupervisedSlicesWeb.MenuLive do
           load: [
             cart_items: [
               :selected_size,
-              menu_item: [modifier_groups: [:modifiers], upsell_links: [upsell_item: [:sizes]]]
+              menu_item: [modifier_groups: [:modifiers]]
             ]
           ]
         )
@@ -367,7 +367,7 @@ defmodule SupervisedSlicesWeb.MenuLive do
         load: [
           cart_items: [
             :selected_size,
-            menu_item: [modifier_groups: [:modifiers], upsell_links: [upsell_item: [:sizes]]]
+            menu_item: [modifier_groups: [:modifiers]]
           ]
         ]
       )
@@ -391,7 +391,7 @@ defmodule SupervisedSlicesWeb.MenuLive do
     cart_load = [
       cart_items: [
         :selected_size,
-        menu_item: [modifier_groups: [:modifiers], upsell_links: [upsell_item: [:sizes]]]
+        menu_item: [modifier_groups: [:modifiers]]
       ]
     ]
 
@@ -488,20 +488,16 @@ defmodule SupervisedSlicesWeb.MenuLive do
     end
   end
 
-  defp upsell_suggestions(nil, _dismissed), do: []
-  defp upsell_suggestions(_cart, true), do: []
+  defp upsell_suggestions(nil, _scope, _dismissed), do: []
+  defp upsell_suggestions(_cart, _scope, true), do: []
 
-  defp upsell_suggestions(cart, false) do
+  defp upsell_suggestions(cart, scope, false) do
     cart_item_ids = MapSet.new(cart.cart_items, & &1.menu_item_id)
 
-    cart.cart_items
-    |> Enum.flat_map(fn item ->
-      (item.menu_item.upsell_links || [])
-      |> Enum.map(& &1.upsell_item)
-      |> Enum.filter(& &1.available)
-      |> Enum.reject(&MapSet.member?(cart_item_ids, &1.id))
-    end)
-    |> Enum.uniq_by(& &1.id)
+    MenuItem.upsellable!(scope: scope, authorize?: false)
+    |> Enum.reject(&MapSet.member?(cart_item_ids, &1.id))
+    |> Enum.shuffle()
+    |> Enum.take(3)
   end
 
   # ---------------------------------------------------------------------------
@@ -590,7 +586,7 @@ defmodule SupervisedSlicesWeb.MenuLive do
       tax_rate={@org.tax_rate}
       org={@org}
       store_open={@store_open}
-      upsell_suggestions={upsell_suggestions(@cart, @upsells_dismissed)}
+      upsell_suggestions={upsell_suggestions(@cart, @ash_scope, @upsells_dismissed)}
     />
 
     <div class="fixed top-[15%] right-[-30px] opacity-[0.03] pointer-events-none transform rotate-[25deg] select-none hidden lg:block text-on-surface z-[-1]">

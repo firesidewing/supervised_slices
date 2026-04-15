@@ -18,6 +18,7 @@ defmodule SupervisedSlices.Menu.MenuItem do
     define :get, action: :read, get_by: :id
     define :create, action: :create
     define :update, action: :update
+    define :upsellable, action: :upsellable
   end
 
   actions do
@@ -28,12 +29,17 @@ defmodule SupervisedSlices.Menu.MenuItem do
     end
 
     update :update do
-      accept [:name, :description, :price, :available, :sort_order, :image_url, :category_id]
+      accept [:name, :description, :price, :available, :is_upsell, :sort_order, :image_url, :category_id]
     end
 
     read :available do
       filter expr(available == true)
-      prepare build(sort: [sort_order: :asc], load: [:modifier_groups, :upsell_links])
+      prepare build(sort: [sort_order: :asc], load: [:modifier_groups])
+    end
+
+    read :upsellable do
+      filter expr(is_upsell == true and available == true)
+      prepare build(load: [:sizes])
     end
 
     read :for_category do
@@ -80,6 +86,12 @@ defmodule SupervisedSlices.Menu.MenuItem do
       public? true
     end
 
+    attribute :is_upsell, :boolean do
+      default false
+      allow_nil? false
+      public? true
+    end
+
     attribute :sort_order, :integer do
       default 0
       allow_nil? false
@@ -111,11 +123,6 @@ defmodule SupervisedSlices.Menu.MenuItem do
       through SupervisedSlices.Menu.MenuItemModifierGroupLink
       source_attribute_on_join_resource :menu_item_id
       destination_attribute_on_join_resource :modifier_group_id
-      public? true
-    end
-
-    has_many :upsell_links, SupervisedSlices.Menu.MenuItemUpsell do
-      destination_attribute :source_menu_item_id
       public? true
     end
   end

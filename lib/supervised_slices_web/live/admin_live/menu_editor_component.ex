@@ -8,7 +8,6 @@ defmodule SupervisedSlicesWeb.AdminLive.MenuEditorComponent do
     MenuItemModifierGroup,
     MenuItemModifier,
     MenuItemModifierGroupLink,
-    MenuItemUpsell,
     MenuImageUploader
   }
 
@@ -21,7 +20,6 @@ defmodule SupervisedSlicesWeb.AdminLive.MenuEditorComponent do
      |> assign(:adding_size_to_item_id, nil)
      |> assign(:creating_modifier_group, false)
      |> assign(:adding_modifier_to_group_id, nil)
-     |> assign(:assigning_upsell_to_item_id, nil)
      |> allow_upload(:item_image,
        accept: ~w(.jpg .jpeg .png .webp .gif),
        max_entries: 1,
@@ -348,35 +346,11 @@ defmodule SupervisedSlicesWeb.AdminLive.MenuEditorComponent do
   # Upsell events
   # ---------------------------------------------------------------------------
 
-  def handle_event("add_upsell_to_item", %{"item_id" => item_id}, socket) do
-    {:noreply, assign(socket, assigning_upsell_to_item_id: item_id)}
-  end
-
-  def handle_event("cancel_add_upsell", _params, socket) do
-    {:noreply, assign(socket, :assigning_upsell_to_item_id, nil)}
-  end
-
-  def handle_event(
-        "assign_upsell",
-        %{"item_id" => item_id, "upsell_item_id" => upsell_item_id},
-        socket
-      ) do
+  def handle_event("toggle_upsell", %{"id" => id}, socket) do
     %{ash_scope: scope} = socket.assigns
-
-    MenuItemUpsell.assign!(
-      %{source_menu_item_id: item_id, upsell_menu_item_id: upsell_item_id},
-      scope: scope
-    )
-
-    categories = load_categories(scope)
-    {:noreply, assign(socket, categories: categories, assigning_upsell_to_item_id: nil)}
-  end
-
-  def handle_event("remove_upsell", %{"id" => id}, socket) do
-    %{ash_scope: scope} = socket.assigns
-    MenuItemUpsell.get!(id, scope: scope) |> MenuItemUpsell.unassign!(scope: scope)
-    categories = load_categories(scope)
-    {:noreply, assign(socket, :categories, categories)}
+    item = MenuItem.get!(id, scope: scope)
+    MenuItem.update!(item, %{is_upsell: !item.is_upsell}, scope: scope)
+    {:noreply, assign(socket, :categories, load_categories(scope))}
   end
 
   # ---------------------------------------------------------------------------
@@ -837,125 +811,25 @@ defmodule SupervisedSlicesWeb.AdminLive.MenuEditorComponent do
                   </div>
 
                   <div class="border-t border-surface-container-low pt-4 space-y-3">
-                    <div class="flex items-center justify-between">
-                      <p class="text-xs font-bold text-on-surface-variant uppercase tracking-wider">
-                        Upsells
-                      </p>
-                      <%= if @assigning_upsell_to_item_id != item.id do %>
-                        <button
-                          phx-click="add_upsell_to_item"
-                          phx-value-item_id={item.id}
-                          phx-target={@myself}
-                          type="button"
-                          class="flex items-center gap-1 text-sm text-primary hover:opacity-80 font-bold"
-                        >
-                          <span class="material-symbols-outlined" style="font-size: 16px;">
-                            add_circle
-                          </span>
-                          Add upsell
-                        </button>
-                      <% end %>
-                    </div>
-
-                    <p class="text-xs text-on-surface-variant">
-                      Items to suggest when this item is in a customer's basket.
+                    <p class="text-xs font-bold text-on-surface-variant uppercase tracking-wider">
+                      Upsell
                     </p>
-
-                    <%= for link <- (item.upsell_links || []) do %>
-                      <div class="flex items-center gap-3 px-3 py-2 bg-surface-container-low rounded-lg">
-                        <%= if link.upsell_item.image_url do %>
-                          <img
-                            src={link.upsell_item.image_url}
-                            alt={link.upsell_item.name}
-                            class="w-8 h-8 rounded object-cover shrink-0"
-                          />
-                        <% else %>
-                          <div class="w-8 h-8 rounded bg-surface-container-high flex items-center justify-center shrink-0">
-                            <span
-                              class="material-symbols-outlined text-on-surface-variant/30"
-                              style="font-size: 16px;"
-                            >
-                              image
-                            </span>
-                          </div>
-                        <% end %>
-                        <span class="flex-1 text-sm font-semibold text-on-surface">
-                          {link.upsell_item.name}
-                        </span>
-                        <span class="text-xs text-primary font-bold">
-                          {if link.upsell_item.price,
-                            do: format_money(link.upsell_item.price),
-                            else: "—"}
-                        </span>
-                        <button
-                          phx-click="remove_upsell"
-                          phx-value-id={link.id}
-                          phx-target={@myself}
-                          type="button"
-                          class="text-on-surface-variant hover:text-error transition-colors p-1"
-                          title="Remove upsell"
-                        >
-                          <span class="material-symbols-outlined" style="font-size: 16px;">
-                            link_off
-                          </span>
-                        </button>
-                      </div>
-                    <% end %>
-
-                    <%= if @assigning_upsell_to_item_id == item.id do %>
-                      <% assigned_ids = MapSet.new(item.upsell_links || [], & &1.upsell_menu_item_id) %>
-                      <% available_items =
-                        Enum.flat_map(@categories, & &1.menu_items)
-                        |> Enum.reject(&(&1.id == item.id or MapSet.member?(assigned_ids, &1.id))) %>
-                      <%= if Enum.empty?(available_items) do %>
-                        <p class="text-xs text-on-surface-variant italic">
-                          No other items available to add as upsells.
-                        </p>
-                        <button
-                          type="button"
-                          phx-click="cancel_add_upsell"
-                          phx-target={@myself}
-                          class="text-xs text-on-surface-variant hover:text-on-surface"
-                        >
-                          Cancel
-                        </button>
-                      <% else %>
-                        <div class="flex flex-wrap gap-2">
-                          <%= for candidate <- available_items do %>
-                            <button
-                              phx-click="assign_upsell"
-                              phx-value-item_id={item.id}
-                              phx-value-upsell_item_id={candidate.id}
-                              phx-target={@myself}
-                              type="button"
-                              class="flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-dashed border-on-surface-variant/30 text-xs text-on-surface-variant hover:border-primary hover:text-primary transition-colors"
-                            >
-                              <span class="material-symbols-outlined" style="font-size: 14px;">
-                                add
-                              </span>
-                              {candidate.name}
-                            </button>
-                          <% end %>
-                          <button
-                            type="button"
-                            phx-click="cancel_add_upsell"
-                            phx-target={@myself}
-                            class="flex items-center gap-1 px-3 py-1.5 rounded-lg text-xs text-on-surface-variant hover:text-on-surface transition-colors"
-                          >
-                            <span class="material-symbols-outlined" style="font-size: 14px;">
-                              close
-                            </span>
-                            Cancel
-                          </button>
-                        </div>
-                      <% end %>
-                    <% end %>
-
-                    <%= if Enum.empty?(item.upsell_links || []) and @assigning_upsell_to_item_id != item.id do %>
-                      <p class="text-xs text-on-surface-variant italic">
-                        No upsells yet. Add items to suggest when this is in the basket.
-                      </p>
-                    <% end %>
+                    <p class="text-xs text-on-surface-variant">
+                      When enabled, this item may appear as a suggestion in other customers' baskets.
+                    </p>
+                    <label class="flex items-center gap-3 cursor-pointer">
+                      <input
+                        type="checkbox"
+                        phx-click="toggle_upsell"
+                        phx-value-id={item.id}
+                        phx-target={@myself}
+                        checked={item.is_upsell}
+                        class="rounded"
+                      />
+                      <span class="text-sm font-semibold text-on-surface">
+                        Show as upsell suggestion
+                      </span>
+                    </label>
                   </div>
 
                   <div class="border-t border-surface-container-low pt-4 space-y-3">
@@ -1116,9 +990,9 @@ defmodule SupervisedSlicesWeb.AdminLive.MenuEditorComponent do
                             {length(item.modifier_groups)} MODS
                           </span>
                         <% end %>
-                        <%= if not Enum.empty?(item.upsell_links || []) do %>
+                        <%= if item.is_upsell do %>
                           <span class="bg-surface-container-highest text-[9px] font-black uppercase tracking-widest px-2 py-0.5 rounded text-on-surface-variant">
-                            {length(item.upsell_links)} UPSELLS
+                            UPSELL
                           </span>
                         <% end %>
                       </div>
@@ -1230,7 +1104,7 @@ defmodule SupervisedSlicesWeb.AdminLive.MenuEditorComponent do
   defp load_categories(scope) do
     Category.active!(
       scope: scope,
-      load: [menu_items: [modifier_groups: [:modifiers], sizes: [], upsell_links: [:upsell_item]]]
+      load: [menu_items: [modifier_groups: [:modifiers], sizes: []]]
     )
   end
 

@@ -14,6 +14,5 @@ defmodule SupervisedSlices.Menu do
     resource SupervisedSlices.Menu.MenuItemModifierGroup
     resource SupervisedSlices.Menu.MenuItemModifier
     resource SupervisedSlices.Menu.MenuItemModifierGroupLink
-    resource SupervisedSlices.Menu.MenuItemUpsell
   end
 end
