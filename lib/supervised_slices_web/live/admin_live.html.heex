@@ -35,6 +35,7 @@
       </.link>
 
       <.link
+        :if={@org.plan != :basic}
         navigate={~p"/kitchen/#{@org.slug}/history"}
         class={[
           "transition-all duration-300 pb-1",
@@ -58,7 +59,7 @@
             )
           ]}
         >
-          Editor
+          Menu
         </.link>
 
         <.link

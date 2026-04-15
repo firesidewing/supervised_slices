@@ -404,6 +404,42 @@ defmodule SupervisedSlicesWeb.AdminLive.MenuEditorComponent do
         </button>
       </div>
 
+      <form
+        :if={@creating_category}
+        phx-submit="create_category"
+        phx-target={@myself}
+        class="flex items-center gap-4 bg-surface-container-low p-4 rounded-md"
+      >
+        <input
+          type="text"
+          name="category[name]"
+          required
+          autofocus
+          placeholder="e.g. Starters"
+          class="flex-1 text-lg font-black bg-surface-container-highest border-0 rounded px-4 py-2 focus:ring-1 focus:ring-primary outline-none"
+        />
+        <input
+          type="number"
+          name="category[sort_order]"
+          placeholder="Order"
+          class="w-20 bg-surface-container-highest border-0 rounded px-3 py-2 text-sm focus:ring-1 focus:ring-primary outline-none"
+        />
+        <button
+          type="submit"
+          class="bg-primary text-white px-5 py-2 rounded-md text-sm font-bold uppercase tracking-wide"
+        >
+          Save
+        </button>
+        <button
+          type="button"
+          phx-click="cancel_add_category"
+          phx-target={@myself}
+          class="text-on-surface-variant hover:text-on-surface px-3 py-2"
+        >
+          <span class="material-symbols-outlined text-xl">close</span>
+        </button>
+      </form>
+
       <div class="bg-surface-container-low rounded-md p-6 space-y-6">
         <div class="flex items-center justify-between">
           <p class="text-[0.65rem] font-black text-on-surface-variant uppercase tracking-[0.2em]">
