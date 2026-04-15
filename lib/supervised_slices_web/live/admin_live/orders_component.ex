@@ -22,13 +22,14 @@ defmodule SupervisedSlicesWeb.AdminLive.OrdersComponent do
   def update(assigns, socket) do
     socket =
       socket
-      |> assign(:id, assigns.id)
-      |> assign(:ticket_count, assigns.ticket_count)
-      |> assign(:active_carts_count, assigns.active_carts_count)
-      |> assign(:visitor_count, assigns.visitor_count)
-      |> assign(:ash_scope, assigns.ash_scope)
-      |> assign(:org, assigns.org)
-      |> stream(:orders, assigns.orders, reset: true)
+      |> assign(Map.drop(assigns, [:orders, :action, :flash]))
+
+    socket =
+      if orders = assigns[:orders] do
+        stream(socket, :orders, orders, reset: true)
+      else
+        socket
+      end
 
     {:ok, socket}
   end
@@ -75,9 +76,12 @@ defmodule SupervisedSlicesWeb.AdminLive.OrdersComponent do
           <div
             id={dom_id}
             class={[
-              "bg-surface-container-low rounded-md flex flex-col shadow-sm border-t-4 overflow-hidden transition-all duration-300",
-              status_border_class(order.status)
+              "bg-surface-container-low rounded-md flex flex-col shadow-sm border-t-4 overflow-hidden transition-all duration-500",
+              status_border_class(order.status),
+              if(order.status == :pending, do: "ring-primary ring-offset-2"),
+              urgency_ring_class(order)
             ]}
+            style={urgency_style(order)}
           >
             <%!-- Header --%>
             <div class="p-5 flex justify-between items-start">
@@ -93,14 +97,15 @@ defmodule SupervisedSlicesWeb.AdminLive.OrdersComponent do
                 </div>
               </div>
               <span class={[
-                "text-[0.6rem] font-black px-2 py-1 rounded tracking-[0.15em] uppercase flex items-center gap-1.5",
-                status_badge_class(order.status)
+                "text-[0.6rem] font-black px-3 py-1.5 rounded-sm tracking-[0.2em] uppercase flex items-center gap-2 transition-all duration-500",
+                status_badge_class(order.status),
+                if(order.status == :pending, do: "scale-110 shadow-md animate-pulse")
               ]}>
                 <%= if order.status == :pending do %>
-                  <span class="relative flex h-2 w-2">
+                  <span class="relative flex h-2.5 w-2.5">
                     <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-white opacity-75">
                     </span>
-                    <span class="relative inline-flex rounded-full h-2 w-2 bg-white"></span>
+                    <span class="relative inline-flex rounded-full h-2.5 w-2.5 bg-white"></span>
                   </span>
                 <% end %>
                 {status_label(order.status)}
@@ -206,6 +211,40 @@ defmodule SupervisedSlicesWeb.AdminLive.OrdersComponent do
       </div>
     </div>
     """
+  end
+
+  defp urgency_level(order) do
+    if order.status == :pending do
+      # Reach max urgency at 10 minutes
+      seconds = DateTime.diff(DateTime.utc_now(), order.inserted_at, :second)
+      min(seconds, 600) / 600
+    else
+      0
+    end
+  end
+
+  defp urgency_ring_class(order) do
+    if order.status == :pending do
+      level = urgency_level(order)
+
+      cond do
+        level > 0.8 -> "ring-4"
+        level > 0.5 -> "ring-2"
+        level > 0.2 -> "ring-1"
+        true -> ""
+      end
+    else
+      ""
+    end
+  end
+
+  defp urgency_style(order) do
+    if order.status == :pending do
+      level = urgency_level(order)
+      "box-shadow: 0 0 #{level * 20}px rgba(140, 22, 26, #{0.1 + level * 0.2});"
+    else
+      nil
+    end
   end
 
   defp next_status(:pending), do: :confirmed

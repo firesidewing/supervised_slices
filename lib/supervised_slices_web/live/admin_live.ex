@@ -34,6 +34,7 @@ defmodule SupervisedSlicesWeb.AdminLive do
         PubSubNotifier.subscribe_to_org_orders(org.id)
         PubSubNotifier.subscribe_to_org_carts(org.id)
         OrgPresence.subscribe(org.id)
+        :timer.send_interval(10000, self(), :tick)
       end
 
       {:ok,
@@ -134,6 +135,11 @@ defmodule SupervisedSlicesWeb.AdminLive do
 
   def handle_info({:close_phone_order}, socket) do
     {:noreply, assign(socket, :show_phone_order, false)}
+  end
+
+  def handle_info(:tick, socket) do
+    send_update(OrdersComponent, id: "orders", tick: DateTime.utc_now())
+    {:noreply, socket}
   end
 
   def handle_event("toggle_phone_order", _params, socket) do
