@@ -40,12 +40,14 @@ defmodule SupervisedSlicesWeb.AdminLive.OrdersComponent do
     new_status = next_status(order.status)
     Order.update_status!(order, %{status: new_status}, scope: scope)
     distinct_id = scope.current_user && scope.current_user.id
+
     SupervisedSlices.Analytics.capture("order_status_advanced", distinct_id, %{
       order_id: order_id,
       from_status: order.status,
       to_status: new_status,
       "$groups": %{organization: socket.assigns.org.id}
     })
+
     {:noreply, socket}
   end
 

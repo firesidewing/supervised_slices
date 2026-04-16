@@ -29,7 +29,16 @@ defmodule SupervisedSlices.Menu.MenuItem do
     end
 
     update :update do
-      accept [:name, :description, :price, :available, :is_upsell, :sort_order, :image_url, :category_id]
+      accept [
+        :name,
+        :description,
+        :price,
+        :available,
+        :is_upsell,
+        :sort_order,
+        :image_url,
+        :category_id
+      ]
     end
 
     read :available do

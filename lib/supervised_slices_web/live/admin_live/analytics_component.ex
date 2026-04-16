@@ -86,11 +86,15 @@ defmodule SupervisedSlicesWeb.AdminLive.AnalyticsComponent do
         <%!-- Stats row --%>
         <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-10">
           <div class="bg-surface-container-low rounded-2xl p-6">
-            <p class="font-body text-xs uppercase tracking-widest text-on-surface-variant mb-1">Orders this month</p>
+            <p class="font-body text-xs uppercase tracking-widest text-on-surface-variant mb-1">
+              Orders this month
+            </p>
             <p class="font-headline text-4xl font-bold text-on-surface">{metrics.orders_total}</p>
           </div>
           <div class="bg-surface-container-low rounded-2xl p-6">
-            <p class="font-body text-xs uppercase tracking-widest text-on-surface-variant mb-1">Avg orders / day</p>
+            <p class="font-body text-xs uppercase tracking-widest text-on-surface-variant mb-1">
+              Avg orders / day
+            </p>
             <p class="font-headline text-4xl font-bold text-on-surface">
               {if length(metrics.orders_by_day) > 0,
                 do: Float.round(metrics.orders_total / length(metrics.orders_by_day), 1),
@@ -98,17 +102,29 @@ defmodule SupervisedSlicesWeb.AdminLive.AnalyticsComponent do
             </p>
           </div>
           <div class="bg-surface-container-low rounded-2xl p-6">
-            <p class="font-body text-xs uppercase tracking-widest text-on-surface-variant mb-1">Active days</p>
-            <p class="font-headline text-4xl font-bold text-on-surface">{length(metrics.orders_by_day)}</p>
+            <p class="font-body text-xs uppercase tracking-widest text-on-surface-variant mb-1">
+              Active days
+            </p>
+            <p class="font-headline text-4xl font-bold text-on-surface">
+              {length(metrics.orders_by_day)}
+            </p>
           </div>
         </div>
 
         <%!-- Orders by day chart --%>
-        <div :if={length(metrics.orders_by_day) > 0} class="bg-surface-container-low rounded-2xl p-6 mb-10">
-          <p class="font-body text-xs uppercase tracking-widest text-on-surface-variant mb-6">Orders per day (last 30 days)</p>
+        <div
+          :if={length(metrics.orders_by_day) > 0}
+          class="bg-surface-container-low rounded-2xl p-6 mb-10"
+        >
+          <p class="font-body text-xs uppercase tracking-widest text-on-surface-variant mb-6">
+            Orders per day (last 30 days)
+          </p>
           <% max_orders = metrics.orders_by_day |> Enum.map(&elem(&1, 1)) |> Enum.max(fn -> 1 end) %>
           <div class="flex items-end gap-1 h-32">
-            <div :for={{date, count} <- metrics.orders_by_day} class="flex-1 flex flex-col items-center group relative">
+            <div
+              :for={{date, count} <- metrics.orders_by_day}
+              class="flex-1 flex flex-col items-center group relative"
+            >
               <div
                 class="w-full bg-primary rounded-t-sm hover:bg-primary-container cursor-default transition-colors"
                 style={"height: #{max(round(count / max_orders * 100), 4)}%"}
@@ -127,18 +143,30 @@ defmodule SupervisedSlicesWeb.AdminLive.AnalyticsComponent do
           </div>
         </div>
 
-        <div :if={length(metrics.orders_by_day) == 0} class="bg-surface-container-low rounded-2xl p-6 mb-10">
-          <p class="font-body text-xs uppercase tracking-widest text-on-surface-variant mb-2">Orders per day (last 30 days)</p>
+        <div
+          :if={length(metrics.orders_by_day) == 0}
+          class="bg-surface-container-low rounded-2xl p-6 mb-10"
+        >
+          <p class="font-body text-xs uppercase tracking-widest text-on-surface-variant mb-2">
+            Orders per day (last 30 days)
+          </p>
           <p class="font-body text-sm text-on-surface-variant">No orders in this period yet.</p>
         </div>
 
         <%!-- Top items --%>
         <div class="bg-surface-container-low rounded-2xl p-6">
-          <p class="font-body text-xs uppercase tracking-widest text-on-surface-variant mb-6">Most ordered items this month</p>
+          <p class="font-body text-xs uppercase tracking-widest text-on-surface-variant mb-6">
+            Most ordered items this month
+          </p>
           <div :if={length(metrics.top_items) > 0} class="space-y-4">
             <% item_max = metrics.top_items |> Enum.map(&elem(&1, 1)) |> List.first() |> max(1) %>
-            <div :for={{{name, count}, idx} <- Enum.with_index(metrics.top_items)} class="flex items-center gap-4">
-              <span class="font-body text-xs text-on-surface-variant w-4 text-right shrink-0">{idx + 1}</span>
+            <div
+              :for={{{name, count}, idx} <- Enum.with_index(metrics.top_items)}
+              class="flex items-center gap-4"
+            >
+              <span class="font-body text-xs text-on-surface-variant w-4 text-right shrink-0">
+                {idx + 1}
+              </span>
               <div class="flex-1">
                 <div class="flex justify-between mb-1">
                   <span class="font-body text-sm text-on-surface">{name}</span>

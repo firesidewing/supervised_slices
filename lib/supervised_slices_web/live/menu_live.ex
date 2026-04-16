@@ -67,7 +67,10 @@ defmodule SupervisedSlicesWeb.MenuLive do
      |> assign(:selected_item_id, id)
      |> assign(:selected_item_has_image, quick_item != nil && !is_nil(quick_item.image_url))
      |> assign(:quick_item, quick_item)
-     |> push_event("ph:capture", %{event: "item_viewed", props: %{item_id: id, item_name: item_name, org_id: org.id}})
+     |> push_event("ph:capture", %{
+       event: "item_viewed",
+       props: %{item_id: id, item_name: item_name, org_id: org.id}
+     })
      |> assign_async(:selected_item, fn ->
        item =
          MenuItem.get!(id,
@@ -110,7 +113,10 @@ defmodule SupervisedSlicesWeb.MenuLive do
 
     socket =
       if opening do
-        push_event(socket, "ph:capture", %{event: "basket_opened", props: %{item_count: socket.assigns.cart_count, org_id: socket.assigns.org.id}})
+        push_event(socket, "ph:capture", %{
+          event: "basket_opened",
+          props: %{item_count: socket.assigns.cart_count, org_id: socket.assigns.org.id}
+        })
       else
         socket
       end
@@ -129,10 +135,14 @@ defmodule SupervisedSlicesWeb.MenuLive do
     if cart do
       loaded_cart = Cart.update_delivery_type!(cart, %{delivery_type: type}, scope: scope)
       PubSubNotifier.broadcast_cart_update(loaded_cart)
+
       {:noreply,
        socket
        |> assign(cart: loaded_cart)
-       |> push_event("ph:capture", %{event: "delivery_type_changed", props: %{delivery_type: type, org_id: org.id}})}
+       |> push_event("ph:capture", %{
+         event: "delivery_type_changed",
+         props: %{delivery_type: type, org_id: org.id}
+       })}
     else
       {:noreply, socket}
     end
@@ -144,7 +154,14 @@ defmodule SupervisedSlicesWeb.MenuLive do
     {:noreply,
      socket
      |> assign(:checkout_step, :confirm)
-     |> push_event("ph:capture", %{event: "checkout_started", props: %{item_count: socket.assigns.cart_count, org_id: org.id, delivery_type: cart && cart.delivery_type}})}
+     |> push_event("ph:capture", %{
+       event: "checkout_started",
+       props: %{
+         item_count: socket.assigns.cart_count,
+         org_id: org.id,
+         delivery_type: cart && cart.delivery_type
+       }
+     })}
   end
 
   def handle_event("place_order", _params, %{assigns: %{store_open: false}} = socket) do
@@ -292,7 +309,10 @@ defmodule SupervisedSlicesWeb.MenuLive do
     {:noreply,
      socket
      |> assign(cart: loaded_cart, cart_items_map: cart_items_map, cart_count: cart_count)
-     |> push_event("ph:capture", %{event: "item_added_to_cart", props: %{item_id: item_id, item_name: item_name, org_id: org.id}})
+     |> push_event("ph:capture", %{
+       event: "item_added_to_cart",
+       props: %{item_id: item_id, item_name: item_name, org_id: org.id}
+     })
      |> push_patch(to: ~p"/menu/#{org.slug}")}
   end
 
@@ -627,7 +647,10 @@ defmodule SupervisedSlicesWeb.MenuLive do
       has_image={@selected_item_has_image}
     />
     <.live_component
-      :if={@live_action == :show && ((@selected_item.ok? && @selected_item.result != nil) || not is_nil(@quick_item))}
+      :if={
+        @live_action == :show &&
+          ((@selected_item.ok? && @selected_item.result != nil) || not is_nil(@quick_item))
+      }
       module={SupervisedSlicesWeb.MenuLive.ItemComponent}
       id="item"
       selected_item={@selected_item.result || @quick_item}
@@ -780,14 +803,15 @@ defmodule SupervisedSlicesWeb.MenuLive do
           style={"view-transition-name: item-img-#{@id};"}
         />
 
-        <div class={["px-8 space-y-12 max-w-3xl mx-auto relative z-10", @has_image && "mt-[-100px]", !@has_image && "mt-12"]}>
+        <div class={[
+          "px-8 space-y-12 max-w-3xl mx-auto relative z-10",
+          @has_image && "mt-[-100px]",
+          !@has_image && "mt-12"
+        ]}>
           <%!-- Name & description --%>
           <div class="space-y-3 pt-4">
             <div class="h-12 w-3/4 bg-surface-container animate-pulse rounded" />
-            <div
-              class="h-4 w-full bg-surface-container-low animate-pulse rounded"
-              style={"view-transition-name: item-desc-#{@id};"}
-            />
+            <div class="h-4 w-full bg-surface-container-low animate-pulse rounded" />
             <div class="h-4 w-2/3 bg-surface-container-low animate-pulse rounded" />
           </div>
 

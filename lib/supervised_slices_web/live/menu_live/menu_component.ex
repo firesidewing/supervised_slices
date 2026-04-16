@@ -82,13 +82,16 @@ defmodule SupervisedSlicesWeb.MenuLive.MenuComponent do
       </div>
 
       <div class="p-4 flex flex-col grow">
-        <h3 class={["font-headline font-bold leading-tight mb-1 text-on-surface group-hover:text-primary transition-colors", @item.image_url && "text-lg", !@item.image_url && "text-xl"]}>
+        <h3 class={[
+          "font-headline font-bold leading-tight mb-1 text-on-surface group-hover:text-primary transition-colors",
+          @item.image_url && "text-lg",
+          !@item.image_url && "text-xl"
+        ]}>
           {@item.name}
         </h3>
         <p
           :if={@item.description}
           class="font-body text-xs text-on-surface-variant mb-4 grow line-clamp-2 leading-relaxed opacity-80"
-          style={"view-transition-name: item-desc-#{@item.id};"}
         >
           {@item.description}
         </p>
@@ -121,13 +124,16 @@ defmodule SupervisedSlicesWeb.MenuLive.MenuComponent do
       </div>
 
       <div class="flex-1 min-w-0 py-1">
-        <h3 class={["font-headline font-bold truncate text-on-surface group-hover:text-primary transition-colors", @item.image_url && "text-base", !@item.image_url && "text-lg"]}>
+        <h3 class={[
+          "font-headline font-bold truncate text-on-surface group-hover:text-primary transition-colors",
+          @item.image_url && "text-base",
+          !@item.image_url && "text-lg"
+        ]}>
           {@item.name}
         </h3>
         <p
           :if={@item.description}
           class="font-body text-[0.7rem] text-on-surface-variant truncate opacity-80"
-          style={"view-transition-name: item-desc-#{@item.id};"}
         >
           {@item.description}
         </p>

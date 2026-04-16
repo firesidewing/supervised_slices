@@ -23,8 +23,13 @@ defmodule SupervisedSlices.Repo.Migrations.DropItemUpsellsAddIsUpsell do
     create table(:menu_item_upsells, primary_key: false) do
       add :id, :uuid, null: false, default: fragment("gen_random_uuid()"), primary_key: true
       add :organization_id, :uuid, null: false
-      add :source_menu_item_id, references(:menu_items, type: :uuid, on_delete: :delete_all), null: false
-      add :upsell_menu_item_id, references(:menu_items, type: :uuid, on_delete: :delete_all), null: false
+
+      add :source_menu_item_id, references(:menu_items, type: :uuid, on_delete: :delete_all),
+        null: false
+
+      add :upsell_menu_item_id, references(:menu_items, type: :uuid, on_delete: :delete_all),
+        null: false
+
       add :inserted_at, :utc_datetime_usec, null: false, default: fragment("now()")
     end
   end

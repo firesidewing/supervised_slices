@@ -204,7 +204,12 @@ defmodule SupervisedSlicesWeb.BillingLive.Setup do
              success_url,
              cancel_url
            ) do
-      socket = push_event(socket, "ph:capture", %{event: "billing_plan_selected", props: %{plan: plan, org_id: org.id}})
+      socket =
+        push_event(socket, "ph:capture", %{
+          event: "billing_plan_selected",
+          props: %{plan: plan, org_id: org.id}
+        })
+
       {:noreply, redirect(socket, external: session.url)}
     else
       {:error, reason} ->
