@@ -59,7 +59,7 @@ defmodule SupervisedSlicesWeb.AdminLive do
           live_action in [:menu, :settings] ->
         {:noreply, Phoenix.LiveView.push_navigate(socket, to: ~p"/kitchen/#{org.slug}")}
 
-      org.plan == :basic && live_action == :history ->
+      org.plan == :basic && live_action in [:history, :analytics] ->
         {:noreply,
          socket
          |> put_flash(:error, "Order History & Analytics is a Pro feature.")

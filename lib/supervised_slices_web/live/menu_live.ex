@@ -204,6 +204,18 @@ defmodule SupervisedSlicesWeb.MenuLive do
       PubSubNotifier.broadcast_new_order(order)
       Emails.send_order_confirmation(order)
 
+      distinct_id =
+        case socket.assigns[:current_user] do
+          %{id: uid} -> uid
+          _ -> scope.guest_session_id
+        end
+
+      SupervisedSlices.Analytics.capture("order_placed", distinct_id, %{
+        order_id: order.id,
+        delivery_type: cart.delivery_type,
+        "$groups": %{organization: org.id}
+      })
+
       {:noreply,
        socket
        |> assign(
@@ -249,9 +261,18 @@ defmodule SupervisedSlicesWeb.MenuLive do
     PubSubNotifier.broadcast_cart_update(loaded_cart)
     {cart_items_map, cart_count} = build_cart_state(loaded_cart)
 
+    item_name =
+      loaded_cart.cart_items
+      |> Enum.find(&(to_string(&1.menu_item_id) == to_string(item_id)))
+      |> case do
+        %{menu_item: %{name: name}} -> name
+        _ -> nil
+      end
+
     {:noreply,
      socket
      |> assign(cart: loaded_cart, cart_items_map: cart_items_map, cart_count: cart_count)
+     |> push_event("ph:capture", %{event: "item_added_to_cart", props: %{item_id: item_id, item_name: item_name, org_id: org.id}})
      |> push_patch(to: ~p"/menu/#{org.slug}")}
   end
 

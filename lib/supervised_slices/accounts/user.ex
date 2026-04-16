@@ -196,6 +196,11 @@ defmodule SupervisedSlices.Accounts.User do
           })
           |> Ash.create!(authorize?: false)
 
+          SupervisedSlices.Analytics.capture("user_signed_up", user.id, %{
+            email: to_string(user.email),
+            "$groups": %{organization: org.id}
+          })
+
           {:ok, user}
         end)
       end

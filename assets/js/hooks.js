@@ -229,6 +229,28 @@ export const KitchenAlert = {
 }
 
 /**
+ * PostHogIdentify — syncs the current user/org identity to PostHog on mount
+ * and after every LiveView patch (org navigations, login/logout).
+ */
+export const PostHogIdentify = {
+  mounted() { this._identify() },
+  updated() { this._identify() },
+  _identify() {
+    if (!window.posthog) return
+    const { userId, userEmail, superadmin, orgId, orgName, orgPlan } = this.el.dataset
+    if (superadmin === "true") return
+    if (userId) {
+      posthog.identify(userId, { email: userEmail })
+    } else {
+      posthog.reset()
+    }
+    if (orgId) {
+      posthog.group("organization", orgId, { name: orgName, plan: orgPlan })
+    }
+  }
+}
+
+/**
  * GeoFenceMap — interactive Leaflet map for setting delivery area.
  */
 export const GeoFenceMap = {

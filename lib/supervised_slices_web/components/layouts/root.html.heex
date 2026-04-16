@@ -33,6 +33,8 @@
       rel="stylesheet"
     />
     <link phx-track-static rel="stylesheet" href={~p"/assets/css/app.css"} />
+    <meta name="ph-key" content={Application.get_env(:supervised_slices, :posthog, [])[:api_key] || ""} />
+    <meta name="ph-host" content={Application.get_env(:supervised_slices, :posthog, [])[:host] || "https://us.i.posthog.com"} />
     <link
       rel="stylesheet"
       href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
@@ -52,10 +54,36 @@
         --color-secondary: <%= assigns.org.secondary_color || "#45645e" %>;
       }
     </style>
+    <script>
+      !function(t,e){var o,n,p,r;e.__SV||(window.posthog=e,e._i=[],e.init=function(i,s,a){function g(t,e){var o=e.split(".");2==o.length&&(t=t[o[0]],e=o[1]),t[e]=function(){t.push([e].concat(Array.prototype.slice.call(arguments,0)))}}(p=t.createElement("script")).type="text/javascript",p.crossOrigin="anonymous",p.async=!0,p.src=s.api_host.replace(".i.posthog.com","-assets.i.posthog.com")+"/static/array.js",(r=t.getElementsByTagName("script")[0]).parentNode.insertBefore(p,r);var u=e;for(void 0!==a?u=e[a]=[]:a="posthog",u.people=u.people||[],u.toString=function(t){var e="posthog";return"posthog"!==a&&(e+="."+a),t||(e+=" (stub)"),e},u.people.toString=function(){return u.toString(1)+" (stub)"},o="init capture register register_once register_for_session unregister unregister_for_session getFeatureFlag getFeatureFlagPayload isFeatureFlagEnabled reloadFeatureFlags updateEarlyAccessFeatureEnrollment getEarlyAccessFeatures on onFeatureFlags onSessionId getSurveys getActiveMatchingSurveys renderSurvey canRenderSurvey getNextSurveyStep identify setPersonProperties group resetGroups setPersonPropertiesForFlags resetPersonPropertiesForFlags setGroupPropertiesForFlags resetGroupPropertiesForFlags reset isIdentified createPersonProfile opt_out_capturing has_opted_out_capturing opt_in_capturing has_opted_in_capturing get_distinct_id get_session_id get_session_replay_url alias set_config startSessionRecording stopSessionRecording sessionRecordingStarted captureException loadToolbar".split(" "),i=0;i<o.length;i++)g(u,o[i]);e._i.push([i,s,a])},e.__SV=1)}(document,window.posthog||[]);
+      (function() {
+        var key = document.querySelector("meta[name='ph-key']").getAttribute("content");
+        var host = document.querySelector("meta[name='ph-host']").getAttribute("content");
+        if (key) {
+          posthog.init(key, {
+            api_host: host,
+            person_profiles: "identified_only",
+            capture_pageview: false
+          });
+        }
+      })();
+    </script>
     <script defer phx-track-static type="text/javascript" src={~p"/assets/js/app.js"}>
     </script>
   </head>
   <body class="font-body bg-background text-on-surface min-h-dvh">
+    <div
+      id="ph-identity"
+      phx-hook="PostHogIdentify"
+      class="hidden"
+      data-user-id={assigns[:current_user] && assigns[:current_user].id}
+      data-user-email={assigns[:current_user] && assigns[:current_user].email}
+      data-superadmin={assigns[:current_user] && to_string(assigns[:current_user].superadmin)}
+      data-org-id={assigns[:org] && assigns[:org].id}
+      data-org-name={assigns[:org] && assigns[:org].name}
+      data-org-plan={assigns[:org] && to_string(assigns[:org].plan)}
+    >
+    </div>
     {@inner_content}
   </body>
 </html>
