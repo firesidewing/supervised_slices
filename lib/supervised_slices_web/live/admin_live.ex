@@ -213,7 +213,7 @@ defmodule SupervisedSlicesWeb.AdminLive do
       Repo.one(
         from o in "orders",
           where:
-            o.organization_id == ^org_id and
+            o.organization_id == type(^org_id, Ecto.UUID) and
               o.status == "completed" and
               o.updated_at >= ^one_hour_ago,
           select: avg(fragment("EXTRACT(EPOCH FROM (? - ?))", o.updated_at, o.inserted_at))
@@ -223,7 +223,7 @@ defmodule SupervisedSlicesWeb.AdminLive do
       Repo.one(
         from o in "orders",
           where:
-            o.organization_id == ^org_id and
+            o.organization_id == type(^org_id, Ecto.UUID) and
               o.status == "completed" and
               o.updated_at >= ^two_hours_ago and
               o.updated_at < ^one_hour_ago,

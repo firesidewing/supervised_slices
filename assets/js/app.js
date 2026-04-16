@@ -18,84 +18,108 @@
 // To load it, simply add a second `<link>` to your `root.html.heex` file.
 
 // Include phoenix_html to handle method=PUT/DELETE in forms and buttons.
-import "phoenix_html"
+import "phoenix_html";
 // Establish Phoenix Socket and LiveView configuration.
-import {Socket} from "phoenix"
-import {LiveSocket} from "phoenix_live_view"
-import {hooks as colocatedHooks} from "phoenix-colocated/supervised_slices"
-import {TourGuide, Countdown, OrderNotifications, GeoFenceMap, KitchenAlert, PostHogIdentify} from "./hooks"
-import topbar from "../vendor/topbar"
+import { Socket } from "phoenix";
+import { LiveSocket } from "phoenix_live_view";
+import { hooks as colocatedHooks } from "phoenix-colocated/supervised_slices";
+import {
+    TourGuide,
+    Countdown,
+    OrderNotifications,
+    GeoFenceMap,
+    KitchenAlert,
+    PostHogIdentify,
+} from "./hooks";
+import topbar from "../vendor/topbar";
 
 // Track clicks on [phx-view-transition] links so onDocumentPatch can decide
 // whether to wrap the DOM update in startViewTransition. We also track whether
 // the navigation is going *to* an item detail (forward) vs back to the menu,
 // so we only reset scroll on forward navigations.
-let viewTransitionPending = false
-let scrollTopPending = false
+let viewTransitionPending = false;
+let scrollTopPending = false;
 
-document.addEventListener("click", (e) => {
-  const link = e.target.closest("[phx-view-transition]")
-  if (link) {
-    viewTransitionPending = true
-    scrollTopPending = (link.getAttribute("href") || "").includes("/item/")
-  }
-}, true)
+document.addEventListener(
+    "click",
+    (e) => {
+        const link = e.target.closest("[phx-view-transition]");
+        if (link) {
+            viewTransitionPending = true;
+            scrollTopPending = (link.getAttribute("href") || "").includes(
+                "/item/",
+            );
+        }
+    },
+    true,
+);
 
-const csrfToken = document.querySelector("meta[name='csrf-token']").getAttribute("content")
+const csrfToken = document
+    .querySelector("meta[name='csrf-token']")
+    .getAttribute("content");
 const liveSocket = new LiveSocket("/live", Socket, {
-  longPollFallbackMs: 2500,
-  params: {_csrf_token: csrfToken},
-  hooks: {...colocatedHooks, TourGuide, Countdown, OrderNotifications, GeoFenceMap, KitchenAlert, PostHogIdentify},
-  dom: {
-    onDocumentPatch(start) {
-      const doTransition = viewTransitionPending
-      const doScroll = scrollTopPending
-      viewTransitionPending = false
-      scrollTopPending = false
+    longPollFallbackMs: 2500,
+    params: { _csrf_token: csrfToken },
+    hooks: {
+        ...colocatedHooks,
+        TourGuide,
+        Countdown,
+        OrderNotifications,
+        GeoFenceMap,
+        KitchenAlert,
+        PostHogIdentify,
+    },
+    dom: {
+        onDocumentPatch(start) {
+            const doTransition = viewTransitionPending;
+            const doScroll = false;
+            viewTransitionPending = false;
+            scrollTopPending = false;
 
-      if (doTransition && document.startViewTransition) {
-        document.startViewTransition(() => {
-          start()
-          if (doScroll) window.scrollTo({ top: 0, behavior: "instant" })
-        })
-      } else {
-        start()
-        if (doScroll) window.scrollTo({ top: 0, behavior: "instant" })
-      }
-    }
-  }
-})
+            if (doTransition && document.startViewTransition) {
+                document.startViewTransition(() => {
+                    start();
+                    if (doScroll)
+                        window.scrollTo({ top: 0, behavior: "instant" });
+                });
+            } else {
+                start();
+                if (doScroll) window.scrollTo({ top: 0, behavior: "instant" });
+            }
+        },
+    },
+});
 
 // PostHog: track LiveView navigations as pageviews and bridge server-pushed events
 window.addEventListener("phx:page-loading-stop", () => {
-  if (window.posthog) posthog.capture("$pageview")
-})
+    if (window.posthog) posthog.capture("$pageview");
+});
 window.addEventListener("phx:ph:capture", ({ detail }) => {
-  if (window.posthog) posthog.capture(detail.event, detail.props || {})
-})
+    if (window.posthog) posthog.capture(detail.event, detail.props || {});
+});
 
 // Show progress bar on live navigation and form submits
-topbar.config({barColors: {0: "#29d"}, shadowColor: "rgba(0, 0, 0, .3)"})
-window.addEventListener("phx:page-loading-start", _info => topbar.show(300))
-window.addEventListener("phx:page-loading-stop", _info => topbar.hide())
+topbar.config({ barColors: { 0: "#29d" }, shadowColor: "rgba(0, 0, 0, .3)" });
+window.addEventListener("phx:page-loading-start", (_info) => topbar.show(300));
+window.addEventListener("phx:page-loading-stop", (_info) => topbar.hide());
 
 // connect if there are any LiveViews on the page
-liveSocket.connect()
+liveSocket.connect();
 
 // Register service worker for more robust notifications on mobile
 if ("serviceWorker" in navigator) {
-  window.addEventListener("load", () => {
-    navigator.serviceWorker.register("/sw.js").catch(error => {
-      console.error("Service Worker registration failed:", error)
-    })
-  })
+    window.addEventListener("load", () => {
+        navigator.serviceWorker.register("/sw.js").catch((error) => {
+            console.error("Service Worker registration failed:", error);
+        });
+    });
 }
 
 // expose liveSocket on window for web console debug logs and latency simulation:
 // >> liveSocket.enableDebug()
 // >> liveSocket.enableLatencySim(1000)  // enabled for duration of browser session
 // >> liveSocket.disableLatencySim()
-window.liveSocket = liveSocket
+window.liveSocket = liveSocket;
 
 // The lines below enable quality of life phoenix_live_reload
 // development features:
@@ -104,31 +128,37 @@ window.liveSocket = liveSocket
 //     2. click on elements to jump to their definitions in your code editor
 //
 if (process.env.NODE_ENV === "development") {
-  window.addEventListener("phx:live_reload:attached", ({detail: reloader}) => {
-    // Enable server log streaming to client.
-    // Disable with reloader.disableServerLogs()
-    reloader.enableServerLogs()
+    window.addEventListener(
+        "phx:live_reload:attached",
+        ({ detail: reloader }) => {
+            // Enable server log streaming to client.
+            // Disable with reloader.disableServerLogs()
+            reloader.enableServerLogs();
 
-    // Open configured PLUG_EDITOR at file:line of the clicked element's HEEx component
-    //
-    //   * click with "c" key pressed to open at caller location
-    //   * click with "d" key pressed to open at function component definition location
-    let keyDown
-    window.addEventListener("keydown", e => keyDown = e.key)
-    window.addEventListener("keyup", _e => keyDown = null)
-    window.addEventListener("click", e => {
-      if(keyDown === "c"){
-        e.preventDefault()
-        e.stopImmediatePropagation()
-        reloader.openEditorAtCaller(e.target)
-      } else if(keyDown === "d"){
-        e.preventDefault()
-        e.stopImmediatePropagation()
-        reloader.openEditorAtDef(e.target)
-      }
-    }, true)
+            // Open configured PLUG_EDITOR at file:line of the clicked element's HEEx component
+            //
+            //   * click with "c" key pressed to open at caller location
+            //   * click with "d" key pressed to open at function component definition location
+            let keyDown;
+            window.addEventListener("keydown", (e) => (keyDown = e.key));
+            window.addEventListener("keyup", (_e) => (keyDown = null));
+            window.addEventListener(
+                "click",
+                (e) => {
+                    if (keyDown === "c") {
+                        e.preventDefault();
+                        e.stopImmediatePropagation();
+                        reloader.openEditorAtCaller(e.target);
+                    } else if (keyDown === "d") {
+                        e.preventDefault();
+                        e.stopImmediatePropagation();
+                        reloader.openEditorAtDef(e.target);
+                    }
+                },
+                true,
+            );
 
-    window.liveReloader = reloader
-  })
+            window.liveReloader = reloader;
+        },
+    );
 }
-
