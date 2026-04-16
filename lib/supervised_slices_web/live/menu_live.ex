@@ -607,7 +607,10 @@ defmodule SupervisedSlicesWeb.MenuLive do
           alt={@org.name}
           class="h-8 max-w-[120px] object-contain"
         />
-        <h1 class="font-headline text-2xl font-black tracking-[-0.02em] text-on-surface leading-none">
+        <h1
+          class="font-headline text-2xl font-black tracking-[-0.02em] text-on-surface leading-none"
+          style="view-transition-name: org-name;"
+        >
           {@org.name}
         </h1>
       </div>
@@ -704,6 +707,7 @@ defmodule SupervisedSlicesWeb.MenuLive do
             "shadow-soft hover:scale-[1.03] hover:shadow-lg",
             "transition-all duration-300 active:scale-95 group"
           ]}
+          style="view-transition-name: basket;"
         >
           <div class="flex items-center gap-4">
             <div class="relative">
