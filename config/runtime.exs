@@ -20,6 +20,10 @@ if stripe_secret_key = System.get_env("STRIPE_SECRET_KEY") do
   config :stripity_stripe, api_key: stripe_secret_key
 end
 
+config :supervised_slices, :posthog,
+  api_key: System.get_env("POSTHOG_API_KEY"),
+  host: System.get_env("POSTHOG_HOST", "https://us.i.posthog.com")
+
 config :supervised_slices, :stripe,
   webhook_secret: System.get_env("STRIPE_WEBHOOK_SECRET", "whsec_placeholder"),
   price_id_basic: System.get_env("STRIPE_PRICE_ID_BASIC", "price_basic_placeholder"),

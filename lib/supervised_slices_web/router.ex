@@ -53,6 +53,7 @@ defmodule SupervisedSlicesWeb.Router do
       live "/kitchen/:org_slug/history", AdminLive, :history
       live "/kitchen/:org_slug/menu", AdminLive, :menu
       live "/kitchen/:org_slug/settings", AdminLive, :settings
+      live "/kitchen/:org_slug/analytics", AdminLive, :analytics
     end
   end
 

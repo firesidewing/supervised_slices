@@ -125,8 +125,18 @@ defmodule SupervisedSlicesWeb.StripeWebhookController do
           |> Ash.Changeset.for_update(:update_billing, params)
           |> Ash.update(authorize?: false)
           |> case do
-            {:ok, _} -> :ok
-            {:error, reason} -> {:error, reason}
+            {:ok, updated_org} ->
+              if session.mode == "subscription" and session.payment_status == "paid" do
+                SupervisedSlices.Analytics.capture("subscription_activated", org.id, %{
+                  plan: updated_org.plan,
+                  "$groups": %{organization: org.id}
+                })
+              end
+
+              :ok
+
+            {:error, reason} ->
+              {:error, reason}
           end
         else
           :ok
@@ -165,8 +175,17 @@ defmodule SupervisedSlicesWeb.StripeWebhookController do
         |> Ash.Changeset.for_update(:update_billing, params)
         |> Ash.update(authorize?: false)
         |> case do
-          {:ok, _} -> :ok
-          {:error, reason} -> {:error, reason}
+          {:ok, _} ->
+            if status == :canceled do
+              SupervisedSlices.Analytics.capture("subscription_canceled", org.id, %{
+                "$groups": %{organization: org.id}
+              })
+            end
+
+            :ok
+
+          {:error, reason} ->
+            {:error, reason}
         end
 
       {:error, %Ash.Error.Invalid{errors: [%Ash.Error.Query.NotFound{}]}} ->

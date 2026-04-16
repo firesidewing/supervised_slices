@@ -23,7 +23,7 @@ import "phoenix_html"
 import {Socket} from "phoenix"
 import {LiveSocket} from "phoenix_live_view"
 import {hooks as colocatedHooks} from "phoenix-colocated/supervised_slices"
-import {Countdown, OrderNotifications, GeoFenceMap, KitchenAlert} from "./hooks"
+import {Countdown, OrderNotifications, GeoFenceMap, KitchenAlert, PostHogIdentify} from "./hooks"
 import topbar from "../vendor/topbar"
 
 // Track clicks on [phx-view-transition] links so onDocumentPatch can decide
@@ -45,7 +45,7 @@ const csrfToken = document.querySelector("meta[name='csrf-token']").getAttribute
 const liveSocket = new LiveSocket("/live", Socket, {
   longPollFallbackMs: 2500,
   params: {_csrf_token: csrfToken},
-  hooks: {...colocatedHooks, Countdown, OrderNotifications, GeoFenceMap, KitchenAlert},
+  hooks: {...colocatedHooks, Countdown, OrderNotifications, GeoFenceMap, KitchenAlert, PostHogIdentify},
   dom: {
     onDocumentPatch(start) {
       const doTransition = viewTransitionPending
@@ -64,6 +64,14 @@ const liveSocket = new LiveSocket("/live", Socket, {
       }
     }
   }
+})
+
+// PostHog: track LiveView navigations as pageviews and bridge server-pushed events
+window.addEventListener("phx:page-loading-stop", () => {
+  if (window.posthog) posthog.capture("$pageview")
+})
+window.addEventListener("phx:ph:capture", ({ detail }) => {
+  if (window.posthog) posthog.capture(detail.event, detail.props || {})
 })
 
 // Show progress bar on live navigation and form submits

@@ -48,6 +48,20 @@
         History
       </.link>
 
+      <.link
+        :if={@org.plan == :pro}
+        navigate={~p"/kitchen/#{@org.slug}/analytics"}
+        class={[
+          "transition-all duration-300 pb-1",
+          if(@live_action == :analytics,
+            do: "text-primary border-b-2 border-primary",
+            else: "text-on-surface opacity-80 hover:opacity-100"
+          )
+        ]}
+      >
+        Analytics
+      </.link>
+
       <%= if @current_membership.role == :admin do %>
         <.link
           navigate={~p"/kitchen/#{@org.slug}/menu"}
@@ -108,6 +122,7 @@
           :history -> "Archive Atelier"
           :menu -> "Menu Atelier"
           :settings -> "System Settings"
+          :analytics -> "Analytics"
         end}
       </h1>
     </div>
@@ -178,6 +193,14 @@
       id="settings"
       org={@org}
       current_user={@current_user}
+    />
+  <% end %>
+
+  <%= if @live_action == :analytics do %>
+    <.live_component
+      module={SupervisedSlicesWeb.AdminLive.AnalyticsComponent}
+      id="analytics"
+      org={@org}
     />
   <% end %>
 </main>
