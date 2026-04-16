@@ -383,15 +383,6 @@ defmodule SupervisedSlicesWeb.OrderTrackingLive do
                   <span class="font-serif">{format_money(@order.total_price)}</span>
                 </div>
               </div>
-
-              <div class="mt-8">
-                <.link
-                  navigate={~p"/menu/#{@org.slug}"}
-                  class="w-full bg-gradient-to-br from-primary to-primary-container text-white py-4 rounded-md text-[0.65rem] font-bold uppercase tracking-[0.2em] shadow-lg shadow-primary/10 hover:opacity-90 active:scale-[0.98] transition-all flex items-center justify-center"
-                >
-                  Order More
-                </.link>
-              </div>
             </div>
 
             <div
