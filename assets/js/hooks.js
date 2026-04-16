@@ -1,4 +1,4 @@
-import { driver } from "driver.js"
+import { driver } from "../vendor/driver"
 
 /**
  * TourGuide — spotlight-style onboarding tour for the admin Kitchen Command dashboard.
