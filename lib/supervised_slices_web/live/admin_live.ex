@@ -146,6 +146,21 @@ defmodule SupervisedSlicesWeb.AdminLive do
     {:noreply, assign(socket, :show_phone_order, !socket.assigns.show_phone_order)}
   end
 
+  def handle_event("tour_completed", _params, socket) do
+    membership = socket.assigns.current_membership
+
+    updated =
+      membership
+      |> Ash.Changeset.for_update(:complete_tour, %{})
+      |> Ash.update(authorize?: false)
+      |> case do
+        {:ok, m} -> m
+        _ -> membership
+      end
+
+    {:noreply, assign(socket, :current_membership, updated)}
+  end
+
   defp load_active_orders(scope) do
     Order.active!(scope: scope, authorize?: false)
   end

@@ -2,6 +2,7 @@
    https://tailwindcss.com/docs/configuration */
 
 @import "tailwindcss" source(none);
+@import "../vendor/driver.css";
 
 /* ============================================================
    Design System: The Artisan Editorial / Modern Trattoria Canvas

@@ -1,5 +1,10 @@
-<header class="fixed top-0 w-full z-50 bg-background/80 backdrop-blur-md shadow-[0_40px_40px_-10px_rgba(28,28,24,0.06)]">
-  <nav class="flex justify-between items-center px-8 py-4 max-w-[1440px] mx-auto">
+<header
+  id="kitchen-tour-host"
+  phx-hook="TourGuide"
+  data-tour-autostart={if !@current_membership.tour_completed, do: "true", else: "false"}
+  class="fixed top-0 w-full z-50 bg-background/80 backdrop-blur-md shadow-[0_40px_40px_-10px_rgba(28,28,24,0.06)]"
+>
+  <nav data-tour="nav" class="flex justify-between items-center px-8 py-4 max-w-[1440px] mx-auto">
     <div class="text-2xl font-headline font-black tracking-tighter text-on-surface flex items-center gap-3">
       <%= if @org.logo_url do %>
         <img src={@org.logo_url} alt={@org.name} class="h-8 w-auto object-contain" />
@@ -9,6 +14,7 @@
 
     <div class="hidden md:flex items-center space-x-8 font-headline font-bold tracking-tight">
       <.link
+        data-tour="orders-link"
         navigate={~p"/kitchen/#{@org.slug}"}
         class={[
           "transition-all duration-300 pb-1",
@@ -22,6 +28,7 @@
       </.link>
 
       <.link
+        data-tour="baskets-link"
         navigate={~p"/kitchen/#{@org.slug}/baskets"}
         class={[
           "transition-all duration-300 pb-1",
@@ -64,6 +71,7 @@
 
       <%= if @current_membership.role == :admin do %>
         <.link
+          data-tour="menu-link"
           navigate={~p"/kitchen/#{@org.slug}/menu"}
           class={[
             "transition-all duration-300 pb-1",
@@ -77,6 +85,7 @@
         </.link>
 
         <.link
+          data-tour="settings-link"
           navigate={~p"/kitchen/#{@org.slug}/settings"}
           class={[
             "transition-all duration-300 pb-1",
@@ -92,10 +101,22 @@
     </div>
 
     <div class="flex items-center space-x-6">
-      <div class="hidden sm:flex items-center gap-2 text-xs font-bold uppercase tracking-widest text-on-surface-variant/60">
+      <div
+        data-tour="visitor-count"
+        class="hidden sm:flex items-center gap-2 text-xs font-bold uppercase tracking-widest text-on-surface-variant/60"
+      >
         <span class="w-1.5 h-1.5 rounded-full bg-primary animate-pulse"></span>
         {@visitor_count} Browsing Menu
       </div>
+      <button
+        :if={@current_membership.role == :admin}
+        phx-click={JS.dispatch("start-tour")}
+        class="hidden sm:flex items-center gap-1.5 text-xs font-bold uppercase tracking-widest text-on-surface-variant/50 hover:text-on-surface transition-colors"
+        title="Take the guided tour"
+      >
+        <span class="material-symbols-outlined !text-[16px]">help_outline</span>
+        Tour
+      </button>
       <.link
         href={~p"/menu/#{@org.slug}"}
         target="_blank"
@@ -128,19 +149,22 @@
     </div>
 
     <div class="flex gap-4 flex-wrap">
-      <div class="bg-surface-container-low px-6 py-3 rounded-md flex items-center gap-3">
-        <span class="w-2 h-2 rounded-full bg-primary animate-pulse"></span>
-        <span class="text-sm font-bold uppercase tracking-wider text-on-surface">
-          {@ticket_count} Active Tickets
-        </span>
-      </div>
-      <div class="bg-secondary-container px-6 py-3 rounded-md flex items-center gap-3">
-        <span class="material-symbols-outlined text-on-secondary-container text-xl">timer</span>
-        <span class="text-sm font-bold uppercase tracking-wider text-on-secondary-container">
-          Avg. Fire Time: 14m
-        </span>
+      <div data-tour="metrics" class="flex gap-4">
+        <div class="bg-surface-container-low px-6 py-3 rounded-md flex items-center gap-3">
+          <span class="w-2 h-2 rounded-full bg-primary animate-pulse"></span>
+          <span class="text-sm font-bold uppercase tracking-wider text-on-surface">
+            {@ticket_count} Active Tickets
+          </span>
+        </div>
+        <div class="bg-secondary-container px-6 py-3 rounded-md flex items-center gap-3">
+          <span class="material-symbols-outlined text-on-secondary-container text-xl">timer</span>
+          <span class="text-sm font-bold uppercase tracking-wider text-on-secondary-container">
+            Avg. Fire Time: 14m
+          </span>
+        </div>
       </div>
       <button
+        data-tour="phone-order"
         :if={@live_action == :orders}
         phx-click="toggle_phone_order"
         class="px-6 py-3 rounded-md font-bold text-sm uppercase tracking-wide bg-gradient-to-br from-primary to-primary-container text-on-primary hover:opacity-90 active:scale-95 transition-all flex items-center gap-2"

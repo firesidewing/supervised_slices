@@ -12,6 +12,7 @@ defmodule SupervisedSlices.Orgs.Membership do
 
   code_interface do
     define :update_role, action: :update_role
+    define :complete_tour, action: :complete_tour
     define :destroy, action: :destroy
     define :for_org, action: :for_org
     define :get_kitchen_membership, action: :get_kitchen_membership, args: [:user_id]
@@ -26,6 +27,10 @@ defmodule SupervisedSlices.Orgs.Membership do
 
     update :update_role do
       accept [:role]
+    end
+
+    update :complete_tour do
+      change set_attribute(:tour_completed, true)
     end
 
     read :for_org do
@@ -118,6 +123,12 @@ defmodule SupervisedSlices.Orgs.Membership do
     attribute :role, :atom do
       constraints one_of: [:admin, :staff, :customer]
       default :customer
+      allow_nil? false
+      public? true
+    end
+
+    attribute :tour_completed, :boolean do
+      default false
       allow_nil? false
       public? true
     end

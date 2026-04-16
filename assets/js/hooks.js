@@ -1,3 +1,110 @@
+import { driver } from "driver.js"
+
+/**
+ * TourGuide — spotlight-style onboarding tour for the admin Kitchen Command dashboard.
+ *
+ * Auto-starts on first visit (data-tour-autostart="true") and can be triggered
+ * at any time by dispatching a "start-tour" event on window.
+ * Pushes "tour_completed" to the server when the tour is dismissed or finished.
+ */
+export const TourGuide = {
+  mounted() {
+    this._tour = driver({
+      showProgress: true,
+      showButtons: ["next", "previous", "close"],
+      nextBtnText: "Next →",
+      prevBtnText: "← Back",
+      doneBtnText: "Done",
+      progressText: "{{current}} of {{total}}",
+      popoverClass: "kitchen-tour-popover",
+      onDestroyed: () => {
+        this.pushEvent("tour_completed", {})
+      },
+      steps: [
+        {
+          element: "[data-tour='nav']",
+          popover: {
+            title: "Welcome to Kitchen Command",
+            description: "This is your live dashboard for managing orders, monitoring guests, and configuring your store. Let's walk through the key sections."
+          }
+        },
+        {
+          element: "[data-tour='orders-link']",
+          popover: {
+            title: "Order Atelier",
+            description: "The heart of the kitchen. New orders appear here in real time as customers check out. Advance each order through Pending → Preparing → Ready → Completed.",
+            side: "bottom",
+            align: "start"
+          }
+        },
+        {
+          element: "[data-tour='baskets-link']",
+          popover: {
+            title: "Basket Monitor",
+            description: "See what guests are adding to their carts before they check out. Useful for anticipating upcoming orders.",
+            side: "bottom",
+            align: "start"
+          }
+        },
+        {
+          element: "[data-tour='menu-link']",
+          popover: {
+            title: "Menu Atelier",
+            description: "Build and edit your menu — add categories, items, and descriptions. Changes go live instantly.",
+            side: "bottom",
+            align: "start"
+          }
+        },
+        {
+          element: "[data-tour='settings-link']",
+          popover: {
+            title: "System Settings",
+            description: "Configure your store hours, delivery zones, team members, branding, and integrations.",
+            side: "bottom",
+            align: "start"
+          }
+        },
+        {
+          element: "[data-tour='metrics']",
+          popover: {
+            title: "Live Metrics",
+            description: "Active ticket count and average fire time update in real time so you always know the kitchen's current load.",
+            side: "top"
+          }
+        },
+        {
+          element: "[data-tour='phone-order']",
+          popover: {
+            title: "Phone Orders",
+            description: "Taking an order over the phone? Use this to build and submit a manual order directly into the queue.",
+            side: "top"
+          }
+        },
+        {
+          element: "[data-tour='visitor-count']",
+          popover: {
+            title: "Live Visitors",
+            description: "Shows how many guests are currently browsing your menu — a helpful signal for anticipating order volume.",
+            side: "bottom",
+            align: "end"
+          }
+        }
+      ]
+    })
+
+    if (this.el.dataset.tourAutostart === "true") {
+      // Small delay to let the page settle before the first highlight
+      setTimeout(() => this._tour.drive(), 400)
+    }
+
+    window.addEventListener("start-tour", this._onStartTour = () => this._tour.drive())
+  },
+
+  destroyed() {
+    window.removeEventListener("start-tour", this._onStartTour)
+  }
+}
+
 /**
  * Countdown — live ETA display on the order tracking page.
  *

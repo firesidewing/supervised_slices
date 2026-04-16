@@ -69,7 +69,8 @@ defmodule SupervisedSlicesWeb.StripeWebhookController do
             |> json(%{error: "Internal Server Error"})
         end
 
-      {:ok, _event} ->
+      {:ok, event} ->
+        Logger.info("Stripe webhook: ignoring unhandled event #{event.type}")
         send_resp(conn, 200, "ok")
 
       {:error, reason} ->
@@ -89,6 +90,7 @@ defmodule SupervisedSlicesWeb.StripeWebhookController do
 
     case Organization.by_stripe_customer(customer_id, authorize?: false) do
       {:ok, nil} ->
+        Logger.warning("Stripe webhook: organization not found for customer #{customer_id}")
         :ok
 
       {:ok, org} ->
@@ -156,6 +158,7 @@ defmodule SupervisedSlicesWeb.StripeWebhookController do
 
     case Organization.by_stripe_customer(customer_id, authorize?: false) do
       {:ok, nil} ->
+        Logger.warning("Stripe webhook: organization not found for customer #{customer_id}")
         :ok
 
       {:ok, org} ->
@@ -196,5 +199,8 @@ defmodule SupervisedSlicesWeb.StripeWebhookController do
     end
   end
 
-  defp handle_webhook_event(_), do: :ok
+  defp handle_webhook_event(event) do
+    Logger.info("Stripe webhook: event fell through handle_webhook_event: #{inspect(event.type)}")
+    :ok
+  end
 end

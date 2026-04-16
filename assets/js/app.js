@@ -23,7 +23,7 @@ import "phoenix_html"
 import {Socket} from "phoenix"
 import {LiveSocket} from "phoenix_live_view"
 import {hooks as colocatedHooks} from "phoenix-colocated/supervised_slices"
-import {Countdown, OrderNotifications, GeoFenceMap, KitchenAlert, PostHogIdentify} from "./hooks"
+import {TourGuide, Countdown, OrderNotifications, GeoFenceMap, KitchenAlert, PostHogIdentify} from "./hooks"
 import topbar from "../vendor/topbar"
 
 // Track clicks on [phx-view-transition] links so onDocumentPatch can decide
@@ -45,7 +45,7 @@ const csrfToken = document.querySelector("meta[name='csrf-token']").getAttribute
 const liveSocket = new LiveSocket("/live", Socket, {
   longPollFallbackMs: 2500,
   params: {_csrf_token: csrfToken},
-  hooks: {...colocatedHooks, Countdown, OrderNotifications, GeoFenceMap, KitchenAlert, PostHogIdentify},
+  hooks: {...colocatedHooks, TourGuide, Countdown, OrderNotifications, GeoFenceMap, KitchenAlert, PostHogIdentify},
   dom: {
     onDocumentPatch(start) {
       const doTransition = viewTransitionPending
