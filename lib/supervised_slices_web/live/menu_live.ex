@@ -715,7 +715,10 @@ defmodule SupervisedSlicesWeb.MenuLive do
                 {@cart_count}
               </div>
             </div>
-            <span class="font-headline text-base font-black tracking-tight uppercase">
+            <span
+              class="font-headline text-base font-black tracking-tight uppercase"
+              style="view-transition-name: basket;"
+            >
               View Basket
             </span>
           </div>

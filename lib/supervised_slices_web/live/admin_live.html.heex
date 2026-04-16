@@ -9,7 +9,7 @@
       <%= if @org.logo_url do %>
         <img src={@org.logo_url} alt={@org.name} class="h-8 w-auto object-contain" />
       <% end %>
-      <span>{@org.name}</span>
+      <span style="view-transition-name: org-name;">{@org.name}</span>
     </div>
 
     <div class="hidden md:flex items-center space-x-8 font-headline font-bold tracking-tight">
@@ -101,8 +101,7 @@
         class="hidden sm:flex items-center gap-1.5 text-xs font-bold uppercase tracking-widest text-on-surface-variant/50 hover:text-on-surface transition-colors"
         title="Take the guided tour"
       >
-        <span class="material-symbols-outlined !text-[16px]">help_outline</span>
-        Tour
+        <span class="material-symbols-outlined !text-[16px]">help_outline</span> Tour
       </button>
       <.link
         href={~p"/menu/#{@org.slug}"}
@@ -151,15 +150,17 @@
           <span
             :if={fire_trend != :neutral}
             class={["text-xs font-bold", fire_time_trend_class(fire_trend)]}
-            title={if fire_trend == :up, do: "Slower than last hour", else: "Faster than last hour"}
+            title={
+              if fire_trend == :up, do: "Slower than last hour", else: "Faster than last hour"
+            }
           >
             {fire_time_trend_label(fire_trend)}
           </span>
         </div>
       </div>
       <button
-        data-tour="phone-order"
         :if={@live_action == :orders}
+        data-tour="phone-order"
         phx-click="toggle_phone_order"
         class="px-6 py-3 rounded-md font-bold text-sm uppercase tracking-wide bg-gradient-to-br from-primary to-primary-container text-on-primary hover:opacity-90 active:scale-95 transition-all flex items-center gap-2"
       >
@@ -215,7 +216,6 @@
       current_user={@current_user}
     />
   <% end %>
-
 </main>
 
 <footer class="bg-surface-container-low w-full py-12 px-8 border-t border-on-surface/5 mt-auto">
