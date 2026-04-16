@@ -81,6 +81,7 @@ export const OrderNotifications = {
             this.el.classList.add("hidden")
             this.showNotification("Notifications enabled!", "We'll let you know when your order is ready.")
             this.subscribeToPush(publicKey)
+            if (window.posthog) posthog.capture("notification_permission_granted")
           }
         })
       })
@@ -110,6 +111,7 @@ export const OrderNotifications = {
         })
       }).catch((error) => {
         console.error("Push subscription failed:", error)
+        if (window.posthog) posthog.captureException(error, { extra: { context: "push_subscription" } })
       })
     })
   },

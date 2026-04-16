@@ -58,6 +58,8 @@ defmodule SupervisedSlicesWeb.MenuLive do
   def handle_params(%{"id" => id}, _uri, socket) do
     scope = socket.assigns.ash_scope
     quick_item = find_item_in_categories(socket.assigns.categories, id)
+    org = socket.assigns.org
+    item_name = quick_item && quick_item.name
 
     {:noreply,
      socket
@@ -65,6 +67,7 @@ defmodule SupervisedSlicesWeb.MenuLive do
      |> assign(:selected_item_id, id)
      |> assign(:selected_item_has_image, quick_item != nil && !is_nil(quick_item.image_url))
      |> assign(:quick_item, quick_item)
+     |> push_event("ph:capture", %{event: "item_viewed", props: %{item_id: id, item_name: item_name, org_id: org.id}})
      |> assign_async(:selected_item, fn ->
        item =
          MenuItem.get!(id,
@@ -103,7 +106,16 @@ defmodule SupervisedSlicesWeb.MenuLive do
   end
 
   def handle_event("toggle_basket", _params, socket) do
-    {:noreply, assign(socket, show_basket: !socket.assigns.show_basket, checkout_step: :review)}
+    opening = !socket.assigns.show_basket
+
+    socket =
+      if opening do
+        push_event(socket, "ph:capture", %{event: "basket_opened", props: %{item_count: socket.assigns.cart_count, org_id: socket.assigns.org.id}})
+      else
+        socket
+      end
+
+    {:noreply, assign(socket, show_basket: opening, checkout_step: :review)}
   end
 
   def handle_event("dismiss_upsells", _params, socket) do
@@ -111,20 +123,28 @@ defmodule SupervisedSlicesWeb.MenuLive do
   end
 
   def handle_event("update_delivery_type", %{"delivery_type" => type}, socket) do
-    %{ash_scope: scope, cart: cart} = socket.assigns
+    %{ash_scope: scope, cart: cart, org: org} = socket.assigns
     type = String.to_existing_atom(type)
 
     if cart do
       loaded_cart = Cart.update_delivery_type!(cart, %{delivery_type: type}, scope: scope)
       PubSubNotifier.broadcast_cart_update(loaded_cart)
-      {:noreply, assign(socket, cart: loaded_cart)}
+      {:noreply,
+       socket
+       |> assign(cart: loaded_cart)
+       |> push_event("ph:capture", %{event: "delivery_type_changed", props: %{delivery_type: type, org_id: org.id}})}
     else
       {:noreply, socket}
     end
   end
 
   def handle_event("start_checkout", _params, socket) do
-    {:noreply, assign(socket, :checkout_step, :confirm)}
+    %{cart: cart, org: org} = socket.assigns
+
+    {:noreply,
+     socket
+     |> assign(:checkout_step, :confirm)
+     |> push_event("ph:capture", %{event: "checkout_started", props: %{item_count: socket.assigns.cart_count, org_id: org.id, delivery_type: cart && cart.delivery_type}})}
   end
 
   def handle_event("place_order", _params, %{assigns: %{store_open: false}} = socket) do

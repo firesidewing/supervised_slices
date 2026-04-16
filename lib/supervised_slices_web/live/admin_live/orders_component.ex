@@ -37,7 +37,15 @@ defmodule SupervisedSlicesWeb.AdminLive.OrdersComponent do
   def handle_event("advance_order", %{"id" => order_id}, socket) do
     %{ash_scope: scope} = socket.assigns
     order = Order.get!(order_id, scope: scope)
-    Order.update_status!(order, %{status: next_status(order.status)}, scope: scope)
+    new_status = next_status(order.status)
+    Order.update_status!(order, %{status: new_status}, scope: scope)
+    distinct_id = scope.current_user && scope.current_user.id
+    SupervisedSlices.Analytics.capture("order_status_advanced", distinct_id, %{
+      order_id: order_id,
+      from_status: order.status,
+      to_status: new_status,
+      "$groups": %{organization: socket.assigns.org.id}
+    })
     {:noreply, socket}
   end
 
