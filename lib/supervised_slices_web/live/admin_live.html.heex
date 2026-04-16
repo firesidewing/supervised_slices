@@ -43,30 +43,17 @@
 
       <.link
         :if={@org.plan != :basic}
-        navigate={~p"/kitchen/#{@org.slug}/history"}
+        data-tour="insights-link"
+        navigate={~p"/kitchen/#{@org.slug}/insights"}
         class={[
           "transition-all duration-300 pb-1",
-          if(@live_action == :history,
+          if(@live_action == :insights,
             do: "text-primary border-b-2 border-primary",
             else: "text-on-surface opacity-80 hover:opacity-100"
           )
         ]}
       >
-        History
-      </.link>
-
-      <.link
-        :if={@org.plan == :pro}
-        navigate={~p"/kitchen/#{@org.slug}/analytics"}
-        class={[
-          "transition-all duration-300 pb-1",
-          if(@live_action == :analytics,
-            do: "text-primary border-b-2 border-primary",
-            else: "text-on-surface opacity-80 hover:opacity-100"
-          )
-        ]}
-      >
-        Analytics
+        Insights
       </.link>
 
       <%= if @current_membership.role == :admin do %>
@@ -140,10 +127,9 @@
         {case @live_action do
           :orders -> "Order Atelier"
           :baskets -> "Basket Monitor"
-          :history -> "Archive Atelier"
+          :insights -> "Insights"
           :menu -> "Menu Atelier"
           :settings -> "System Settings"
-          :analytics -> "Analytics"
         end}
       </h1>
     </div>
@@ -159,7 +145,14 @@
         <div class="bg-secondary-container px-6 py-3 rounded-md flex items-center gap-3">
           <span class="material-symbols-outlined text-on-secondary-container text-xl">timer</span>
           <span class="text-sm font-bold uppercase tracking-wider text-on-secondary-container">
-            Avg. Fire Time: 14m
+            Avg. Fire: {format_fire_time(@avg_fire_time)}
+          </span>
+          <span
+            :if={@fire_time_trend != :neutral}
+            class={["text-xs font-bold", fire_time_trend_class(@fire_time_trend)]}
+            title={if @fire_time_trend == :up, do: "Slower than last hour", else: "Faster than last hour"}
+          >
+            {fire_time_trend_label(@fire_time_trend)}
           </span>
         </div>
       </div>
@@ -187,11 +180,12 @@
     />
   <% end %>
 
-  <%= if @live_action == :history do %>
+  <%= if @live_action == :insights do %>
     <.live_component
-      module={SupervisedSlicesWeb.AdminLive.HistoryComponent}
-      id="history"
+      module={SupervisedSlicesWeb.AdminLive.InsightsComponent}
+      id="insights"
       ash_scope={@ash_scope}
+      org={@org}
     />
   <% end %>
 
@@ -220,13 +214,6 @@
     />
   <% end %>
 
-  <%= if @live_action == :analytics do %>
-    <.live_component
-      module={SupervisedSlicesWeb.AdminLive.AnalyticsComponent}
-      id="analytics"
-      org={@org}
-    />
-  <% end %>
 </main>
 
 <footer class="bg-surface-container-low w-full py-12 px-8 border-t border-on-surface/5 mt-auto">

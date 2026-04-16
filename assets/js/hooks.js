@@ -47,6 +47,15 @@ export const TourGuide = {
           }
         },
         {
+          element: "[data-tour='insights-link']",
+          popover: {
+            title: "Insights",
+            description: "Browse completed orders day by day and track 30-day trends — revenue, prep times, and your best-selling items.",
+            side: "bottom",
+            align: "start"
+          }
+        },
+        {
           element: "[data-tour='menu-link']",
           popover: {
             title: "Menu Atelier",

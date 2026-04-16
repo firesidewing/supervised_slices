@@ -3,10 +3,13 @@ defmodule SupervisedSlicesWeb.AdminLive do
 
   require Ash.Query
 
+  import Ecto.Query
+
   on_mount {SupervisedSlicesWeb.LiveUserAuth, :live_user_and_subscription_required}
 
   alias SupervisedSlices.Cart.Cart
   alias SupervisedSlices.Orders.Order
+  alias SupervisedSlices.Repo
   alias SupervisedSlices.{OrgPresence, PubSubNotifier}
 
   alias SupervisedSlicesWeb.AdminLive.OrdersComponent
@@ -37,6 +40,8 @@ defmodule SupervisedSlicesWeb.AdminLive do
         :timer.send_interval(10000, self(), :tick)
       end
 
+      {avg_fire_time, fire_time_trend} = load_fire_time_stats(org.id)
+
       {:ok,
        socket
        |> assign(:current_membership, membership)
@@ -45,6 +50,8 @@ defmodule SupervisedSlicesWeb.AdminLive do
        |> assign(:orders_initial, orders)
        |> assign(:ticket_count, length(orders))
        |> assign(:show_phone_order, false)
+       |> assign(:avg_fire_time, avg_fire_time)
+       |> assign(:fire_time_trend, fire_time_trend)
        |> assign(:page_title, "Kitchen Command")}
     end
   end
@@ -59,7 +66,7 @@ defmodule SupervisedSlicesWeb.AdminLive do
           live_action in [:menu, :settings] ->
         {:noreply, Phoenix.LiveView.push_navigate(socket, to: ~p"/kitchen/#{org.slug}")}
 
-      org.plan == :basic && live_action in [:history, :analytics] ->
+      org.plan == :basic && live_action == :insights ->
         {:noreply,
          socket
          |> put_flash(:error, "Order History & Analytics is a Pro feature.")
@@ -139,7 +146,12 @@ defmodule SupervisedSlicesWeb.AdminLive do
 
   def handle_info(:tick, socket) do
     send_update(OrdersComponent, id: "orders", tick: DateTime.utc_now())
-    {:noreply, socket}
+    {avg_fire_time, fire_time_trend} = load_fire_time_stats(socket.assigns.org.id)
+
+    {:noreply,
+     socket
+     |> assign(:avg_fire_time, avg_fire_time)
+     |> assign(:fire_time_trend, fire_time_trend)}
   end
 
   def handle_event("toggle_phone_order", _params, socket) do
@@ -183,4 +195,61 @@ defmodule SupervisedSlicesWeb.AdminLive do
         Enum.reject(carts, &(&1.id == cart.id))
     end
   end
+
+  # Returns {avg_seconds_float_or_nil, trend_atom} for the rolling fire time metric.
+  # "Current" = completed orders in the last 60 min.
+  # "Previous" = completed orders in the 60–120 min window before that.
+  defp load_fire_time_stats(org_id) do
+    now = DateTime.utc_now()
+    one_hour_ago = DateTime.add(now, -60, :minute)
+    two_hours_ago = DateTime.add(now, -120, :minute)
+
+    current_avg =
+      Repo.one(
+        from o in "orders",
+          where:
+            o.organization_id == ^org_id and
+              o.status == "completed" and
+              o.updated_at >= ^one_hour_ago,
+          select:
+            avg(fragment("EXTRACT(EPOCH FROM (? - ?))", o.updated_at, o.inserted_at))
+      )
+
+    prev_avg =
+      Repo.one(
+        from o in "orders",
+          where:
+            o.organization_id == ^org_id and
+              o.status == "completed" and
+              o.updated_at >= ^two_hours_ago and
+              o.updated_at < ^one_hour_ago,
+          select:
+            avg(fragment("EXTRACT(EPOCH FROM (? - ?))", o.updated_at, o.inserted_at))
+      )
+
+    trend =
+      cond do
+        is_nil(current_avg) or is_nil(prev_avg) -> :neutral
+        Decimal.compare(current_avg, Decimal.add(prev_avg, 30)) == :gt -> :up
+        Decimal.compare(current_avg, Decimal.sub(prev_avg, 30)) == :lt -> :down
+        true -> :neutral
+      end
+
+    {current_avg, trend}
+  end
+
+  defp format_fire_time(nil), do: "—"
+
+  defp format_fire_time(seconds) do
+    mins = seconds |> Decimal.to_float() |> Kernel./(60) |> round()
+    "#{mins}m"
+  end
+
+  defp fire_time_trend_label(:up), do: "↑"
+  defp fire_time_trend_label(:down), do: "↓"
+  defp fire_time_trend_label(:neutral), do: ""
+
+  defp fire_time_trend_class(:up), do: "text-primary"
+  defp fire_time_trend_class(:down), do: "text-secondary"
+  defp fire_time_trend_class(:neutral), do: ""
 end
