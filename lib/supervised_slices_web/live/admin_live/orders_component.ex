@@ -238,10 +238,9 @@ defmodule SupervisedSlicesWeb.AdminLive.OrdersComponent do
       level = urgency_level(order)
 
       cond do
-        level > 0.8 -> "ring-4"
-        level > 0.5 -> "ring-2"
-        level > 0.2 -> "ring-1"
-        true -> ""
+        level > 0.5 -> "ring-4 animate-escalate"
+        level > 0.2 -> "ring-2"
+        true -> "ring-1"
       end
     else
       ""
@@ -251,7 +250,12 @@ defmodule SupervisedSlicesWeb.AdminLive.OrdersComponent do
   defp urgency_style(order) do
     if order.status == :pending do
       level = urgency_level(order)
-      "box-shadow: 0 0 #{level * 20}px rgba(140, 22, 26, #{0.1 + level * 0.2});"
+
+      if level <= 0.5 do
+        "box-shadow: 0 0 #{level * 20}px rgba(140, 22, 26, #{0.1 + level * 0.2});"
+      else
+        nil
+      end
     else
       nil
     end

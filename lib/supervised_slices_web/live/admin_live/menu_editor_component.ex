@@ -359,8 +359,9 @@ defmodule SupervisedSlicesWeb.AdminLive.MenuEditorComponent do
 
   def render(assigns) do
     ~H"""
-    <div class="space-y-8">
-      <div class="flex items-center justify-between">
+    <div class="flex flex-col lg:flex-row gap-12 items-start">
+      <div class="flex-1 space-y-12 w-full">
+        <div class="flex items-center justify-between">
         <div>
           <h2 class="font-headline text-2xl font-black text-on-surface">
             Menu Atelier
@@ -413,172 +414,6 @@ defmodule SupervisedSlicesWeb.AdminLive.MenuEditorComponent do
           <span class="material-symbols-outlined text-xl">close</span>
         </button>
       </form>
-
-      <div class="bg-surface-container-low rounded-md p-6 space-y-6">
-        <div class="flex items-center justify-between">
-          <p class="text-[0.65rem] font-black text-on-surface-variant uppercase tracking-[0.2em]">
-            Modifier Groups
-          </p>
-          <button
-            phx-click="add_modifier_group"
-            phx-target={@myself}
-            type="button"
-            class="flex items-center gap-1.5 text-[0.65rem] text-primary hover:opacity-80 font-black uppercase tracking-widest"
-          >
-            <span class="material-symbols-outlined text-sm">add_circle</span> New Group
-          </button>
-        </div>
-
-        <%= if @creating_modifier_group do %>
-          <form
-            phx-submit="create_modifier_group"
-            phx-target={@myself}
-            class="bg-surface-container-low rounded-lg p-3 space-y-3"
-          >
-            <div class="flex items-center gap-3">
-              <input
-                type="text"
-                name="group[name]"
-                required
-                autofocus
-                placeholder="e.g. Extra Toppings"
-                class="flex-1 bg-white border-0 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-primary outline-none"
-              />
-              <label class="flex items-center gap-2 text-sm text-on-surface-variant whitespace-nowrap cursor-pointer">
-                <input
-                  type="checkbox"
-                  name="group[required]"
-                  value="true"
-                  class="rounded"
-                /> Required
-              </label>
-            </div>
-            <div class="flex items-center gap-2">
-              <button
-                type="submit"
-                class="bg-primary text-white px-4 py-2 rounded-lg text-sm font-bold hover:opacity-90"
-              >
-                Add Group
-              </button>
-              <button
-                type="button"
-                phx-click="cancel_add_modifier_group"
-                phx-target={@myself}
-                class="text-on-surface-variant hover:text-on-surface text-sm px-3 py-2"
-              >
-                Cancel
-              </button>
-            </div>
-          </form>
-        <% end %>
-
-        <%= if Enum.empty?(@modifier_groups) do %>
-          <p class="text-xs text-on-surface-variant italic">
-            No modifier groups yet. Create one to apply options to multiple items.
-          </p>
-        <% else %>
-          <div class="space-y-3">
-            <%= for group <- @modifier_groups do %>
-              <div class="bg-surface-container-low rounded-lg p-3 space-y-2">
-                <div class="flex items-center gap-2">
-                  <span class="flex-1 text-sm font-bold text-on-surface">
-                    {group.name}
-                  </span>
-                  <%= if group.required do %>
-                    <span class="text-[10px] font-bold uppercase tracking-wider bg-primary-fixed text-on-primary-fixed-variant px-2 py-0.5 rounded-full">
-                      Required
-                    </span>
-                  <% end %>
-                  <button
-                    phx-click="delete_modifier_group"
-                    phx-value-id={group.id}
-                    phx-target={@myself}
-                    type="button"
-                    class="text-on-surface-variant hover:text-error transition-colors p-1"
-                    title="Delete group"
-                  >
-                    <span class="material-symbols-outlined" style="font-size: 16px;">delete</span>
-                  </button>
-                </div>
-
-                <div class="pl-2 space-y-1">
-                  <%= for modifier <- group.modifiers || [] do %>
-                    <div class="flex items-center gap-2 text-sm">
-                      <span class="flex-1 text-on-surface">{modifier.name}</span>
-                      <span class="text-xs text-on-surface-variant">
-                        {if modifier.price_delta,
-                          do: "+#{format_money(modifier.price_delta)}",
-                          else: "Free"}
-                      </span>
-                      <button
-                        phx-click="delete_modifier"
-                        phx-value-id={modifier.id}
-                        phx-target={@myself}
-                        type="button"
-                        class="text-on-surface-variant hover:text-error transition-colors p-0.5"
-                      >
-                        <span class="material-symbols-outlined" style="font-size: 14px;">close</span>
-                      </button>
-                    </div>
-                  <% end %>
-
-                  <%= if @adding_modifier_to_group_id == group.id do %>
-                    <form
-                      phx-submit="create_modifier"
-                      phx-target={@myself}
-                      class="flex items-center gap-2 mt-1"
-                    >
-                      <input type="hidden" name="modifier[modifier_group_id]" value={group.id} />
-                      <input
-                        type="text"
-                        name="modifier[name]"
-                        required
-                        autofocus
-                        placeholder="Option name"
-                        class="flex-1 bg-white border-0 rounded-lg px-2 py-1.5 text-sm focus:ring-2 focus:ring-primary outline-none"
-                      />
-                      <input
-                        type="text"
-                        name="modifier[price_delta]"
-                        placeholder="+0.00"
-                        inputmode="decimal"
-                        class="w-20 bg-white border-0 rounded-lg px-2 py-1.5 text-sm focus:ring-2 focus:ring-primary outline-none"
-                      />
-                      <button
-                        type="submit"
-                        class="bg-primary text-white px-3 py-1.5 rounded-lg text-sm font-bold hover:opacity-90"
-                      >
-                        Add
-                      </button>
-                      <button
-                        type="button"
-                        phx-click="cancel_add_modifier"
-                        phx-target={@myself}
-                        class="text-on-surface-variant hover:text-on-surface p-1"
-                      >
-                        <span class="material-symbols-outlined" style="font-size: 14px;">close</span>
-                      </button>
-                    </form>
-                  <% else %>
-                    <button
-                      phx-click="add_modifier"
-                      phx-value-group_id={group.id}
-                      phx-target={@myself}
-                      type="button"
-                      class="flex items-center gap-1 text-xs text-on-surface-variant hover:text-on-surface transition-colors mt-1"
-                    >
-                      <span class="material-symbols-outlined text-primary" style="font-size: 14px;">
-                        add_circle
-                      </span>
-                      Add option
-                    </button>
-                  <% end %>
-                </div>
-              </div>
-            <% end %>
-          </div>
-        <% end %>
-      </div>
 
       <%= if Enum.empty?(@categories) do %>
         <div class="flex flex-col items-center py-24 text-on-surface-variant/20">
@@ -753,7 +588,7 @@ defmodule SupervisedSlicesWeb.AdminLive.MenuEditorComponent do
                       Modifier Groups
                     </p>
                     <p class="text-xs text-on-surface-variant">
-                      Assign global modifier groups to this item. Manage group options above.
+                      Assign global modifier groups to this item. Manage group options in the sidebar.
                     </p>
 
                     <%= for group <- (item.modifier_groups || []) do %>
@@ -1093,6 +928,177 @@ defmodule SupervisedSlicesWeb.AdminLive.MenuEditorComponent do
           </div>
         </div>
       <% end %>
+    </div>
+
+    <aside class="w-full lg:w-80 shrink-0 space-y-6">
+      <div class="bg-surface-container-low rounded-md p-6 space-y-6">
+        <div class="flex items-center justify-between">
+          <p class="text-[0.65rem] font-black text-on-surface-variant uppercase tracking-[0.2em]">
+            Modifier Groups
+          </p>
+          <button
+            phx-click="add_modifier_group"
+            phx-target={@myself}
+            type="button"
+            class="flex items-center gap-1.5 text-[0.65rem] text-primary hover:opacity-80 font-black uppercase tracking-widest"
+          >
+            <span class="material-symbols-outlined text-sm">add_circle</span> New Group
+          </button>
+        </div>
+
+        <%= if @creating_modifier_group do %>
+          <form
+            phx-submit="create_modifier_group"
+            phx-target={@myself}
+            class="bg-surface-container-low rounded-lg p-3 space-y-3 shadow-sm border border-primary/10"
+          >
+            <div class="flex items-center gap-3">
+              <input
+                type="text"
+                name="group[name]"
+                required
+                autofocus
+                placeholder="e.g. Extra Toppings"
+                class="flex-1 bg-white border-0 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-primary outline-none"
+              />
+              <label class="flex items-center gap-2 text-sm text-on-surface-variant whitespace-nowrap cursor-pointer">
+                <input
+                  type="checkbox"
+                  name="group[required]"
+                  value="true"
+                  class="rounded"
+                /> Req.
+              </label>
+            </div>
+            <div class="flex items-center gap-2">
+              <button
+                type="submit"
+                class="bg-primary text-white px-4 py-2 rounded-lg text-sm font-bold hover:opacity-90 flex-1"
+              >
+                Save
+              </button>
+              <button
+                type="button"
+                phx-click="cancel_add_modifier_group"
+                phx-target={@myself}
+                class="text-on-surface-variant hover:text-on-surface text-sm px-3 py-2"
+              >
+                Cancel
+              </button>
+            </div>
+          </form>
+        <% end %>
+
+        <%= if Enum.empty?(@modifier_groups) do %>
+          <p class="text-xs text-on-surface-variant italic">
+            No modifier groups yet.
+          </p>
+        <% else %>
+          <div class="space-y-4">
+            <%= for group <- @modifier_groups do %>
+              <div class="space-y-2">
+                <div class="flex items-center gap-2">
+                  <span class="flex-1 text-sm font-bold text-on-surface">
+                    {group.name}
+                  </span>
+                  <%= if group.required do %>
+                    <span class="text-[10px] font-bold uppercase tracking-wider bg-primary-fixed text-on-primary-fixed-variant px-2 py-0.5 rounded-full">
+                      Req.
+                    </span>
+                  <% end %>
+                  <button
+                    phx-click="delete_modifier_group"
+                    phx-value-id={group.id}
+                    phx-target={@myself}
+                    type="button"
+                    class="text-on-surface-variant hover:text-error transition-colors p-1"
+                    title="Delete group"
+                  >
+                    <span class="material-symbols-outlined" style="font-size: 16px;">delete</span>
+                  </button>
+                </div>
+
+                <div class="pl-2 space-y-1.5">
+                  <%= for modifier <- group.modifiers || [] do %>
+                    <div class="flex items-center gap-2 text-xs">
+                      <span class="flex-1 text-on-surface">{modifier.name}</span>
+                      <span class="text-[10px] text-on-surface-variant whitespace-nowrap">
+                        {if modifier.price_delta,
+                          do: "+#{format_money(modifier.price_delta)}",
+                          else: "Free"}
+                      </span>
+                      <button
+                        phx-click="delete_modifier"
+                        phx-value-id={modifier.id}
+                        phx-target={@myself}
+                        type="button"
+                        class="text-on-surface-variant hover:text-error transition-colors p-0.5"
+                      >
+                        <span class="material-symbols-outlined" style="font-size: 14px;">close</span>
+                      </button>
+                    </div>
+                  <% end %>
+
+                  <%= if @adding_modifier_to_group_id == group.id do %>
+                    <form
+                      phx-submit="create_modifier"
+                      phx-target={@myself}
+                      class="flex flex-col gap-2 mt-2 p-2 bg-white rounded-lg shadow-sm border border-primary/10"
+                    >
+                      <input type="hidden" name="modifier[modifier_group_id]" value={group.id} />
+                      <input
+                        type="text"
+                        name="modifier[name]"
+                        required
+                        autofocus
+                        placeholder="Option name"
+                        class="w-full bg-surface-container-highest border-0 rounded px-2 py-1.5 text-xs focus:ring-1 focus:ring-primary outline-none"
+                      />
+                      <div class="flex items-center gap-2">
+                        <input
+                          type="text"
+                          name="modifier[price_delta]"
+                          placeholder="+0.00"
+                          inputmode="decimal"
+                          class="flex-1 bg-surface-container-highest border-0 rounded px-2 py-1.5 text-xs focus:ring-1 focus:ring-primary outline-none"
+                        />
+                        <button
+                          type="submit"
+                          class="bg-primary text-white px-3 py-1.5 rounded text-xs font-bold hover:opacity-90"
+                        >
+                          Add
+                        </button>
+                        <button
+                          type="button"
+                          phx-click="cancel_add_modifier"
+                          phx-target={@myself}
+                          class="text-on-surface-variant hover:text-on-surface p-1"
+                        >
+                          <span class="material-symbols-outlined" style="font-size: 14px;">close</span>
+                        </button>
+                      </div>
+                    </form>
+                  <% else %>
+                    <button
+                      phx-click="add_modifier"
+                      phx-value-group_id={group.id}
+                      phx-target={@myself}
+                      type="button"
+                      class="flex items-center gap-1 text-[10px] font-black uppercase tracking-wider text-primary hover:opacity-70 transition-colors mt-1"
+                    >
+                      <span class="material-symbols-outlined" style="font-size: 14px;">
+                        add_circle
+                      </span>
+                      Add option
+                    </button>
+                  <% end %>
+                </div>
+              </div>
+            <% end %>
+          </div>
+        <% end %>
+      </div>
+    </aside>
     </div>
     """
   end

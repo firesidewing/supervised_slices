@@ -83,6 +83,17 @@
 
     /* Shadows */
     --shadow-soft: 0px 40px 40px -10px rgba(28, 28, 24, 0.06);
+
+    --animate-escalate: escalate-pulse 2s infinite ease-in-out;
+
+    @keyframes escalate-pulse {
+        0%, 100% {
+            box-shadow: 0 0 10px rgba(140, 22, 26, 0.2);
+        }
+        50% {
+            box-shadow: 0 0 35px rgba(140, 22, 26, 0.6);
+        }
+    }
 }
 
 /* Material Symbols Outlined icon font */
