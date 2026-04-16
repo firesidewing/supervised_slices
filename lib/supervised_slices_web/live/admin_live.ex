@@ -7,6 +7,7 @@ defmodule SupervisedSlicesWeb.AdminLive do
 
   on_mount {SupervisedSlicesWeb.LiveUserAuth, :live_user_and_subscription_required}
 
+  alias Phoenix.LiveView.AsyncResult
   alias SupervisedSlices.Cart.Cart
   alias SupervisedSlices.Orders.Order
   alias SupervisedSlices.Repo
@@ -29,8 +30,6 @@ defmodule SupervisedSlicesWeb.AdminLive do
     if is_nil(membership) or membership.role == :customer do
       {:ok, Phoenix.LiveView.redirect(socket, to: ~p"/")}
     else
-      orders = load_active_orders(scope)
-      active_carts = load_active_carts(scope)
       visitor_count = org.id |> OrgPresence.list_visitors() |> map_size()
 
       if connected?(socket) do
@@ -40,19 +39,23 @@ defmodule SupervisedSlicesWeb.AdminLive do
         :timer.send_interval(10000, self(), :tick)
       end
 
-      {avg_fire_time, fire_time_trend} = load_fire_time_stats(org.id)
-
       {:ok,
        socket
        |> assign(:current_membership, membership)
        |> assign(:visitor_count, visitor_count)
-       |> assign(:active_carts, active_carts)
-       |> assign(:orders_initial, orders)
-       |> assign(:ticket_count, length(orders))
+       |> assign(:ticket_count, 0)
        |> assign(:show_phone_order, false)
-       |> assign(:avg_fire_time, avg_fire_time)
-       |> assign(:fire_time_trend, fire_time_trend)
-       |> assign(:page_title, "Kitchen Command")}
+       |> assign(:page_title, "Kitchen Command")
+       |> assign_async(:orders_initial, fn ->
+         {:ok, %{orders_initial: load_active_orders(scope)}}
+       end)
+       |> assign_async(:active_carts, fn ->
+         {:ok, %{active_carts: load_active_carts(scope)}}
+       end)
+       |> assign_async(:fire_time_stats, fn ->
+         {avg, trend} = load_fire_time_stats(org.id)
+         {:ok, %{fire_time_stats: {avg, trend}}}
+       end)}
     end
   end
 
@@ -80,7 +83,8 @@ defmodule SupervisedSlicesWeb.AdminLive do
   def handle_info({:new_order, order}, socket) do
     loaded = reload_order(order, socket.assigns.ash_scope)
     send_update(OrdersComponent, id: "orders", action: {:insert, loaded})
-    updated = [loaded | socket.assigns.orders_initial]
+    current = socket.assigns.orders_initial.result || []
+    updated = [loaded | current]
 
     socket =
       if loaded.status == :pending do
@@ -91,27 +95,26 @@ defmodule SupervisedSlicesWeb.AdminLive do
 
     {:noreply,
      socket
-     |> assign(:orders_initial, updated)
+     |> assign(:orders_initial, AsyncResult.ok(updated))
      |> assign(:ticket_count, length(updated))}
   end
 
   def handle_info({:order_updated, order}, socket) do
+    current = socket.assigns.orders_initial.result || []
+
     if order.status in [:completed, :cancelled] do
       send_update(OrdersComponent, id: "orders", action: {:delete, order})
-      updated = Enum.reject(socket.assigns.orders_initial, &(&1.id == order.id))
+      updated = Enum.reject(current, &(&1.id == order.id))
 
       {:noreply,
-       socket |> assign(:orders_initial, updated) |> assign(:ticket_count, length(updated))}
+       socket
+       |> assign(:orders_initial, AsyncResult.ok(updated))
+       |> assign(:ticket_count, length(updated))}
     else
       loaded = reload_order(order, socket.assigns.ash_scope)
       send_update(OrdersComponent, id: "orders", action: {:update, loaded})
-
-      updated =
-        Enum.map(socket.assigns.orders_initial, fn o ->
-          if o.id == loaded.id, do: loaded, else: o
-        end)
-
-      {:noreply, assign(socket, :orders_initial, updated)}
+      updated = Enum.map(current, fn o -> if o.id == loaded.id, do: loaded, else: o end)
+      {:noreply, assign(socket, :orders_initial, AsyncResult.ok(updated))}
     end
   end
 
@@ -124,8 +127,10 @@ defmodule SupervisedSlicesWeb.AdminLive do
         _ -> cart
       end
 
+    current = socket.assigns.active_carts.result || []
+
     {:noreply,
-     assign(socket, :active_carts, update_carts(socket.assigns.active_carts, full_cart))}
+     assign(socket, :active_carts, AsyncResult.ok(update_carts(current, full_cart)))}
   end
 
   def handle_info(%Phoenix.Socket.Broadcast{event: "presence_diff"}, socket) do
@@ -145,13 +150,14 @@ defmodule SupervisedSlicesWeb.AdminLive do
   end
 
   def handle_info(:tick, socket) do
+    org_id = socket.assigns.org.id
     send_update(OrdersComponent, id: "orders", tick: DateTime.utc_now())
-    {avg_fire_time, fire_time_trend} = load_fire_time_stats(socket.assigns.org.id)
 
     {:noreply,
-     socket
-     |> assign(:avg_fire_time, avg_fire_time)
-     |> assign(:fire_time_trend, fire_time_trend)}
+     assign_async(socket, :fire_time_stats, fn ->
+       {avg, trend} = load_fire_time_stats(org_id)
+       {:ok, %{fire_time_stats: {avg, trend}}}
+     end)}
   end
 
   def handle_event("toggle_phone_order", _params, socket) do

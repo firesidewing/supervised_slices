@@ -4,7 +4,7 @@ defmodule SupervisedSlicesWeb.AdminLive.OrdersComponent do
   alias SupervisedSlices.Orders.Order
 
   def mount(socket) do
-    {:ok, stream(socket, :orders, [])}
+    {:ok, socket |> stream(:orders, []) |> assign(:orders_loading, false)}
   end
 
   def update(%{action: {:insert, order}}, socket) do
@@ -212,12 +212,19 @@ defmodule SupervisedSlicesWeb.AdminLive.OrdersComponent do
 
       <div
         id="orders-empty"
-        class="hidden only:flex flex-col items-center py-24 text-on-surface-variant/20"
+        class={[
+          "flex flex-col items-center py-24 text-on-surface-variant/20",
+          if(@orders_loading, do: "", else: "hidden only:flex")
+        ]}
       >
-        <span class="material-symbols-outlined text-8xl">receipt_long</span>
-        <p class="mt-4 text-xl font-black font-headline uppercase tracking-widest opacity-40">
-          No active orders
-        </p>
+        <%= if @orders_loading do %>
+          <.icon name="hero-arrow-path" class="size-10 animate-spin opacity-30" />
+        <% else %>
+          <span class="material-symbols-outlined text-8xl">receipt_long</span>
+          <p class="mt-4 text-xl font-black font-headline uppercase tracking-widest opacity-40">
+            No active orders
+          </p>
+        <% end %>
       </div>
     </div>
     """

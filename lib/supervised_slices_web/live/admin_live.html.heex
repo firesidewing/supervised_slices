@@ -142,17 +142,18 @@
             {@ticket_count} Active Tickets
           </span>
         </div>
+        <% {fire_avg, fire_trend} = @fire_time_stats.result || {nil, :neutral} %>
         <div class="bg-secondary-container px-6 py-3 rounded-md flex items-center gap-3">
           <span class="material-symbols-outlined text-on-secondary-container text-xl">timer</span>
           <span class="text-sm font-bold uppercase tracking-wider text-on-secondary-container">
-            Avg. Fire: {format_fire_time(@avg_fire_time)}
+            Avg. Fire: {format_fire_time(fire_avg)}
           </span>
           <span
-            :if={@fire_time_trend != :neutral}
-            class={["text-xs font-bold", fire_time_trend_class(@fire_time_trend)]}
-            title={if @fire_time_trend == :up, do: "Slower than last hour", else: "Faster than last hour"}
+            :if={fire_trend != :neutral}
+            class={["text-xs font-bold", fire_time_trend_class(fire_trend)]}
+            title={if fire_trend == :up, do: "Slower than last hour", else: "Faster than last hour"}
           >
-            {fire_time_trend_label(@fire_time_trend)}
+            {fire_time_trend_label(fire_trend)}
           </span>
         </div>
       </div>
@@ -171,9 +172,10 @@
     <.live_component
       module={SupervisedSlicesWeb.AdminLive.OrdersComponent}
       id="orders"
-      orders={@orders_initial}
+      orders={@orders_initial.result || []}
+      orders_loading={@orders_initial.loading}
       ticket_count={@ticket_count}
-      active_carts_count={length(@active_carts)}
+      active_carts_count={length(@active_carts.result || [])}
       visitor_count={@visitor_count}
       ash_scope={@ash_scope}
       org={@org}
@@ -193,7 +195,7 @@
     <.live_component
       module={SupervisedSlicesWeb.AdminLive.BasketsComponent}
       id="baskets"
-      active_carts={@active_carts}
+      active_carts={@active_carts.result || []}
     />
   <% end %>
 
