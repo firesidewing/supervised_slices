@@ -362,342 +362,681 @@ defmodule SupervisedSlicesWeb.AdminLive.MenuEditorComponent do
     <div class="flex flex-col lg:flex-row gap-12 items-start">
       <div class="flex-1 space-y-12 w-full">
         <div class="flex items-center justify-between">
-        <div>
-          <h2 class="font-headline text-2xl font-black text-on-surface">
-            Menu Atelier
-          </h2>
-          <p class="text-sm text-on-surface-variant mt-1">
-            Curate your artisan offerings and modifiers
-          </p>
+          <div>
+            <h2 class="font-headline text-2xl font-black text-on-surface">
+              Menu Atelier
+            </h2>
+            <p class="text-sm text-on-surface-variant mt-1">
+              Curate your artisan offerings and modifiers
+            </p>
+          </div>
+          <button
+            phx-click="add_category"
+            phx-target={@myself}
+            class="flex items-center gap-2 bg-primary text-white px-6 py-2.5 rounded-md font-bold text-sm uppercase tracking-wide transition-all active:scale-95 shadow-sm"
+          >
+            <span class="material-symbols-outlined text-lg">add</span> New Category
+          </button>
         </div>
-        <button
-          phx-click="add_category"
+
+        <form
+          :if={@creating_category}
+          phx-submit="create_category"
           phx-target={@myself}
-          class="flex items-center gap-2 bg-primary text-white px-6 py-2.5 rounded-md font-bold text-sm uppercase tracking-wide transition-all active:scale-95 shadow-sm"
+          class="flex items-center gap-4 bg-surface-container-low p-4 rounded-md"
         >
-          <span class="material-symbols-outlined text-lg">add</span> New Category
-        </button>
-      </div>
+          <input
+            type="text"
+            name="category[name]"
+            required
+            autofocus
+            placeholder="e.g. Starters"
+            class="flex-1 text-lg font-black bg-surface-container-highest border-0 rounded px-4 py-2 focus:ring-1 focus:ring-primary outline-none"
+          />
+          <input
+            type="number"
+            name="category[sort_order]"
+            placeholder="Order"
+            class="w-20 bg-surface-container-highest border-0 rounded px-3 py-2 text-sm focus:ring-1 focus:ring-primary outline-none"
+          />
+          <button
+            type="submit"
+            class="bg-primary text-white px-5 py-2 rounded-md text-sm font-bold uppercase tracking-wide"
+          >
+            Save
+          </button>
+          <button
+            type="button"
+            phx-click="cancel_add_category"
+            phx-target={@myself}
+            class="text-on-surface-variant hover:text-on-surface px-3 py-2"
+          >
+            <span class="material-symbols-outlined text-xl">close</span>
+          </button>
+        </form>
 
-      <form
-        :if={@creating_category}
-        phx-submit="create_category"
-        phx-target={@myself}
-        class="flex items-center gap-4 bg-surface-container-low p-4 rounded-md"
-      >
-        <input
-          type="text"
-          name="category[name]"
-          required
-          autofocus
-          placeholder="e.g. Starters"
-          class="flex-1 text-lg font-black bg-surface-container-highest border-0 rounded px-4 py-2 focus:ring-1 focus:ring-primary outline-none"
-        />
-        <input
-          type="number"
-          name="category[sort_order]"
-          placeholder="Order"
-          class="w-20 bg-surface-container-highest border-0 rounded px-3 py-2 text-sm focus:ring-1 focus:ring-primary outline-none"
-        />
-        <button
-          type="submit"
-          class="bg-primary text-white px-5 py-2 rounded-md text-sm font-bold uppercase tracking-wide"
-        >
-          Save
-        </button>
-        <button
-          type="button"
-          phx-click="cancel_add_category"
-          phx-target={@myself}
-          class="text-on-surface-variant hover:text-on-surface px-3 py-2"
-        >
-          <span class="material-symbols-outlined text-xl">close</span>
-        </button>
-      </form>
+        <%= if Enum.empty?(@categories) do %>
+          <div class="flex flex-col items-center py-24 text-on-surface-variant/20">
+            <span class="material-symbols-outlined text-8xl">restaurant_menu</span>
+            <p class="mt-4 text-xl font-black font-headline uppercase tracking-widest opacity-40">
+              No categories yet
+            </p>
+          </div>
+        <% end %>
 
-      <%= if Enum.empty?(@categories) do %>
-        <div class="flex flex-col items-center py-24 text-on-surface-variant/20">
-          <span class="material-symbols-outlined text-8xl">restaurant_menu</span>
-          <p class="mt-4 text-xl font-black font-headline uppercase tracking-widest opacity-40">
-            No categories yet
-          </p>
-        </div>
-      <% end %>
-
-      <%= for category <- @categories do %>
-        <div class="space-y-4">
-          <%= if @editing_item_id == "cat:#{category.id}" do %>
-            <form
-              phx-submit="save_category"
-              phx-target={@myself}
-              class="flex items-center gap-4 bg-surface-container-low p-4 rounded-md"
-            >
-              <input type="hidden" name="category[id]" value={category.id} />
-              <input
-                type="text"
-                name="category[name]"
-                value={category.name}
-                class="flex-1 text-lg font-black bg-surface-container-highest border-0 rounded px-4 py-2 focus:ring-1 focus:ring-primary outline-none"
-                autofocus
-              />
-              <input
-                type="number"
-                name="category[sort_order]"
-                value={category.sort_order}
-                class="w-20 bg-surface-container-highest border-0 rounded px-3 py-2 text-sm focus:ring-1 focus:ring-primary outline-none"
-                placeholder="Order"
-              />
-              <button
-                type="submit"
-                class="bg-primary text-white px-5 py-2 rounded-md text-sm font-bold uppercase tracking-wide"
-              >
-                Save
-              </button>
-              <button
-                type="button"
-                phx-click="cancel_edit"
+        <%= for category <- @categories do %>
+          <div class="space-y-4">
+            <%= if @editing_item_id == "cat:#{category.id}" do %>
+              <form
+                phx-submit="save_category"
                 phx-target={@myself}
-                class="text-on-surface-variant hover:text-on-surface px-3 py-2"
+                class="flex items-center gap-4 bg-surface-container-low p-4 rounded-md"
               >
-                <span class="material-symbols-outlined text-xl">close</span>
-              </button>
-            </form>
-          <% else %>
-            <div class="flex items-center gap-4 group">
-              <h3 class="text-2xl font-black text-on-surface flex-1 font-headline tracking-tight">
-                {category.name}
-              </h3>
-              <button
-                phx-click="edit_category"
-                phx-value-id={category.id}
-                phx-target={@myself}
-                class="opacity-0 group-hover:opacity-100 text-on-surface-variant/40 hover:text-primary transition-all p-1"
-                title="Edit category"
-              >
-                <span class="material-symbols-outlined text-lg">edit</span>
-              </button>
-            </div>
-          <% end %>
+                <input type="hidden" name="category[id]" value={category.id} />
+                <input
+                  type="text"
+                  name="category[name]"
+                  value={category.name}
+                  class="flex-1 text-lg font-black bg-surface-container-highest border-0 rounded px-4 py-2 focus:ring-1 focus:ring-primary outline-none"
+                  autofocus
+                />
+                <input
+                  type="number"
+                  name="category[sort_order]"
+                  value={category.sort_order}
+                  class="w-20 bg-surface-container-highest border-0 rounded px-3 py-2 text-sm focus:ring-1 focus:ring-primary outline-none"
+                  placeholder="Order"
+                />
+                <button
+                  type="submit"
+                  class="bg-primary text-white px-5 py-2 rounded-md text-sm font-bold uppercase tracking-wide"
+                >
+                  Save
+                </button>
+                <button
+                  type="button"
+                  phx-click="cancel_edit"
+                  phx-target={@myself}
+                  class="text-on-surface-variant hover:text-on-surface px-3 py-2"
+                >
+                  <span class="material-symbols-outlined text-xl">close</span>
+                </button>
+              </form>
+            <% else %>
+              <div class="flex items-center gap-4 group">
+                <h3 class="text-2xl font-black text-on-surface flex-1 font-headline tracking-tight">
+                  {category.name}
+                </h3>
+                <button
+                  phx-click="edit_category"
+                  phx-value-id={category.id}
+                  phx-target={@myself}
+                  class="opacity-0 group-hover:opacity-100 text-on-surface-variant/40 hover:text-primary transition-all p-1"
+                  title="Edit category"
+                >
+                  <span class="material-symbols-outlined text-lg">edit</span>
+                </button>
+              </div>
+            <% end %>
 
-          <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-            <%= for item <- category.menu_items do %>
-              <%= if @editing_item_id == item.id do %>
-                <div class="bg-surface-container-lowest rounded-xl p-5 space-y-5">
-                  <form phx-submit="save_item" phx-target={@myself} class="space-y-4">
-                    <input type="hidden" name="item[id]" value={item.id} />
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                      <div>
-                        <label class="block text-xs font-bold text-on-surface-variant uppercase tracking-wider mb-1">
-                          Name
-                        </label>
-                        <input
-                          type="text"
-                          name="item[name]"
-                          value={item.name}
-                          autofocus
-                          class="w-full bg-surface-container-low border-0 rounded-lg px-4 py-2.5 text-sm focus:ring-2 focus:ring-primary outline-none"
-                        />
-                      </div>
-                      <%= if Enum.empty?(item.sizes || []) do %>
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+              <%= for item <- category.menu_items do %>
+                <%= if @editing_item_id == item.id do %>
+                  <div class="bg-surface-container-lowest rounded-xl p-5 space-y-5">
+                    <form phx-submit="save_item" phx-target={@myself} class="space-y-4">
+                      <input type="hidden" name="item[id]" value={item.id} />
+                      <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                         <div>
                           <label class="block text-xs font-bold text-on-surface-variant uppercase tracking-wider mb-1">
-                            Base Price (CAD)
+                            Name
                           </label>
                           <input
                             type="text"
-                            name="item[price]"
-                            value={money_amount(item.price)}
-                            inputmode="decimal"
-                            placeholder="e.g. 14.50"
+                            name="item[name]"
+                            value={item.name}
+                            autofocus
                             class="w-full bg-surface-container-low border-0 rounded-lg px-4 py-2.5 text-sm focus:ring-2 focus:ring-primary outline-none"
                           />
                         </div>
-                      <% else %>
-                        <input type="hidden" name="item[price]" value="" />
-                      <% end %>
-                      <div class="md:col-span-2">
-                        <label class="block text-xs font-bold text-on-surface-variant uppercase tracking-wider mb-1">
-                          Description
-                        </label>
-                        <textarea
-                          name="item[description]"
-                          rows="2"
-                          class="w-full bg-surface-container-low border-0 rounded-lg px-4 py-2.5 text-sm focus:ring-2 focus:ring-primary outline-none resize-none"
-                        >{item.description}</textarea>
-                      </div>
-                      <div class="md:col-span-2 space-y-2">
-                        <label class="block text-xs font-bold text-on-surface-variant uppercase tracking-wider">
-                          Image
-                        </label>
-                        <%= if item.image_url do %>
-                          <img
-                            src={item.image_url}
-                            alt={item.name}
-                            class="h-16 w-16 rounded-lg object-cover"
-                          />
+                        <%= if Enum.empty?(item.sizes || []) do %>
+                          <div>
+                            <label class="block text-xs font-bold text-on-surface-variant uppercase tracking-wider mb-1">
+                              Base Price (CAD)
+                            </label>
+                            <input
+                              type="text"
+                              name="item[price]"
+                              value={money_amount(item.price)}
+                              inputmode="decimal"
+                              placeholder="e.g. 14.50"
+                              class="w-full bg-surface-container-low border-0 rounded-lg px-4 py-2.5 text-sm focus:ring-2 focus:ring-primary outline-none"
+                            />
+                          </div>
+                        <% else %>
+                          <input type="hidden" name="item[price]" value="" />
                         <% end %>
-                        <div class="flex gap-2 items-center">
-                          <.live_file_input
-                            upload={@uploads.item_image}
-                            class="text-sm text-on-surface-variant file:mr-3 file:py-1.5 file:px-3 file:rounded-lg file:border-0 file:bg-surface-container file:text-xs file:font-bold file:uppercase file:tracking-wider file:cursor-pointer"
+                        <div class="md:col-span-2">
+                          <label class="block text-xs font-bold text-on-surface-variant uppercase tracking-wider mb-1">
+                            Description
+                          </label>
+                          <textarea
+                            name="item[description]"
+                            rows="2"
+                            class="w-full bg-surface-container-low border-0 rounded-lg px-4 py-2.5 text-sm focus:ring-2 focus:ring-primary outline-none resize-none"
+                          >{item.description}</textarea>
+                        </div>
+                        <div class="md:col-span-2 space-y-2">
+                          <label class="block text-xs font-bold text-on-surface-variant uppercase tracking-wider">
+                            Image
+                          </label>
+                          <%= if item.image_url do %>
+                            <img
+                              src={item.image_url}
+                              alt={item.name}
+                              class="h-16 w-16 rounded-lg object-cover"
+                            />
+                          <% end %>
+                          <div class="flex gap-2 items-center">
+                            <.live_file_input
+                              upload={@uploads.item_image}
+                              class="text-sm text-on-surface-variant file:mr-3 file:py-1.5 file:px-3 file:rounded-lg file:border-0 file:bg-surface-container file:text-xs file:font-bold file:uppercase file:tracking-wider file:cursor-pointer"
+                            />
+                          </div>
+                          <p class="text-[10px] text-on-surface-variant">
+                            Or paste a URL below (upload takes priority)
+                          </p>
+                          <input
+                            type="text"
+                            name="item[image_url]"
+                            value={item.image_url || ""}
+                            placeholder="https://…"
+                            class="w-full bg-surface-container-low border-0 rounded-lg px-4 py-2.5 text-sm focus:ring-2 focus:ring-primary outline-none"
                           />
                         </div>
-                        <p class="text-[10px] text-on-surface-variant">
-                          Or paste a URL below (upload takes priority)
-                        </p>
-                        <input
-                          type="text"
-                          name="item[image_url]"
-                          value={item.image_url || ""}
-                          placeholder="https://…"
-                          class="w-full bg-surface-container-low border-0 rounded-lg px-4 py-2.5 text-sm focus:ring-2 focus:ring-primary outline-none"
-                        />
+                        <div>
+                          <label class="block text-xs font-bold text-on-surface-variant uppercase tracking-wider mb-1">
+                            Sort Order
+                          </label>
+                          <input
+                            type="number"
+                            name="item[sort_order]"
+                            value={item.sort_order}
+                            class="w-full bg-surface-container-low border-0 rounded-lg px-4 py-2.5 text-sm focus:ring-2 focus:ring-primary outline-none"
+                          />
+                        </div>
                       </div>
-                      <div>
-                        <label class="block text-xs font-bold text-on-surface-variant uppercase tracking-wider mb-1">
-                          Sort Order
-                        </label>
-                        <input
-                          type="number"
-                          name="item[sort_order]"
-                          value={item.sort_order}
-                          class="w-full bg-surface-container-low border-0 rounded-lg px-4 py-2.5 text-sm focus:ring-2 focus:ring-primary outline-none"
-                        />
-                      </div>
-                    </div>
-                    <div class="flex items-center gap-3 pt-2">
-                      <button
-                        type="submit"
-                        class="bg-primary text-white px-6 py-2.5 rounded-xl font-bold hover:opacity-90 transition-opacity"
-                      >
-                        Save Changes
-                      </button>
-                      <button
-                        type="button"
-                        phx-click="cancel_edit"
-                        phx-target={@myself}
-                        class="text-on-surface-variant hover:text-on-surface font-medium px-4 py-2.5"
-                      >
-                        Cancel
-                      </button>
-                    </div>
-                  </form>
-
-                  <div class="border-t border-surface-container-low pt-4 space-y-3">
-                    <p class="text-xs font-bold text-on-surface-variant uppercase tracking-wider">
-                      Modifier Groups
-                    </p>
-                    <p class="text-xs text-on-surface-variant">
-                      Assign global modifier groups to this item. Manage group options in the sidebar.
-                    </p>
-
-                    <%= for group <- (item.modifier_groups || []) do %>
-                      <div class="flex items-center gap-3 px-3 py-2 bg-surface-container-low rounded-lg">
-                        <span class="flex-1 text-sm font-semibold text-on-surface">{group.name}</span>
-                        <%= if group.required do %>
-                          <span class="text-[10px] font-bold uppercase tracking-wider bg-primary-fixed text-on-primary-fixed-variant px-2 py-0.5 rounded-full">
-                            Required
-                          </span>
-                        <% end %>
-                        <span class="text-xs text-on-surface-variant">
-                          {length(group.modifiers || [])} options
-                        </span>
+                      <div class="flex items-center gap-3 pt-2">
                         <button
-                          phx-click="remove_item_modifier_group"
-                          phx-value-item_id={item.id}
-                          phx-value-group_id={group.id}
-                          phx-target={@myself}
-                          type="button"
-                          class="text-on-surface-variant hover:text-error transition-colors p-1"
-                          title="Remove from item"
+                          type="submit"
+                          class="bg-primary text-white px-6 py-2.5 rounded-xl font-bold hover:opacity-90 transition-opacity"
                         >
-                          <span class="material-symbols-outlined" style="font-size: 16px;">
-                            link_off
-                          </span>
+                          Save Changes
+                        </button>
+                        <button
+                          type="button"
+                          phx-click="cancel_edit"
+                          phx-target={@myself}
+                          class="text-on-surface-variant hover:text-on-surface font-medium px-4 py-2.5"
+                        >
+                          Cancel
                         </button>
                       </div>
-                    <% end %>
+                    </form>
 
-                    <%= if not Enum.empty?(
+                    <div class="border-t border-surface-container-low pt-4 space-y-3">
+                      <p class="text-xs font-bold text-on-surface-variant uppercase tracking-wider">
+                        Modifier Groups
+                      </p>
+                      <p class="text-xs text-on-surface-variant">
+                        Assign global modifier groups to this item. Manage group options in the sidebar.
+                      </p>
+
+                      <%= for group <- (item.modifier_groups || []) do %>
+                        <div class="flex items-center gap-3 px-3 py-2 bg-surface-container-low rounded-lg">
+                          <span class="flex-1 text-sm font-semibold text-on-surface">
+                            {group.name}
+                          </span>
+                          <%= if group.required do %>
+                            <span class="text-[10px] font-bold uppercase tracking-wider bg-primary-fixed text-on-primary-fixed-variant px-2 py-0.5 rounded-full">
+                              Required
+                            </span>
+                          <% end %>
+                          <span class="text-xs text-on-surface-variant">
+                            {length(group.modifiers || [])} options
+                          </span>
+                          <button
+                            phx-click="remove_item_modifier_group"
+                            phx-value-item_id={item.id}
+                            phx-value-group_id={group.id}
+                            phx-target={@myself}
+                            type="button"
+                            class="text-on-surface-variant hover:text-error transition-colors p-1"
+                            title="Remove from item"
+                          >
+                            <span class="material-symbols-outlined" style="font-size: 16px;">
+                              link_off
+                            </span>
+                          </button>
+                        </div>
+                      <% end %>
+
+                      <%= if not Enum.empty?(
                       Enum.reject(@modifier_groups, fn mg ->
                         Enum.any?(item.modifier_groups || [], &(&1.id == mg.id))
                       end)
                     ) do %>
-                      <div class="flex flex-wrap gap-2">
-                        <%= for mg <- Enum.reject(@modifier_groups, fn mg ->
+                        <div class="flex flex-wrap gap-2">
+                          <%= for mg <- Enum.reject(@modifier_groups, fn mg ->
                           Enum.any?(item.modifier_groups || [], &(&1.id == mg.id))
                         end) do %>
-                          <button
-                            phx-click="assign_modifier_group"
-                            phx-value-item_id={item.id}
-                            phx-value-group_id={mg.id}
-                            phx-target={@myself}
-                            type="button"
-                            class="flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-dashed border-on-surface-variant/30 text-xs text-on-surface-variant hover:border-primary hover:text-primary transition-colors"
-                          >
-                            <span class="material-symbols-outlined" style="font-size: 14px;">
-                              add
-                            </span>
-                            {mg.name}
-                          </button>
-                        <% end %>
-                      </div>
-                    <% end %>
-                  </div>
-
-                  <div class="border-t border-surface-container-low pt-4 space-y-3">
-                    <p class="text-xs font-bold text-on-surface-variant uppercase tracking-wider">
-                      Upsell
-                    </p>
-                    <p class="text-xs text-on-surface-variant">
-                      When enabled, this item may appear as a suggestion in other customers' baskets.
-                    </p>
-                    <label class="flex items-center gap-3 cursor-pointer">
-                      <input
-                        type="checkbox"
-                        phx-click="toggle_upsell"
-                        phx-value-id={item.id}
-                        phx-target={@myself}
-                        checked={item.is_upsell}
-                        class="rounded"
-                      />
-                      <span class="text-sm font-semibold text-on-surface">
-                        Show as upsell suggestion
-                      </span>
-                    </label>
-                  </div>
-
-                  <div class="border-t border-surface-container-low pt-4 space-y-3">
-                    <div class="flex items-center justify-between">
-                      <p class="text-xs font-bold text-on-surface-variant uppercase tracking-wider">
-                        Sizes
-                      </p>
-                      <%= if @adding_size_to_item_id != item.id do %>
-                        <button
-                          phx-click="add_size"
-                          phx-value-item_id={item.id}
-                          phx-target={@myself}
-                          type="button"
-                          class="flex items-center gap-1 text-sm text-primary hover:opacity-80 font-bold"
-                        >
-                          <span class="material-symbols-outlined" style="font-size: 16px;">
-                            add_circle
-                          </span>
-                          Add size
-                        </button>
+                            <button
+                              phx-click="assign_modifier_group"
+                              phx-value-item_id={item.id}
+                              phx-value-group_id={mg.id}
+                              phx-target={@myself}
+                              type="button"
+                              class="flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-dashed border-on-surface-variant/30 text-xs text-on-surface-variant hover:border-primary hover:text-primary transition-colors"
+                            >
+                              <span class="material-symbols-outlined" style="font-size: 14px;">
+                                add
+                              </span>
+                              {mg.name}
+                            </button>
+                          <% end %>
+                        </div>
                       <% end %>
                     </div>
 
-                    <%= for size <- Enum.sort_by(item.sizes || [], & &1.sort_order) do %>
-                      <div class="flex items-center gap-3 px-3 py-2 bg-surface-container-low rounded-lg">
-                        <span class="flex-1 text-sm text-on-surface">{size.name}</span>
-                        <span class="text-sm font-bold text-primary">{format_money(size.price)}</span>
+                    <div class="border-t border-surface-container-low pt-4 space-y-3">
+                      <p class="text-xs font-bold text-on-surface-variant uppercase tracking-wider">
+                        Upsell
+                      </p>
+                      <p class="text-xs text-on-surface-variant">
+                        When enabled, this item may appear as a suggestion in other customers' baskets.
+                      </p>
+                      <label class="flex items-center gap-3 cursor-pointer">
+                        <input
+                          type="checkbox"
+                          phx-click="toggle_upsell"
+                          phx-value-id={item.id}
+                          phx-target={@myself}
+                          checked={item.is_upsell}
+                          class="rounded"
+                        />
+                        <span class="text-sm font-semibold text-on-surface">
+                          Show as upsell suggestion
+                        </span>
+                      </label>
+                    </div>
+
+                    <div class="border-t border-surface-container-low pt-4 space-y-3">
+                      <div class="flex items-center justify-between">
+                        <p class="text-xs font-bold text-on-surface-variant uppercase tracking-wider">
+                          Sizes
+                        </p>
+                        <%= if @adding_size_to_item_id != item.id do %>
+                          <button
+                            phx-click="add_size"
+                            phx-value-item_id={item.id}
+                            phx-target={@myself}
+                            type="button"
+                            class="flex items-center gap-1 text-sm text-primary hover:opacity-80 font-bold"
+                          >
+                            <span class="material-symbols-outlined" style="font-size: 16px;">
+                              add_circle
+                            </span>
+                            Add size
+                          </button>
+                        <% end %>
+                      </div>
+
+                      <%= for size <- Enum.sort_by(item.sizes || [], & &1.sort_order) do %>
+                        <div class="flex items-center gap-3 px-3 py-2 bg-surface-container-low rounded-lg">
+                          <span class="flex-1 text-sm text-on-surface">{size.name}</span>
+                          <span class="text-sm font-bold text-primary">
+                            {format_money(size.price)}
+                          </span>
+                          <button
+                            phx-click="delete_size"
+                            phx-value-id={size.id}
+                            phx-target={@myself}
+                            type="button"
+                            class="text-on-surface-variant hover:text-error transition-colors p-1"
+                          >
+                            <span class="material-symbols-outlined" style="font-size: 14px;">
+                              close
+                            </span>
+                          </button>
+                        </div>
+                      <% end %>
+
+                      <%= if @adding_size_to_item_id == item.id do %>
+                        <form
+                          phx-submit="create_size"
+                          phx-target={@myself}
+                          class="flex items-center gap-2"
+                        >
+                          <input type="hidden" name="size[menu_item_id]" value={item.id} />
+                          <input
+                            type="text"
+                            name="size[name]"
+                            required
+                            autofocus
+                            placeholder="e.g. Large"
+                            class="flex-1 bg-surface-container-low border-0 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-primary outline-none"
+                          />
+                          <input
+                            type="text"
+                            name="size[price]"
+                            required
+                            placeholder="18.00"
+                            inputmode="decimal"
+                            class="w-28 bg-surface-container-low border-0 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-primary outline-none"
+                          />
+                          <button
+                            type="submit"
+                            class="bg-primary text-white px-4 py-2 rounded-lg text-sm font-bold hover:opacity-90"
+                          >
+                            Add
+                          </button>
+                          <button
+                            type="button"
+                            phx-click="cancel_add_size"
+                            phx-target={@myself}
+                            class="text-on-surface-variant hover:text-on-surface p-2"
+                          >
+                            <span class="material-symbols-outlined" style="font-size: 16px;">
+                              close
+                            </span>
+                          </button>
+                        </form>
+                      <% end %>
+
+                      <%= if Enum.empty?(item.sizes || []) and @adding_size_to_item_id != item.id do %>
+                        <p class="text-xs text-on-surface-variant italic">
+                          No sizes yet. Add sizes to let customers choose (e.g. Small, Medium, Large).
+                        </p>
+                      <% end %>
+                    </div>
+                  </div>
+                <% else %>
+                  <div class={[
+                    "bg-surface-container-low rounded-md flex flex-col shadow-sm overflow-hidden transition-all duration-300 group",
+                    if(not item.available, do: "opacity-50 grayscale")
+                  ]}>
+                    <div class="aspect-square relative overflow-hidden bg-surface-container-high">
+                      <%= if item.image_url do %>
+                        <img
+                          src={item.image_url}
+                          alt={item.name}
+                          class="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
+                        />
+                      <% else %>
+                        <div class="w-full h-full flex items-center justify-center text-on-surface-variant/20">
+                          <span class="material-symbols-outlined text-4xl">image</span>
+                        </div>
+                      <% end %>
+                      <div class="absolute top-3 right-3 flex gap-2">
                         <button
-                          phx-click="delete_size"
-                          phx-value-id={size.id}
+                          phx-click="toggle_available"
+                          phx-value-id={item.id}
+                          phx-target={@myself}
+                          class={[
+                            "px-2 py-1 rounded text-[10px] font-black uppercase tracking-widest shadow-lg backdrop-blur-md",
+                            if(item.available,
+                              do: "bg-secondary-container/90 text-on-secondary-container",
+                              else: "bg-surface-container-highest/90 text-on-surface-variant"
+                            )
+                          ]}
+                        >
+                          {if item.available, do: "LIVE", else: "OFF"}
+                        </button>
+                      </div>
+                    </div>
+
+                    <div class="p-5 flex-1 flex flex-col">
+                      <div class="flex justify-between items-start gap-2 mb-2">
+                        <h4 class="font-bold text-on-surface text-sm leading-tight group-hover:text-primary transition-colors">
+                          {item.name}
+                        </h4>
+                        <span class="text-sm font-black text-primary shrink-0">
+                          <%= cond do %>
+                            <% item.price -> %>
+                              {format_money(item.price)}
+                            <% not Enum.empty?(item.sizes || []) -> %>
+                              From {item.sizes
+                              |> Enum.min_by(& &1.price.amount)
+                              |> then(& &1.price)
+                              |> format_money()}
+                            <% true -> %>
+                              —
+                          <% end %>
+                        </span>
+                      </div>
+                      <p class="text-xs text-on-surface-variant/60 line-clamp-2 mb-4 leading-relaxed italic">
+                        {item.description}
+                      </p>
+
+                      <div class="mt-auto flex items-center justify-between gap-4 pt-4 border-t border-on-surface/5">
+                        <div class="flex gap-1.5 overflow-hidden">
+                          <%= if not Enum.empty?(item.sizes || []) do %>
+                            <span class="bg-surface-container-highest text-[9px] font-black uppercase tracking-widest px-2 py-0.5 rounded text-on-surface-variant">
+                              {length(item.sizes)} SIZES
+                            </span>
+                          <% end %>
+                          <%= if not Enum.empty?(item.modifier_groups || []) do %>
+                            <span class="bg-surface-container-highest text-[9px] font-black uppercase tracking-widest px-2 py-0.5 rounded text-on-surface-variant">
+                              {length(item.modifier_groups)} MODS
+                            </span>
+                          <% end %>
+                          <%= if item.is_upsell do %>
+                            <span class="bg-surface-container-highest text-[9px] font-black uppercase tracking-widest px-2 py-0.5 rounded text-on-surface-variant">
+                              UPSELL
+                            </span>
+                          <% end %>
+                        </div>
+                        <button
+                          phx-click="edit_item"
+                          phx-value-id={item.id}
+                          phx-target={@myself}
+                          class="text-on-surface-variant/40 hover:text-primary transition-colors"
+                        >
+                          <span class="material-symbols-outlined text-lg">edit</span>
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                <% end %>
+              <% end %>
+
+              <%= if @adding_to_category_id == category.id do %>
+                <form
+                  phx-submit="create_item"
+                  phx-target={@myself}
+                  class="bg-surface-container-low rounded-md p-6 space-y-4 shadow-sm border-2 border-primary/20"
+                >
+                  <input type="hidden" name="item[category_id]" value={category.id} />
+                  <h4 class="text-xs font-black text-on-surface uppercase tracking-[0.2em]">
+                    New artisan offering
+                  </h4>
+                  <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                      <label class="block text-[10px] font-black text-on-surface-variant uppercase tracking-widest mb-1.5">
+                        Name
+                      </label>
+                      <input
+                        type="text"
+                        name="item[name]"
+                        required
+                        autofocus
+                        placeholder="e.g. Classic Margherita"
+                        class="w-full bg-surface-container-highest border-0 rounded px-4 py-2.5 text-sm focus:ring-1 focus:ring-primary outline-none"
+                      />
+                    </div>
+                    <div>
+                      <label class="block text-[10px] font-black text-on-surface-variant uppercase tracking-widest mb-1.5">
+                        Base Price (CAD)
+                      </label>
+                      <input
+                        type="text"
+                        name="item[price]"
+                        placeholder="14.50"
+                        inputmode="decimal"
+                        class="w-full bg-surface-container-highest border-0 rounded px-4 py-2.5 text-sm focus:ring-1 focus:ring-primary outline-none"
+                      />
+                    </div>
+                    <div class="md:col-span-2">
+                      <label class="block text-[10px] font-black text-on-surface-variant uppercase tracking-widest mb-1.5">
+                        Description
+                      </label>
+                      <textarea
+                        name="item[description]"
+                        rows="2"
+                        placeholder="Describe the dish…"
+                        class="w-full bg-surface-container-highest border-0 rounded px-4 py-2.5 text-sm focus:ring-1 focus:ring-primary outline-none resize-none"
+                      ></textarea>
+                    </div>
+                  </div>
+                  <div class="flex items-center gap-3 pt-2">
+                    <button
+                      type="submit"
+                      class="bg-primary text-white px-6 py-2.5 rounded-md font-bold text-xs uppercase tracking-widest transition-all active:scale-95"
+                    >
+                      Add Offering
+                    </button>
+                    <button
+                      type="button"
+                      phx-click="cancel_edit"
+                      phx-target={@myself}
+                      class="text-on-surface-variant/40 hover:text-on-surface font-bold text-xs uppercase tracking-widest px-4 py-2.5"
+                    >
+                      Cancel
+                    </button>
+                  </div>
+                </form>
+              <% else %>
+                <button
+                  phx-click="add_item"
+                  phx-value-category_id={category.id}
+                  phx-target={@myself}
+                  class="flex flex-col items-center justify-center gap-3 p-8 rounded-md border-2 border-dashed border-on-surface/5 hover:border-primary/20 hover:bg-surface-container-low transition-all group"
+                >
+                  <span class="material-symbols-outlined text-primary/40 group-hover:text-primary transition-colors text-3xl">
+                    add_circle
+                  </span>
+                  <span class="text-[10px] font-black text-on-surface-variant uppercase tracking-[0.2em]">
+                    Add item to {category.name}
+                  </span>
+                </button>
+              <% end %>
+            </div>
+          </div>
+        <% end %>
+      </div>
+
+      <aside class="w-full lg:w-80 shrink-0 space-y-6">
+        <div class="bg-surface-container-low rounded-md p-6 space-y-6">
+          <div class="flex items-center justify-between">
+            <p class="text-[0.65rem] font-black text-on-surface-variant uppercase tracking-[0.2em]">
+              Modifier Groups
+            </p>
+            <button
+              phx-click="add_modifier_group"
+              phx-target={@myself}
+              type="button"
+              class="flex items-center gap-1.5 text-[0.65rem] text-primary hover:opacity-80 font-black uppercase tracking-widest"
+            >
+              <span class="material-symbols-outlined text-sm">add_circle</span> New Group
+            </button>
+          </div>
+
+          <%= if @creating_modifier_group do %>
+            <form
+              phx-submit="create_modifier_group"
+              phx-target={@myself}
+              class="bg-surface-container-low rounded-lg p-3 space-y-3 shadow-sm border border-primary/10"
+            >
+              <div class="flex items-center gap-3">
+                <input
+                  type="text"
+                  name="group[name]"
+                  required
+                  autofocus
+                  placeholder="e.g. Extra Toppings"
+                  class="flex-1 bg-white border-0 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-primary outline-none"
+                />
+                <label class="flex items-center gap-2 text-sm text-on-surface-variant whitespace-nowrap cursor-pointer">
+                  <input
+                    type="checkbox"
+                    name="group[required]"
+                    value="true"
+                    class="rounded"
+                  /> Req.
+                </label>
+              </div>
+              <div class="flex items-center gap-2">
+                <button
+                  type="submit"
+                  class="bg-primary text-white px-4 py-2 rounded-lg text-sm font-bold hover:opacity-90 flex-1"
+                >
+                  Save
+                </button>
+                <button
+                  type="button"
+                  phx-click="cancel_add_modifier_group"
+                  phx-target={@myself}
+                  class="text-on-surface-variant hover:text-on-surface text-sm px-3 py-2"
+                >
+                  Cancel
+                </button>
+              </div>
+            </form>
+          <% end %>
+
+          <%= if Enum.empty?(@modifier_groups) do %>
+            <p class="text-xs text-on-surface-variant italic">
+              No modifier groups yet.
+            </p>
+          <% else %>
+            <div class="space-y-4">
+              <%= for group <- @modifier_groups do %>
+                <div class="space-y-2">
+                  <div class="flex items-center gap-2">
+                    <span class="flex-1 text-sm font-bold text-on-surface">
+                      {group.name}
+                    </span>
+                    <%= if group.required do %>
+                      <span class="text-[10px] font-bold uppercase tracking-wider bg-primary-fixed text-on-primary-fixed-variant px-2 py-0.5 rounded-full">
+                        Req.
+                      </span>
+                    <% end %>
+                    <button
+                      phx-click="delete_modifier_group"
+                      phx-value-id={group.id}
+                      phx-target={@myself}
+                      type="button"
+                      class="text-on-surface-variant hover:text-error transition-colors p-1"
+                      title="Delete group"
+                    >
+                      <span class="material-symbols-outlined" style="font-size: 16px;">delete</span>
+                    </button>
+                  </div>
+
+                  <div class="pl-2 space-y-1.5">
+                    <%= for modifier <- group.modifiers || [] do %>
+                      <div class="flex items-center gap-2 text-xs">
+                        <span class="flex-1 text-on-surface">{modifier.name}</span>
+                        <span class="text-[10px] text-on-surface-variant whitespace-nowrap">
+                          {if modifier.price_delta,
+                            do: "+#{format_money(modifier.price_delta)}",
+                            else: "Free"}
+                        </span>
+                        <button
+                          phx-click="delete_modifier"
+                          phx-value-id={modifier.id}
                           phx-target={@myself}
                           type="button"
-                          class="text-on-surface-variant hover:text-error transition-colors p-1"
+                          class="text-on-surface-variant hover:text-error transition-colors p-0.5"
                         >
                           <span class="material-symbols-outlined" style="font-size: 14px;">
                             close
@@ -706,399 +1045,68 @@ defmodule SupervisedSlicesWeb.AdminLive.MenuEditorComponent do
                       </div>
                     <% end %>
 
-                    <%= if @adding_size_to_item_id == item.id do %>
+                    <%= if @adding_modifier_to_group_id == group.id do %>
                       <form
-                        phx-submit="create_size"
+                        phx-submit="create_modifier"
                         phx-target={@myself}
-                        class="flex items-center gap-2"
+                        class="flex flex-col gap-2 mt-2 p-2 bg-white rounded-lg shadow-sm border border-primary/10"
                       >
-                        <input type="hidden" name="size[menu_item_id]" value={item.id} />
+                        <input type="hidden" name="modifier[modifier_group_id]" value={group.id} />
                         <input
                           type="text"
-                          name="size[name]"
+                          name="modifier[name]"
                           required
                           autofocus
-                          placeholder="e.g. Large"
-                          class="flex-1 bg-surface-container-low border-0 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-primary outline-none"
+                          placeholder="Option name"
+                          class="w-full bg-surface-container-highest border-0 rounded px-2 py-1.5 text-xs focus:ring-1 focus:ring-primary outline-none"
                         />
-                        <input
-                          type="text"
-                          name="size[price]"
-                          required
-                          placeholder="18.00"
-                          inputmode="decimal"
-                          class="w-28 bg-surface-container-low border-0 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-primary outline-none"
-                        />
-                        <button
-                          type="submit"
-                          class="bg-primary text-white px-4 py-2 rounded-lg text-sm font-bold hover:opacity-90"
-                        >
-                          Add
-                        </button>
-                        <button
-                          type="button"
-                          phx-click="cancel_add_size"
-                          phx-target={@myself}
-                          class="text-on-surface-variant hover:text-on-surface p-2"
-                        >
-                          <span class="material-symbols-outlined" style="font-size: 16px;">
-                            close
-                          </span>
-                        </button>
+                        <div class="flex items-center gap-2">
+                          <input
+                            type="text"
+                            name="modifier[price_delta]"
+                            placeholder="+0.00"
+                            inputmode="decimal"
+                            class="flex-1 bg-surface-container-highest border-0 rounded px-2 py-1.5 text-xs focus:ring-1 focus:ring-primary outline-none"
+                          />
+                          <button
+                            type="submit"
+                            class="bg-primary text-white px-3 py-1.5 rounded text-xs font-bold hover:opacity-90"
+                          >
+                            Add
+                          </button>
+                          <button
+                            type="button"
+                            phx-click="cancel_add_modifier"
+                            phx-target={@myself}
+                            class="text-on-surface-variant hover:text-on-surface p-1"
+                          >
+                            <span class="material-symbols-outlined" style="font-size: 14px;">
+                              close
+                            </span>
+                          </button>
+                        </div>
                       </form>
-                    <% end %>
-
-                    <%= if Enum.empty?(item.sizes || []) and @adding_size_to_item_id != item.id do %>
-                      <p class="text-xs text-on-surface-variant italic">
-                        No sizes yet. Add sizes to let customers choose (e.g. Small, Medium, Large).
-                      </p>
-                    <% end %>
-                  </div>
-                </div>
-              <% else %>
-                <div class={[
-                  "bg-surface-container-low rounded-md flex flex-col shadow-sm overflow-hidden transition-all duration-300 group",
-                  if(not item.available, do: "opacity-50 grayscale")
-                ]}>
-                  <div class="aspect-square relative overflow-hidden bg-surface-container-high">
-                    <%= if item.image_url do %>
-                      <img
-                        src={item.image_url}
-                        alt={item.name}
-                        class="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
-                      />
                     <% else %>
-                      <div class="w-full h-full flex items-center justify-center text-on-surface-variant/20">
-                        <span class="material-symbols-outlined text-4xl">image</span>
-                      </div>
+                      <button
+                        phx-click="add_modifier"
+                        phx-value-group_id={group.id}
+                        phx-target={@myself}
+                        type="button"
+                        class="flex items-center gap-1 text-[10px] font-black uppercase tracking-wider text-primary hover:opacity-70 transition-colors mt-1"
+                      >
+                        <span class="material-symbols-outlined" style="font-size: 14px;">
+                          add_circle
+                        </span>
+                        Add option
+                      </button>
                     <% end %>
-                    <div class="absolute top-3 right-3 flex gap-2">
-                      <button
-                        phx-click="toggle_available"
-                        phx-value-id={item.id}
-                        phx-target={@myself}
-                        class={[
-                          "px-2 py-1 rounded text-[10px] font-black uppercase tracking-widest shadow-lg backdrop-blur-md",
-                          if(item.available,
-                            do: "bg-secondary-container/90 text-on-secondary-container",
-                            else: "bg-surface-container-highest/90 text-on-surface-variant"
-                          )
-                        ]}
-                      >
-                        {if item.available, do: "LIVE", else: "OFF"}
-                      </button>
-                    </div>
-                  </div>
-
-                  <div class="p-5 flex-1 flex flex-col">
-                    <div class="flex justify-between items-start gap-2 mb-2">
-                      <h4 class="font-bold text-on-surface text-sm leading-tight group-hover:text-primary transition-colors">
-                        {item.name}
-                      </h4>
-                      <span class="text-sm font-black text-primary shrink-0">
-                        <%= cond do %>
-                          <% item.price -> %>
-                            {format_money(item.price)}
-                          <% not Enum.empty?(item.sizes || []) -> %>
-                            From {item.sizes
-                            |> Enum.min_by(& &1.price.amount)
-                            |> then(& &1.price)
-                            |> format_money()}
-                          <% true -> %>
-                            —
-                        <% end %>
-                      </span>
-                    </div>
-                    <p class="text-xs text-on-surface-variant/60 line-clamp-2 mb-4 leading-relaxed italic">
-                      {item.description}
-                    </p>
-
-                    <div class="mt-auto flex items-center justify-between gap-4 pt-4 border-t border-on-surface/5">
-                      <div class="flex gap-1.5 overflow-hidden">
-                        <%= if not Enum.empty?(item.sizes || []) do %>
-                          <span class="bg-surface-container-highest text-[9px] font-black uppercase tracking-widest px-2 py-0.5 rounded text-on-surface-variant">
-                            {length(item.sizes)} SIZES
-                          </span>
-                        <% end %>
-                        <%= if not Enum.empty?(item.modifier_groups || []) do %>
-                          <span class="bg-surface-container-highest text-[9px] font-black uppercase tracking-widest px-2 py-0.5 rounded text-on-surface-variant">
-                            {length(item.modifier_groups)} MODS
-                          </span>
-                        <% end %>
-                        <%= if item.is_upsell do %>
-                          <span class="bg-surface-container-highest text-[9px] font-black uppercase tracking-widest px-2 py-0.5 rounded text-on-surface-variant">
-                            UPSELL
-                          </span>
-                        <% end %>
-                      </div>
-                      <button
-                        phx-click="edit_item"
-                        phx-value-id={item.id}
-                        phx-target={@myself}
-                        class="text-on-surface-variant/40 hover:text-primary transition-colors"
-                      >
-                        <span class="material-symbols-outlined text-lg">edit</span>
-                      </button>
-                    </div>
                   </div>
                 </div>
               <% end %>
-            <% end %>
-
-            <%= if @adding_to_category_id == category.id do %>
-              <form
-                phx-submit="create_item"
-                phx-target={@myself}
-                class="bg-surface-container-low rounded-md p-6 space-y-4 shadow-sm border-2 border-primary/20"
-              >
-                <input type="hidden" name="item[category_id]" value={category.id} />
-                <h4 class="text-xs font-black text-on-surface uppercase tracking-[0.2em]">
-                  New artisan offering
-                </h4>
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div>
-                    <label class="block text-[10px] font-black text-on-surface-variant uppercase tracking-widest mb-1.5">
-                      Name
-                    </label>
-                    <input
-                      type="text"
-                      name="item[name]"
-                      required
-                      autofocus
-                      placeholder="e.g. Classic Margherita"
-                      class="w-full bg-surface-container-highest border-0 rounded px-4 py-2.5 text-sm focus:ring-1 focus:ring-primary outline-none"
-                    />
-                  </div>
-                  <div>
-                    <label class="block text-[10px] font-black text-on-surface-variant uppercase tracking-widest mb-1.5">
-                      Base Price (CAD)
-                    </label>
-                    <input
-                      type="text"
-                      name="item[price]"
-                      placeholder="14.50"
-                      inputmode="decimal"
-                      class="w-full bg-surface-container-highest border-0 rounded px-4 py-2.5 text-sm focus:ring-1 focus:ring-primary outline-none"
-                    />
-                  </div>
-                  <div class="md:col-span-2">
-                    <label class="block text-[10px] font-black text-on-surface-variant uppercase tracking-widest mb-1.5">
-                      Description
-                    </label>
-                    <textarea
-                      name="item[description]"
-                      rows="2"
-                      placeholder="Describe the dish…"
-                      class="w-full bg-surface-container-highest border-0 rounded px-4 py-2.5 text-sm focus:ring-1 focus:ring-primary outline-none resize-none"
-                    ></textarea>
-                  </div>
-                </div>
-                <div class="flex items-center gap-3 pt-2">
-                  <button
-                    type="submit"
-                    class="bg-primary text-white px-6 py-2.5 rounded-md font-bold text-xs uppercase tracking-widest transition-all active:scale-95"
-                  >
-                    Add Offering
-                  </button>
-                  <button
-                    type="button"
-                    phx-click="cancel_edit"
-                    phx-target={@myself}
-                    class="text-on-surface-variant/40 hover:text-on-surface font-bold text-xs uppercase tracking-widest px-4 py-2.5"
-                  >
-                    Cancel
-                  </button>
-                </div>
-              </form>
-            <% else %>
-              <button
-                phx-click="add_item"
-                phx-value-category_id={category.id}
-                phx-target={@myself}
-                class="flex flex-col items-center justify-center gap-3 p-8 rounded-md border-2 border-dashed border-on-surface/5 hover:border-primary/20 hover:bg-surface-container-low transition-all group"
-              >
-                <span class="material-symbols-outlined text-primary/40 group-hover:text-primary transition-colors text-3xl">
-                  add_circle
-                </span>
-                <span class="text-[10px] font-black text-on-surface-variant uppercase tracking-[0.2em]">
-                  Add item to {category.name}
-                </span>
-              </button>
-            <% end %>
-          </div>
-        </div>
-      <% end %>
-    </div>
-
-    <aside class="w-full lg:w-80 shrink-0 space-y-6">
-      <div class="bg-surface-container-low rounded-md p-6 space-y-6">
-        <div class="flex items-center justify-between">
-          <p class="text-[0.65rem] font-black text-on-surface-variant uppercase tracking-[0.2em]">
-            Modifier Groups
-          </p>
-          <button
-            phx-click="add_modifier_group"
-            phx-target={@myself}
-            type="button"
-            class="flex items-center gap-1.5 text-[0.65rem] text-primary hover:opacity-80 font-black uppercase tracking-widest"
-          >
-            <span class="material-symbols-outlined text-sm">add_circle</span> New Group
-          </button>
-        </div>
-
-        <%= if @creating_modifier_group do %>
-          <form
-            phx-submit="create_modifier_group"
-            phx-target={@myself}
-            class="bg-surface-container-low rounded-lg p-3 space-y-3 shadow-sm border border-primary/10"
-          >
-            <div class="flex items-center gap-3">
-              <input
-                type="text"
-                name="group[name]"
-                required
-                autofocus
-                placeholder="e.g. Extra Toppings"
-                class="flex-1 bg-white border-0 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-primary outline-none"
-              />
-              <label class="flex items-center gap-2 text-sm text-on-surface-variant whitespace-nowrap cursor-pointer">
-                <input
-                  type="checkbox"
-                  name="group[required]"
-                  value="true"
-                  class="rounded"
-                /> Req.
-              </label>
             </div>
-            <div class="flex items-center gap-2">
-              <button
-                type="submit"
-                class="bg-primary text-white px-4 py-2 rounded-lg text-sm font-bold hover:opacity-90 flex-1"
-              >
-                Save
-              </button>
-              <button
-                type="button"
-                phx-click="cancel_add_modifier_group"
-                phx-target={@myself}
-                class="text-on-surface-variant hover:text-on-surface text-sm px-3 py-2"
-              >
-                Cancel
-              </button>
-            </div>
-          </form>
-        <% end %>
-
-        <%= if Enum.empty?(@modifier_groups) do %>
-          <p class="text-xs text-on-surface-variant italic">
-            No modifier groups yet.
-          </p>
-        <% else %>
-          <div class="space-y-4">
-            <%= for group <- @modifier_groups do %>
-              <div class="space-y-2">
-                <div class="flex items-center gap-2">
-                  <span class="flex-1 text-sm font-bold text-on-surface">
-                    {group.name}
-                  </span>
-                  <%= if group.required do %>
-                    <span class="text-[10px] font-bold uppercase tracking-wider bg-primary-fixed text-on-primary-fixed-variant px-2 py-0.5 rounded-full">
-                      Req.
-                    </span>
-                  <% end %>
-                  <button
-                    phx-click="delete_modifier_group"
-                    phx-value-id={group.id}
-                    phx-target={@myself}
-                    type="button"
-                    class="text-on-surface-variant hover:text-error transition-colors p-1"
-                    title="Delete group"
-                  >
-                    <span class="material-symbols-outlined" style="font-size: 16px;">delete</span>
-                  </button>
-                </div>
-
-                <div class="pl-2 space-y-1.5">
-                  <%= for modifier <- group.modifiers || [] do %>
-                    <div class="flex items-center gap-2 text-xs">
-                      <span class="flex-1 text-on-surface">{modifier.name}</span>
-                      <span class="text-[10px] text-on-surface-variant whitespace-nowrap">
-                        {if modifier.price_delta,
-                          do: "+#{format_money(modifier.price_delta)}",
-                          else: "Free"}
-                      </span>
-                      <button
-                        phx-click="delete_modifier"
-                        phx-value-id={modifier.id}
-                        phx-target={@myself}
-                        type="button"
-                        class="text-on-surface-variant hover:text-error transition-colors p-0.5"
-                      >
-                        <span class="material-symbols-outlined" style="font-size: 14px;">close</span>
-                      </button>
-                    </div>
-                  <% end %>
-
-                  <%= if @adding_modifier_to_group_id == group.id do %>
-                    <form
-                      phx-submit="create_modifier"
-                      phx-target={@myself}
-                      class="flex flex-col gap-2 mt-2 p-2 bg-white rounded-lg shadow-sm border border-primary/10"
-                    >
-                      <input type="hidden" name="modifier[modifier_group_id]" value={group.id} />
-                      <input
-                        type="text"
-                        name="modifier[name]"
-                        required
-                        autofocus
-                        placeholder="Option name"
-                        class="w-full bg-surface-container-highest border-0 rounded px-2 py-1.5 text-xs focus:ring-1 focus:ring-primary outline-none"
-                      />
-                      <div class="flex items-center gap-2">
-                        <input
-                          type="text"
-                          name="modifier[price_delta]"
-                          placeholder="+0.00"
-                          inputmode="decimal"
-                          class="flex-1 bg-surface-container-highest border-0 rounded px-2 py-1.5 text-xs focus:ring-1 focus:ring-primary outline-none"
-                        />
-                        <button
-                          type="submit"
-                          class="bg-primary text-white px-3 py-1.5 rounded text-xs font-bold hover:opacity-90"
-                        >
-                          Add
-                        </button>
-                        <button
-                          type="button"
-                          phx-click="cancel_add_modifier"
-                          phx-target={@myself}
-                          class="text-on-surface-variant hover:text-on-surface p-1"
-                        >
-                          <span class="material-symbols-outlined" style="font-size: 14px;">close</span>
-                        </button>
-                      </div>
-                    </form>
-                  <% else %>
-                    <button
-                      phx-click="add_modifier"
-                      phx-value-group_id={group.id}
-                      phx-target={@myself}
-                      type="button"
-                      class="flex items-center gap-1 text-[10px] font-black uppercase tracking-wider text-primary hover:opacity-70 transition-colors mt-1"
-                    >
-                      <span class="material-symbols-outlined" style="font-size: 14px;">
-                        add_circle
-                      </span>
-                      Add option
-                    </button>
-                  <% end %>
-                </div>
-              </div>
-            <% end %>
-          </div>
-        <% end %>
-      </div>
-    </aside>
+          <% end %>
+        </div>
+      </aside>
     </div>
     """
   end

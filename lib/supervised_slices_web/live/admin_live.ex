@@ -129,8 +129,7 @@ defmodule SupervisedSlicesWeb.AdminLive do
 
     current = socket.assigns.active_carts.result || []
 
-    {:noreply,
-     assign(socket, :active_carts, AsyncResult.ok(update_carts(current, full_cart)))}
+    {:noreply, assign(socket, :active_carts, AsyncResult.ok(update_carts(current, full_cart)))}
   end
 
   def handle_info(%Phoenix.Socket.Broadcast{event: "presence_diff"}, socket) do
@@ -217,8 +216,7 @@ defmodule SupervisedSlicesWeb.AdminLive do
             o.organization_id == ^org_id and
               o.status == "completed" and
               o.updated_at >= ^one_hour_ago,
-          select:
-            avg(fragment("EXTRACT(EPOCH FROM (? - ?))", o.updated_at, o.inserted_at))
+          select: avg(fragment("EXTRACT(EPOCH FROM (? - ?))", o.updated_at, o.inserted_at))
       )
 
     prev_avg =
@@ -229,8 +227,7 @@ defmodule SupervisedSlicesWeb.AdminLive do
               o.status == "completed" and
               o.updated_at >= ^two_hours_ago and
               o.updated_at < ^one_hour_ago,
-          select:
-            avg(fragment("EXTRACT(EPOCH FROM (? - ?))", o.updated_at, o.inserted_at))
+          select: avg(fragment("EXTRACT(EPOCH FROM (? - ?))", o.updated_at, o.inserted_at))
       )
 
     trend =
