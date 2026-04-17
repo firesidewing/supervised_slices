@@ -578,10 +578,87 @@ defmodule SupervisedSlicesWeb.AdminLive.MenuEditorComponent do
                 disabled={@purchasing_upload}
                 class="bg-primary text-white px-6 py-2.5 rounded-md font-bold text-sm uppercase tracking-wide transition-all active:scale-95 shadow-sm inline-flex items-center gap-2 disabled:opacity-60"
               >
-                <span :if={not @purchasing_upload} class="material-symbols-outlined text-lg">auto_awesome</span>
-                <span :if={@purchasing_upload} class="material-symbols-outlined text-lg animate-spin">refresh</span>
-                <%= if @purchasing_upload, do: "Processing...", else: "Purchase" %>
+                <span :if={not @purchasing_upload} class="material-symbols-outlined text-lg">
+                  auto_awesome
+                </span>
+                <span :if={@purchasing_upload} class="material-symbols-outlined text-lg animate-spin">
+                  refresh
+                </span>
+                {if @purchasing_upload, do: "Processing...", else: "Purchase"}
               </button>
+            </div>
+          </div>
+        </div>
+
+        <div
+          :if={@org.menu_upload_purchased and not @has_completed_upload}
+          class="bg-surface-container-low p-6 rounded-xl border-2 border-dashed border-primary/30 mb-8"
+        >
+          <div class="flex items-center justify-between mb-4">
+            <div>
+              <h3 class="text-lg font-black text-on-surface font-headline uppercase tracking-tight">
+                AI Menu Importer
+              </h3>
+              <p class="text-sm text-on-surface-variant">
+                Upload your menu image (JPG, PNG, WebP) and let our AI artisan build your digital catalog.
+              </p>
+            </div>
+            <div class="flex items-center gap-4">
+              <form phx-submit="upload_menu" phx-target={@myself}>
+                <.live_file_input upload={@uploads.menu_file} class="hidden" />
+                <label
+                  for={@uploads.menu_file.ref}
+                  class="cursor-pointer bg-primary text-white px-6 py-2.5 rounded-md font-bold text-sm uppercase tracking-wide transition-all active:scale-95 shadow-sm inline-flex items-center gap-2"
+                >
+                  <span class="material-symbols-outlined text-lg">upload_file</span>
+                  Choose File
+                </label>
+                <button
+                  :if={@uploads.menu_file.entries != []}
+                  type="submit"
+                  class="ml-4 bg-secondary text-white px-6 py-2.5 rounded-md font-bold text-sm uppercase tracking-wide transition-all active:scale-95 shadow-sm"
+                >
+                  Start Import
+                </button>
+              </form>
+            </div>
+          </div>
+
+          <div
+            :for={entry <- @uploads.menu_file.entries}
+            class="mt-4 flex items-center gap-4 text-sm text-on-surface-variant"
+          >
+            <span class="font-bold">{entry.client_name}</span>
+            <div class="flex-1 h-2 bg-surface-container-highest rounded-full overflow-hidden">
+              <div class="h-full bg-primary transition-all" style={"width: #{entry.progress}%"}></div>
+            </div>
+            <span>{entry.progress}%</span>
+          </div>
+
+          <div
+            :if={@current_upload}
+            class="mt-4 p-4 bg-surface-container rounded-lg flex items-center gap-4"
+          >
+            <div
+              :if={@current_upload.status == :pending or @current_upload.status == :processing}
+              class="animate-pulse flex items-center gap-2 text-primary font-bold"
+            >
+              <span class="material-symbols-outlined animate-spin">refresh</span>
+              Processing your menu... This may take a minute.
+            </div>
+            <div
+              :if={@current_upload.status == :completed}
+              class="text-secondary font-bold flex items-center gap-2"
+            >
+              <span class="material-symbols-outlined">check_circle</span>
+              Import completed successfully!
+            </div>
+            <div
+              :if={@current_upload.status == :failed}
+              class="text-error font-bold flex items-center gap-2"
+            >
+              <span class="material-symbols-outlined">error</span>
+              Import failed: {@current_upload.error_message}
             </div>
           </div>
         </div>
@@ -639,79 +716,6 @@ defmodule SupervisedSlicesWeb.AdminLive.MenuEditorComponent do
             <span class="material-symbols-outlined text-xl">close</span>
           </button>
         </form>
-
-        <div
-          :if={@org.menu_upload_purchased and not @has_completed_upload}
-          class="bg-surface-container-low p-6 rounded-xl border-2 border-dashed border-primary/30 mb-8"
-        >
-          <div class="flex items-center justify-between mb-4">
-            <div>
-              <h3 class="text-lg font-black text-on-surface font-headline uppercase tracking-tight">
-                AI Menu Importer
-              </h3>
-              <p class="text-sm text-on-surface-variant">
-                Upload your menu image (JPG, PNG, WebP) and let our AI artisan build your digital catalog.
-              </p>
-            </div>
-            <div class="flex items-center gap-4">
-              <form phx-submit="upload_menu" phx-target={@myself}>
-                <.live_file_input upload={@uploads.menu_file} class="hidden" id="menu-upload-input" />
-                <label
-                  for="menu-upload-input"
-                  class="cursor-pointer bg-primary text-white px-6 py-2.5 rounded-md font-bold text-sm uppercase tracking-wide transition-all active:scale-95 shadow-sm inline-block"
-                >
-                  <span class="material-symbols-outlined text-lg align-middle mr-1">upload_file</span>
-                  Choose File
-                </label>
-                <button
-                  :if={@uploads.menu_file.entries != []}
-                  type="submit"
-                  class="ml-4 bg-secondary text-white px-6 py-2.5 rounded-md font-bold text-sm uppercase tracking-wide transition-all active:scale-95 shadow-sm"
-                >
-                  Start Import
-                </button>
-              </form>
-            </div>
-          </div>
-
-          <div
-            :for={entry <- @uploads.menu_file.entries}
-            class="mt-4 flex items-center gap-4 text-sm text-on-surface-variant"
-          >
-            <span class="font-bold">{entry.client_name}</span>
-            <div class="flex-1 h-2 bg-surface-container-highest rounded-full overflow-hidden">
-              <div class="h-full bg-primary transition-all" style={"width: #{entry.progress}%"}></div>
-            </div>
-            <span>{entry.progress}%</span>
-          </div>
-
-          <div
-            :if={@current_upload}
-            class="mt-4 p-4 bg-surface-container rounded-lg flex items-center gap-4"
-          >
-            <div
-              :if={@current_upload.status == :pending or @current_upload.status == :processing}
-              class="animate-pulse flex items-center gap-2 text-primary font-bold"
-            >
-              <span class="material-symbols-outlined animate-spin">refresh</span>
-              Processing your menu... This may take a minute.
-            </div>
-            <div
-              :if={@current_upload.status == :completed}
-              class="text-secondary font-bold flex items-center gap-2"
-            >
-              <span class="material-symbols-outlined">check_circle</span>
-              Import completed successfully!
-            </div>
-            <div
-              :if={@current_upload.status == :failed}
-              class="text-error font-bold flex items-center gap-2"
-            >
-              <span class="material-symbols-outlined">error</span>
-              Import failed: {@current_upload.error_message}
-            </div>
-          </div>
-        </div>
 
         <%= if Enum.empty?(@categories) do %>
           <div class="flex flex-col items-center py-24 text-on-surface-variant/20">
