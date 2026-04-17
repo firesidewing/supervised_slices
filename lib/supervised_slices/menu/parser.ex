@@ -1,7 +1,7 @@
 defmodule SupervisedSlices.Menu.Parser do
   require Logger
 
-  @model "claude-3-5-sonnet-20240620"
+  @model "claude-sonnet-4-6"
 
   def parse(file_url) do
     api_key = Application.get_env(:supervised_slices, :anthropic_api_key)

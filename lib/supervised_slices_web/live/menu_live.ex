@@ -34,14 +34,14 @@ defmodule SupervisedSlicesWeb.MenuLive do
            scope: scope,
            authorize?: false,
            load: [
-             menu_items: [
-               query: MenuItem |> Ash.Query.sort(sort_order: :asc),
-               load: [
+             menu_items:
+               MenuItem
+               |> Ash.Query.sort(sort_order: :asc)
+               |> Ash.Query.load([
                  modifier_groups: [:modifiers],
-                 sizes: [query: MenuItemSize |> Ash.Query.sort(sort_order: :asc)],
+                 sizes: MenuItemSize |> Ash.Query.sort(sort_order: :asc),
                  images: []
-               ]
-             ]
+               ])
            ]
          )
 
@@ -87,7 +87,7 @@ defmodule SupervisedSlicesWeb.MenuLive do
            authorize?: false,
            load: [
              modifier_groups: [:modifiers],
-             sizes: [query: MenuItemSize |> Ash.Query.sort(sort_order: :asc)],
+             sizes: MenuItemSize |> Ash.Query.sort(sort_order: :asc),
              images: []
            ]
          )
