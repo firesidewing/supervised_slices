@@ -13,6 +13,8 @@ defmodule SupervisedSlicesWeb.AdminLive.MenuEditorComponent do
     MenuUpload
   }
 
+  alias SupervisedSlices.Billing
+
   require Ash.Query
 
   def mount(socket) do
@@ -27,6 +29,7 @@ defmodule SupervisedSlicesWeb.AdminLive.MenuEditorComponent do
      |> assign(:expanded_modifier_groups, %{})
      |> assign(:current_upload, nil)
      |> assign(:has_completed_upload, false)
+     |> assign(:purchasing_upload, false)
      |> allow_upload(:item_image,
        accept: ~w(.jpg .jpeg .png .webp .gif),
        max_entries: 5,
@@ -490,6 +493,36 @@ defmodule SupervisedSlicesWeb.AdminLive.MenuEditorComponent do
     {:noreply, assign(socket, :categories, load_categories(scope))}
   end
 
+  def handle_event("purchase_menu_upload", _params, socket) do
+    %{org: org, user: user} = socket.assigns
+    socket = assign(socket, :purchasing_upload, true)
+
+    price_id = Application.get_env(:supervised_slices, :stripe)[:price_id_menu_upload]
+    base_url = SupervisedSlicesWeb.Endpoint.url()
+    success_url = base_url <> ~p"/billing/success/#{org.slug}"
+    cancel_url = base_url <> ~p"/kitchen/#{org.slug}/menu"
+
+    metadata = %{"menu_upload" => "true", "org_id" => org.id}
+
+    with {:ok, org} <- Billing.create_customer_for_org(org, user.email),
+         {:ok, session} <-
+           Billing.create_one_time_checkout_session(
+             org.stripe_customer_id,
+             price_id,
+             metadata,
+             success_url,
+             cancel_url
+           ) do
+      {:noreply, redirect(socket, external: session.url)}
+    else
+      {:error, _reason} ->
+        {:noreply,
+         socket
+         |> assign(:purchasing_upload, false)
+         |> put_flash(:error, "Could not start checkout. Please try again.")}
+    end
+  end
+
   def handle_event("upload_menu", _params, socket) do
     %{org: org} = socket.assigns
 
@@ -524,6 +557,35 @@ defmodule SupervisedSlicesWeb.AdminLive.MenuEditorComponent do
     ~H"""
     <div class="flex flex-col lg:flex-row gap-12 items-start">
       <div class="flex-1 space-y-12 w-full">
+        <div
+          :if={not @org.menu_upload_purchased}
+          class="bg-surface-container-low p-6 rounded-xl border-2 border-dashed border-outline-variant/50"
+        >
+          <div class="flex items-center justify-between">
+            <div>
+              <h3 class="text-lg font-black text-on-surface font-headline uppercase tracking-tight">
+                AI Menu Importer
+              </h3>
+              <p class="text-sm text-on-surface-variant mt-1">
+                Upload a photo of your menu and let our AI build your entire digital catalog — categories, items, sizes, and modifiers.
+              </p>
+            </div>
+            <div class="flex items-center gap-4 ml-8 shrink-0">
+              <span class="text-sm font-black text-on-surface-variant">$150 one-time</span>
+              <button
+                phx-click="purchase_menu_upload"
+                phx-target={@myself}
+                disabled={@purchasing_upload}
+                class="bg-primary text-white px-6 py-2.5 rounded-md font-bold text-sm uppercase tracking-wide transition-all active:scale-95 shadow-sm inline-flex items-center gap-2 disabled:opacity-60"
+              >
+                <span :if={not @purchasing_upload} class="material-symbols-outlined text-lg">auto_awesome</span>
+                <span :if={@purchasing_upload} class="material-symbols-outlined text-lg animate-spin">refresh</span>
+                <%= if @purchasing_upload, do: "Processing...", else: "Purchase" %>
+              </button>
+            </div>
+          </div>
+        </div>
+
         <div class="flex items-center justify-between">
           <div>
             <h2 class="font-headline text-2xl font-black text-on-surface">
@@ -577,32 +639,6 @@ defmodule SupervisedSlicesWeb.AdminLive.MenuEditorComponent do
             <span class="material-symbols-outlined text-xl">close</span>
           </button>
         </form>
-
-        <div
-          :if={not @org.menu_upload_purchased}
-          class="bg-surface-container-low p-6 rounded-xl border-2 border-dashed border-outline-variant/50 mb-8"
-        >
-          <div class="flex items-center justify-between">
-            <div>
-              <h3 class="text-lg font-black text-on-surface font-headline uppercase tracking-tight">
-                AI Menu Importer
-              </h3>
-              <p class="text-sm text-on-surface-variant mt-1">
-                Upload a photo of your menu and let our AI build your entire digital catalog — categories, items, sizes, and modifiers.
-              </p>
-            </div>
-            <div class="flex items-center gap-4 ml-8 shrink-0">
-              <span class="text-sm font-black text-on-surface-variant">$150 one-time</span>
-              <.link
-                navigate={~p"/billing/setup/#{@org.slug}"}
-                class="bg-primary text-white px-6 py-2.5 rounded-md font-bold text-sm uppercase tracking-wide transition-all active:scale-95 shadow-sm inline-flex items-center gap-2"
-              >
-                <span class="material-symbols-outlined text-lg">auto_awesome</span>
-                Purchase
-              </.link>
-            </div>
-          </div>
-        </div>
 
         <div
           :if={@org.menu_upload_purchased and not @has_completed_upload}
