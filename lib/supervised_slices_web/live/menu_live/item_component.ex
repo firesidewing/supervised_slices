@@ -10,7 +10,7 @@ defmodule SupervisedSlicesWeb.MenuLive.ItemComponent do
     socket =
       if needs_init do
         default_size_id =
-          case Enum.sort_by(new_item.sizes || [], & &1.sort_order) do
+          case (new_item.sizes || []) do
             [first | _] -> to_string(first.id)
             [] -> nil
           end
@@ -132,7 +132,7 @@ defmodule SupervisedSlicesWeb.MenuLive.ItemComponent do
             </div>
             <div class="flex overflow-x-auto gap-4 pb-4 no-scrollbar">
               <.size_card
-                :for={size <- Enum.sort_by(@selected_item.sizes, & &1.sort_order)}
+                :for={size <- (@selected_item.sizes || [])}
                 size={size}
                 selected={to_string(size.id) == @selected_size_id}
                 myself={@myself}

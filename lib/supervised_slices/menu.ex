@@ -15,5 +15,6 @@ defmodule SupervisedSlices.Menu do
     resource SupervisedSlices.Menu.MenuItemModifier
     resource SupervisedSlices.Menu.MenuItemModifierGroupLink
     resource SupervisedSlices.Menu.MenuItemImage
+    resource SupervisedSlices.Menu.MenuUpload
   end
 end

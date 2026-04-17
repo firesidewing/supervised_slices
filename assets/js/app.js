@@ -74,7 +74,7 @@ const liveSocket = new LiveSocket("/live", Socket, {
     dom: {
         onDocumentPatch(start) {
             const doTransition = viewTransitionPending;
-            const doScroll = false;
+            const doScroll = scrollTopPending;
             viewTransitionPending = false;
             scrollTopPending = false;
 

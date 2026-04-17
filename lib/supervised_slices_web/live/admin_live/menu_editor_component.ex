@@ -9,8 +9,10 @@ defmodule SupervisedSlicesWeb.AdminLive.MenuEditorComponent do
     MenuItemModifierGroup,
     MenuItemModifier,
     MenuItemModifierGroupLink,
-    MenuImageUploader
+    MenuImageUploader,
+    MenuUpload
   }
+  require Ash.Query
 
   def mount(socket) do
     {:ok,
@@ -21,21 +23,49 @@ defmodule SupervisedSlicesWeb.AdminLive.MenuEditorComponent do
      |> assign(:adding_size_to_item_id, nil)
      |> assign(:creating_modifier_group, false)
      |> assign(:adding_modifier_to_group_id, nil)
+     |> assign(:expanded_modifier_groups, %{})
+     |> assign(:current_upload, nil)
+     |> assign(:has_completed_upload, false)
      |> allow_upload(:item_image,
        accept: ~w(.jpg .jpeg .png .webp .gif),
        max_entries: 5,
        max_file_size: 8_000_000
+     )
+     |> allow_upload(:menu_file,
+       accept: ~w(.jpg .jpeg .png .webp),
+       max_entries: 1,
+       max_file_size: 10_000_000
      )}
   end
 
-  def update(%{ash_scope: scope} = assigns, socket) do
+  def update(%{ash_scope: scope, org: org} = assigns, socket) do
+    current_upload =
+      MenuUpload
+      |> Ash.Query.filter(organization_id == ^org.id)
+      |> Ash.Query.sort(inserted_at: :desc)
+      |> Ash.Query.limit(1)
+      |> Ash.read_one!(authorize?: false)
+
+    has_completed_upload =
+      MenuUpload
+      |> Ash.Query.filter(organization_id == ^org.id and status == :completed)
+      |> Ash.Query.limit(1)
+      |> Ash.read_one!(authorize?: false)
+      |> case do
+        nil -> false
+        _ -> true
+      end
+
     socket =
       socket
       |> assign(:ash_scope, scope)
-      |> assign_new(:categories, fn -> load_categories(scope) end)
-      |> assign_new(:modifier_groups, fn -> load_modifier_groups(scope) end)
+      |> assign(:org, org)
+      |> assign(:current_upload, current_upload)
+      |> assign(:has_completed_upload, has_completed_upload)
+      |> assign_new(:categories, fn -> load_categories(socket.assigns.ash_scope) end)
+      |> assign_new(:modifier_groups, fn -> load_modifier_groups(socket.assigns.ash_scope) end)
 
-    {:ok, assign(socket, Map.drop(assigns, [:ash_scope]))}
+    {:ok, assign(socket, Map.drop(assigns, [:ash_scope, :org]))}
   end
 
   # ---------------------------------------------------------------------------
@@ -200,6 +230,66 @@ defmodule SupervisedSlicesWeb.AdminLive.MenuEditorComponent do
     {:noreply, assign(socket, categories: categories, editing_item_id: nil)}
   end
 
+  def handle_event("move_category", %{"id" => id, "direction" => direction}, socket) do
+    %{ash_scope: scope, categories: categories} = socket.assigns
+    direction = String.to_existing_atom(direction)
+
+    index = Enum.find_index(categories, &(&1.id == id))
+
+    if index do
+      case direction do
+        :up when index > 0 ->
+          prev = Enum.at(categories, index - 1)
+          curr = Enum.at(categories, index)
+          swap_sort_orders(Category, curr, prev, scope)
+
+        :down when index < length(categories) - 1 ->
+          next = Enum.at(categories, index + 1)
+          curr = Enum.at(categories, index)
+          swap_sort_orders(Category, curr, next, scope)
+
+        _ ->
+          :ok
+      end
+    end
+
+    {:noreply, assign(socket, categories: load_categories(scope))}
+  end
+
+  def handle_event("move_item", %{"id" => id, "direction" => direction}, socket) do
+    %{ash_scope: scope, categories: categories} = socket.assigns
+    direction = String.to_existing_atom(direction)
+
+    found =
+      Enum.find_value(categories, fn cat ->
+        idx = Enum.find_index(cat.menu_items, &(&1.id == id))
+        if idx, do: {cat, idx}
+      end)
+
+    if found do
+      {category, index} = found
+      items = category.menu_items
+
+      case direction do
+        :up when index > 0 ->
+          prev = Enum.at(items, index - 1)
+          curr = Enum.at(items, index)
+          swap_sort_orders(MenuItem, curr, prev, scope)
+
+        :down when index < length(items) - 1 ->
+          next = Enum.at(items, index + 1)
+          curr = Enum.at(items, index)
+          swap_sort_orders(MenuItem, curr, next, scope)
+
+        _ ->
+          :ok
+      end
+    end
+
+    {:noreply, assign(socket, categories: load_categories(scope))}
+  end
+
+
   # ---------------------------------------------------------------------------
   # Size events
   # ---------------------------------------------------------------------------
@@ -261,7 +351,7 @@ defmodule SupervisedSlicesWeb.AdminLive.MenuEditorComponent do
   def handle_event("create_modifier_group", %{"group" => params}, socket) do
     %{ash_scope: scope} = socket.assigns
 
-    MenuItemModifierGroup.create!(
+    group = MenuItemModifierGroup.create!(
       %{
         name: params["name"],
         required: Map.get(params, "required") == "true"
@@ -270,7 +360,14 @@ defmodule SupervisedSlicesWeb.AdminLive.MenuEditorComponent do
     )
 
     modifier_groups = load_modifier_groups(scope)
-    {:noreply, assign(socket, modifier_groups: modifier_groups, creating_modifier_group: false)}
+    expanded = Map.put(socket.assigns.expanded_modifier_groups, group.id, true)
+
+    {:noreply,
+     assign(socket,
+       modifier_groups: modifier_groups,
+       creating_modifier_group: false,
+       expanded_modifier_groups: expanded
+     )}
   end
 
   def handle_event("delete_modifier_group", %{"id" => id}, socket) do
@@ -322,6 +419,12 @@ defmodule SupervisedSlicesWeb.AdminLive.MenuEditorComponent do
     MenuItemModifier.get!(id, scope: scope) |> MenuItemModifier.destroy!(scope: scope)
     modifier_groups = load_modifier_groups(scope)
     {:noreply, assign(socket, :modifier_groups, modifier_groups)}
+  end
+
+  def handle_event("toggle_modifier_group_expanded", %{"id" => id}, socket) do
+    expanded = socket.assigns.expanded_modifier_groups
+    new_expanded = if Map.has_key?(expanded, id), do: Map.delete(expanded, id), else: Map.put(expanded, id, true)
+    {:noreply, assign(socket, :expanded_modifier_groups, new_expanded)}
   end
 
   # ---------------------------------------------------------------------------
@@ -379,6 +482,32 @@ defmodule SupervisedSlicesWeb.AdminLive.MenuEditorComponent do
     item = MenuItem.get!(id, scope: scope)
     MenuItem.update!(item, %{is_upsell: !item.is_upsell}, scope: scope)
     {:noreply, assign(socket, :categories, load_categories(scope))}
+  end
+
+  def handle_event("upload_menu", _params, socket) do
+    %{org: org} = socket.assigns
+
+    uploaded_urls =
+      consume_uploaded_entries(socket, :menu_file, fn %{path: path}, entry ->
+        {:ok, MenuImageUploader.upload(org.id, path, entry.client_type)}
+      end)
+
+    case uploaded_urls do
+      [url] ->
+        case MenuUpload.create(%{file_url: url, organization_id: org.id}, authorize?: false) do
+          {:ok, upload} ->
+            {:noreply,
+             socket
+             |> put_flash(:info, "Menu upload started. It will be processed shortly.")
+             |> assign(:current_upload, upload)}
+
+          {:error, error} ->
+            {:noreply, put_flash(socket, :error, "Failed to start upload: #{inspect(error)}")}
+        end
+
+      [] ->
+        {:noreply, socket}
+    end
   end
 
   # ---------------------------------------------------------------------------
@@ -443,6 +572,53 @@ defmodule SupervisedSlicesWeb.AdminLive.MenuEditorComponent do
           </button>
         </form>
 
+        <div :if={@org.menu_upload_purchased and not @has_completed_upload} class="bg-surface-container-low p-6 rounded-xl border-2 border-dashed border-primary/30 mb-8">
+          <div class="flex items-center justify-between mb-4">
+            <div>
+              <h3 class="text-lg font-black text-on-surface font-headline uppercase tracking-tight">
+                AI Menu Importer
+              </h3>
+              <p class="text-sm text-on-surface-variant">
+                Upload your menu image (JPG, PNG, WebP) and let our AI artisan build your digital catalog.
+              </p>
+            </div>
+            <div class="flex items-center gap-4">
+              <form phx-submit="upload_menu" phx-target={@myself}>
+                <.live_file_input upload={@uploads.menu_file} class="hidden" id="menu-upload-input" />
+                <label for="menu-upload-input" class="cursor-pointer bg-primary text-white px-6 py-2.5 rounded-md font-bold text-sm uppercase tracking-wide transition-all active:scale-95 shadow-sm inline-block">
+                  <span class="material-symbols-outlined text-lg align-middle mr-1">upload_file</span> Choose File
+                </label>
+                <button :if={@uploads.menu_file.entries != []} type="submit" class="ml-4 bg-secondary text-white px-6 py-2.5 rounded-md font-bold text-sm uppercase tracking-wide transition-all active:scale-95 shadow-sm">
+                  Start Import
+                </button>
+              </form>
+            </div>
+          </div>
+          
+          <div :for={entry <- @uploads.menu_file.entries} class="mt-4 flex items-center gap-4 text-sm text-on-surface-variant">
+            <span class="font-bold">{entry.client_name}</span>
+            <div class="flex-1 h-2 bg-surface-container-highest rounded-full overflow-hidden">
+              <div class="h-full bg-primary transition-all" style={"width: #{entry.progress}%"}></div>
+            </div>
+            <span>{entry.progress}%</span>
+          </div>
+
+          <div :if={@current_upload} class="mt-4 p-4 bg-surface-container rounded-lg flex items-center gap-4">
+             <div :if={@current_upload.status == :pending or @current_upload.status == :processing} class="animate-pulse flex items-center gap-2 text-primary font-bold">
+               <span class="material-symbols-outlined animate-spin">refresh</span>
+               Processing your menu... This may take a minute.
+             </div>
+             <div :if={@current_upload.status == :completed} class="text-secondary font-bold flex items-center gap-2">
+                <span class="material-symbols-outlined">check_circle</span>
+                Import completed successfully!
+             </div>
+             <div :if={@current_upload.status == :failed} class="text-error font-bold flex items-center gap-2">
+               <span class="material-symbols-outlined">error</span>
+               Import failed: {@current_upload.error_message}
+             </div>
+          </div>
+        </div>
+
         <%= if Enum.empty?(@categories) do %>
           <div class="flex flex-col items-center py-24 text-on-surface-variant/20">
             <span class="material-symbols-outlined text-8xl">restaurant_menu</span>
@@ -491,19 +667,41 @@ defmodule SupervisedSlicesWeb.AdminLive.MenuEditorComponent do
                 </button>
               </form>
             <% else %>
-              <div class="flex items-center gap-4 group">
+              <div class="flex items-center gap-2 group">
                 <h3 class="text-2xl font-black text-on-surface flex-1 font-headline tracking-tight">
                   {category.name}
                 </h3>
-                <button
-                  phx-click="edit_category"
-                  phx-value-id={category.id}
-                  phx-target={@myself}
-                  class="opacity-0 group-hover:opacity-100 text-on-surface-variant/40 hover:text-primary transition-all p-1"
-                  title="Edit category"
-                >
-                  <span class="material-symbols-outlined text-lg">edit</span>
-                </button>
+                <div class="opacity-0 group-hover:opacity-100 flex items-center gap-1 transition-all">
+                  <button
+                    phx-click="move_category"
+                    phx-value-id={category.id}
+                    phx-value-direction="up"
+                    phx-target={@myself}
+                    class="text-on-surface-variant/40 hover:text-primary p-1"
+                    title="Move up"
+                  >
+                    <span class="material-symbols-outlined text-lg">arrow_upward</span>
+                  </button>
+                  <button
+                    phx-click="move_category"
+                    phx-value-id={category.id}
+                    phx-value-direction="down"
+                    phx-target={@myself}
+                    class="text-on-surface-variant/40 hover:text-primary p-1"
+                    title="Move down"
+                  >
+                    <span class="material-symbols-outlined text-lg">arrow_downward</span>
+                  </button>
+                  <button
+                    phx-click="edit_category"
+                    phx-value-id={category.id}
+                    phx-target={@myself}
+                    class="text-on-surface-variant/40 hover:text-primary p-1"
+                    title="Edit category"
+                  >
+                    <span class="material-symbols-outlined text-lg">edit</span>
+                  </button>
+                </div>
               </div>
             <% end %>
 
@@ -671,29 +869,35 @@ defmodule SupervisedSlicesWeb.AdminLive.MenuEditorComponent do
                       <% end %>
 
                       <%= if not Enum.empty?(
-                      Enum.reject(@modifier_groups, fn mg ->
-                        Enum.any?(item.modifier_groups || [], &(&1.id == mg.id))
-                      end)
-                    ) do %>
-                        <div class="flex flex-wrap gap-2">
-                          <%= for mg <- Enum.reject(@modifier_groups, fn mg ->
+                        Enum.reject(@modifier_groups, fn mg ->
                           Enum.any?(item.modifier_groups || [], &(&1.id == mg.id))
-                        end) do %>
-                            <button
-                              phx-click="assign_modifier_group"
-                              phx-value-item_id={item.id}
-                              phx-value-group_id={mg.id}
-                              phx-target={@myself}
-                              type="button"
-                              class="flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-dashed border-on-surface-variant/30 text-xs text-on-surface-variant hover:border-primary hover:text-primary transition-colors"
-                            >
-                              <span class="material-symbols-outlined" style="font-size: 14px;">
-                                add
-                              </span>
-                              {mg.name}
-                            </button>
-                          <% end %>
-                        </div>
+                        end)
+                      ) do %>
+                        <details class="group/assign-mods">
+                          <summary class="list-none cursor-pointer flex items-center gap-1 text-[10px] font-black uppercase tracking-wider text-primary hover:opacity-80">
+                            <span class="material-symbols-outlined text-sm">link</span>
+                            Link modifier group
+                          </summary>
+                          <div class="flex flex-wrap gap-2 mt-3">
+                            <%= for mg <- Enum.reject(@modifier_groups, fn mg ->
+                            Enum.any?(item.modifier_groups || [], &(&1.id == mg.id))
+                          end) do %>
+                              <button
+                                phx-click="assign_modifier_group"
+                                phx-value-item_id={item.id}
+                                phx-value-group_id={mg.id}
+                                phx-target={@myself}
+                                type="button"
+                                class="flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-dashed border-on-surface-variant/30 text-xs text-on-surface-variant hover:border-primary hover:text-primary transition-colors"
+                              >
+                                <span class="material-symbols-outlined" style="font-size: 14px;">
+                                  add
+                                </span>
+                                {mg.name}
+                              </button>
+                            <% end %>
+                          </div>
+                        </details>
                       <% end %>
                     </div>
 
@@ -740,7 +944,7 @@ defmodule SupervisedSlicesWeb.AdminLive.MenuEditorComponent do
                         <% end %>
                       </div>
 
-                      <%= for size <- Enum.sort_by(item.sizes || [], & &1.sort_order) do %>
+                      <%= for size <- (item.sizes || []) do %>
                         <div class="flex items-center gap-3 px-3 py-2 bg-surface-container-low rounded-lg">
                           <span class="flex-1 text-sm text-on-surface">{size.name}</span>
                           <span class="text-sm font-bold text-primary">
@@ -764,7 +968,7 @@ defmodule SupervisedSlicesWeb.AdminLive.MenuEditorComponent do
                         <form
                           phx-submit="create_size"
                           phx-target={@myself}
-                          class="flex items-center gap-2"
+                          class="flex flex-wrap items-center gap-2"
                         >
                           <input type="hidden" name="size[menu_item_id]" value={item.id} />
                           <input
@@ -772,33 +976,35 @@ defmodule SupervisedSlicesWeb.AdminLive.MenuEditorComponent do
                             name="size[name]"
                             required
                             autofocus
-                            placeholder="e.g. Large"
-                            class="flex-1 bg-surface-container-low border-0 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-primary outline-none"
+                            placeholder="Name"
+                            class="flex-[2] min-w-[100px] bg-surface-container-low border-0 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-primary outline-none"
                           />
                           <input
                             type="text"
                             name="size[price]"
                             required
-                            placeholder="18.00"
+                            placeholder="Price"
                             inputmode="decimal"
-                            class="w-28 bg-surface-container-low border-0 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-primary outline-none"
+                            class="flex-1 min-w-[80px] bg-surface-container-low border-0 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-primary outline-none"
                           />
-                          <button
-                            type="submit"
-                            class="bg-primary text-white px-4 py-2 rounded-lg text-sm font-bold hover:opacity-90"
-                          >
-                            Add
-                          </button>
-                          <button
-                            type="button"
-                            phx-click="cancel_add_size"
-                            phx-target={@myself}
-                            class="text-on-surface-variant hover:text-on-surface p-2"
-                          >
-                            <span class="material-symbols-outlined" style="font-size: 16px;">
-                              close
-                            </span>
-                          </button>
+                          <div class="flex items-center gap-1">
+                            <button
+                              type="submit"
+                              class="bg-primary text-white px-3 py-2 rounded-lg text-sm font-bold hover:opacity-90 whitespace-nowrap"
+                            >
+                              Add
+                            </button>
+                            <button
+                              type="button"
+                              phx-click="cancel_add_size"
+                              phx-target={@myself}
+                              class="text-on-surface-variant hover:text-on-surface p-1"
+                            >
+                              <span class="material-symbols-outlined" style="font-size: 16px;">
+                                close
+                              </span>
+                            </button>
+                          </div>
                         </form>
                       <% end %>
 
@@ -885,14 +1091,37 @@ defmodule SupervisedSlicesWeb.AdminLive.MenuEditorComponent do
                             </span>
                           <% end %>
                         </div>
-                        <button
-                          phx-click="edit_item"
-                          phx-value-id={item.id}
-                          phx-target={@myself}
-                          class="text-on-surface-variant/40 hover:text-primary transition-colors"
-                        >
-                          <span class="material-symbols-outlined text-lg">edit</span>
-                        </button>
+                        <div class="flex items-center gap-1">
+                          <button
+                            phx-click="move_item"
+                            phx-value-id={item.id}
+                            phx-value-direction="up"
+                            phx-target={@myself}
+                            class="text-on-surface-variant/40 hover:text-primary transition-colors p-1"
+                            title="Move up"
+                          >
+                            <span class="material-symbols-outlined text-lg">arrow_upward</span>
+                          </button>
+                          <button
+                            phx-click="move_item"
+                            phx-value-id={item.id}
+                            phx-value-direction="down"
+                            phx-target={@myself}
+                            class="text-on-surface-variant/40 hover:text-primary transition-colors p-1"
+                            title="Move down"
+                          >
+                            <span class="material-symbols-outlined text-lg">arrow_downward</span>
+                          </button>
+                          <button
+                            phx-click="edit_item"
+                            phx-value-id={item.id}
+                            phx-target={@myself}
+                            class="text-on-surface-variant/40 hover:text-primary transition-colors p-1"
+                            title="Edit item"
+                          >
+                            <span class="material-symbols-outlined text-lg">edit</span>
+                          </button>
+                        </div>
                       </div>
                     </div>
                   </div>
@@ -932,6 +1161,17 @@ defmodule SupervisedSlicesWeb.AdminLive.MenuEditorComponent do
                         name="item[price]"
                         placeholder="14.50"
                         inputmode="decimal"
+                        class="w-full bg-surface-container-highest border-0 rounded px-4 py-2.5 text-sm focus:ring-1 focus:ring-primary outline-none"
+                      />
+                    </div>
+                    <div>
+                      <label class="block text-[10px] font-black text-on-surface-variant uppercase tracking-widest mb-1.5">
+                        Sort Order
+                      </label>
+                      <input
+                        type="number"
+                        name="item[sort_order]"
+                        value="0"
                         class="w-full bg-surface-container-highest border-0 rounded px-4 py-2.5 text-sm focus:ring-1 focus:ring-primary outline-none"
                       />
                     </div>
@@ -1061,9 +1301,23 @@ defmodule SupervisedSlicesWeb.AdminLive.MenuEditorComponent do
               <%= for group <- @modifier_groups do %>
                 <div class="space-y-2">
                   <div class="flex items-center gap-2">
-                    <span class="flex-1 text-sm font-bold text-on-surface">
-                      {group.name}
-                    </span>
+                    <button
+                      type="button"
+                      phx-click="toggle_modifier_group_expanded"
+                      phx-value-id={group.id}
+                      phx-target={@myself}
+                      class="flex items-center gap-2 flex-1 text-left"
+                    >
+                      <span class={[
+                        "material-symbols-outlined text-sm transition-transform duration-200",
+                        if(Map.has_key?(@expanded_modifier_groups, group.id), do: "rotate-90")
+                      ]}>
+                        chevron_right
+                      </span>
+                      <span class="text-sm font-bold text-on-surface">
+                        {group.name}
+                      </span>
+                    </button>
                     <%= if group.required do %>
                       <span class="text-[10px] font-bold uppercase tracking-wider bg-primary-fixed text-on-primary-fixed-variant px-2 py-0.5 rounded-full">
                         Req.
@@ -1081,7 +1335,7 @@ defmodule SupervisedSlicesWeb.AdminLive.MenuEditorComponent do
                     </button>
                   </div>
 
-                  <div class="pl-2 space-y-1.5">
+                  <div :if={Map.has_key?(@expanded_modifier_groups, group.id)} class="pl-6 space-y-1.5">
                     <%= for modifier <- group.modifiers || [] do %>
                       <div class="flex items-center gap-2 text-xs">
                         <span class="flex-1 text-on-surface">{modifier.name}</span>
@@ -1177,7 +1431,16 @@ defmodule SupervisedSlicesWeb.AdminLive.MenuEditorComponent do
   defp load_categories(scope) do
     Category.active!(
       scope: scope,
-      load: [menu_items: [modifier_groups: [:modifiers], sizes: [], images: []]]
+      load: [
+        menu_items: [
+          query: MenuItem |> Ash.Query.sort(sort_order: :asc),
+          load: [
+            modifier_groups: [:modifiers],
+            sizes: [query: MenuItemSize |> Ash.Query.sort(sort_order: :asc)],
+            images: []
+          ]
+        ]
+      ]
     )
   end
 
@@ -1199,6 +1462,16 @@ defmodule SupervisedSlicesWeb.AdminLive.MenuEditorComponent do
     Money.to_string!(money)
   rescue
     _ -> "#{money}"
+  end
+
+  defp swap_sort_orders(resource, a, b, scope) do
+    a_sort = a.sort_order
+    b_sort = b.sort_order
+
+    {a_sort, b_sort} = if a_sort == b_sort, do: {a_sort, a_sort + 1}, else: {a_sort, b_sort}
+
+    resource.update!(a, %{sort_order: b_sort}, scope: scope)
+    resource.update!(b, %{sort_order: a_sort}, scope: scope)
   end
 
   defp money_amount(nil), do: "0.00"

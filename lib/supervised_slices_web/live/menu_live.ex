@@ -6,7 +6,7 @@ defmodule SupervisedSlicesWeb.MenuLive do
   alias Phoenix.LiveView.AsyncResult
   alias SupervisedSlices.Accounts.{GuestSession, User}
   alias SupervisedSlices.Cart.{Cart, CartItem}
-  alias SupervisedSlices.Menu.{Category, MenuItem}
+  alias SupervisedSlices.Menu.{Category, MenuItem, MenuItemSize}
   alias SupervisedSlices.Orders.{Order, OrderItem, Emails}
   alias SupervisedSlices.Orgs.GeofenceChecker
   alias SupervisedSlices.OrgPresence
@@ -33,7 +33,16 @@ defmodule SupervisedSlicesWeb.MenuLive do
          Category.active!(
            scope: scope,
            authorize?: false,
-           load: [menu_items: [modifier_groups: [:modifiers], sizes: [], images: []]]
+           load: [
+             menu_items: [
+               query: MenuItem |> Ash.Query.sort(sort_order: :asc),
+               load: [
+                 modifier_groups: [:modifiers],
+                 sizes: [query: MenuItemSize |> Ash.Query.sort(sort_order: :asc)],
+                 images: []
+               ]
+             ]
+           ]
          )
 
        {:ok, %{categories: categories}}
@@ -76,7 +85,11 @@ defmodule SupervisedSlicesWeb.MenuLive do
          MenuItem.get!(id,
            scope: scope,
            authorize?: false,
-           load: [modifier_groups: [:modifiers], sizes: [], images: []]
+           load: [
+             modifier_groups: [:modifiers],
+             sizes: [query: MenuItemSize |> Ash.Query.sort(sort_order: :asc)],
+             images: []
+           ]
          )
 
        has_image = !is_nil(item.image_url) or item.images != []

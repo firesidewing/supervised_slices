@@ -20,6 +20,10 @@ if stripe_secret_key = System.get_env("STRIPE_SECRET_KEY") do
   config :stripity_stripe, api_key: stripe_secret_key
 end
 
+if anthropic_api_key = System.get_env("ANTHROPIC_API_KEY") do
+  config :supervised_slices, :anthropic_api_key, anthropic_api_key
+end
+
 config :supervised_slices, :posthog,
   api_key: System.get_env("POSTHOG_API_KEY"),
   host: System.get_env("POSTHOG_HOST", "https://us.i.posthog.com")
