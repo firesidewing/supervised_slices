@@ -3,14 +3,11 @@ defmodule SupervisedSlicesWeb.AdminLive do
 
   require Ash.Query
 
-  import Ecto.Query
-
   on_mount {SupervisedSlicesWeb.LiveUserAuth, :live_user_and_subscription_required}
 
   alias Phoenix.LiveView.AsyncResult
   alias SupervisedSlices.Cart.Cart
   alias SupervisedSlices.Orders.Order
-  alias SupervisedSlices.Repo
   alias SupervisedSlices.{OrgPresence, PubSubNotifier}
 
   alias SupervisedSlicesWeb.AdminLive.OrdersComponent
@@ -53,7 +50,7 @@ defmodule SupervisedSlicesWeb.AdminLive do
          {:ok, %{active_carts: load_active_carts(scope)}}
        end)
        |> assign_async(:fire_time_stats, fn ->
-         {avg, trend} = load_fire_time_stats(org.id)
+         {avg, trend} = load_fire_time_stats(scope)
          {:ok, %{fire_time_stats: {avg, trend}}}
        end)}
     end
@@ -149,12 +146,12 @@ defmodule SupervisedSlicesWeb.AdminLive do
   end
 
   def handle_info(:tick, socket) do
-    org_id = socket.assigns.org.id
+    scope = socket.assigns.ash_scope
     send_update(OrdersComponent, id: "orders", tick: DateTime.utc_now())
 
     {:noreply,
      assign_async(socket, :fire_time_stats, fn ->
-       {avg, trend} = load_fire_time_stats(org_id)
+       {avg, trend} = load_fire_time_stats(scope)
        {:ok, %{fire_time_stats: {avg, trend}}}
      end)}
   end
@@ -201,51 +198,50 @@ defmodule SupervisedSlicesWeb.AdminLive do
     end
   end
 
-  # Returns {avg_seconds_float_or_nil, trend_atom} for the rolling fire time metric.
-  # "Current" = completed orders in the last 60 min.
-  # "Previous" = completed orders in the 60–120 min window before that.
-  defp load_fire_time_stats(org_id) do
+  defp load_fire_time_stats(scope) do
     now = DateTime.utc_now()
     one_hour_ago = DateTime.add(now, -60, :minute)
     two_hours_ago = DateTime.add(now, -120, :minute)
 
-    current_avg =
-      Repo.one(
-        from o in "orders",
-          where:
-            o.organization_id == type(^org_id, Ecto.UUID) and
-              o.status == "completed" and
-              o.updated_at >= ^one_hour_ago,
-          select: avg(fragment("EXTRACT(EPOCH FROM (? - ?))", o.updated_at, o.inserted_at))
-      )
+    current_orders =
+      Order
+      |> Ash.Query.for_read(:read, %{}, scope: scope, authorize?: false)
+      |> Ash.Query.filter(status == :completed and updated_at >= ^one_hour_ago)
+      |> Ash.read!(authorize?: false)
 
-    prev_avg =
-      Repo.one(
-        from o in "orders",
-          where:
-            o.organization_id == type(^org_id, Ecto.UUID) and
-              o.status == "completed" and
-              o.updated_at >= ^two_hours_ago and
-              o.updated_at < ^one_hour_ago,
-          select: avg(fragment("EXTRACT(EPOCH FROM (? - ?))", o.updated_at, o.inserted_at))
+    prev_orders =
+      Order
+      |> Ash.Query.for_read(:read, %{}, scope: scope, authorize?: false)
+      |> Ash.Query.filter(
+        status == :completed and updated_at >= ^two_hours_ago and updated_at < ^one_hour_ago
       )
+      |> Ash.read!(authorize?: false)
+
+    current_avg = avg_fire_seconds(current_orders)
+    prev_avg = avg_fire_seconds(prev_orders)
 
     trend =
       cond do
         is_nil(current_avg) or is_nil(prev_avg) -> :neutral
-        Decimal.compare(current_avg, Decimal.add(prev_avg, 30)) == :gt -> :up
-        Decimal.compare(current_avg, Decimal.sub(prev_avg, 30)) == :lt -> :down
+        current_avg > prev_avg + 30 -> :up
+        current_avg < prev_avg - 30 -> :down
         true -> :neutral
       end
 
     {current_avg, trend}
   end
 
+  defp avg_fire_seconds([]), do: nil
+
+  defp avg_fire_seconds(orders) do
+    total = Enum.sum(Enum.map(orders, &DateTime.diff(&1.updated_at, &1.inserted_at)))
+    total / length(orders)
+  end
+
   defp format_fire_time(nil), do: "—"
 
   defp format_fire_time(seconds) do
-    mins = seconds |> Decimal.to_float() |> Kernel./(60) |> round()
-    "#{mins}m"
+    "#{round(seconds / 60)}m"
   end
 
   defp fire_time_trend_label(:up), do: "↑"

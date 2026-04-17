@@ -3,10 +3,7 @@ defmodule SupervisedSlicesWeb.AdminLive.InsightsComponent do
 
   require Ash.Query
 
-  import Ecto.Query
-
   alias SupervisedSlices.Orders.Order
-  alias SupervisedSlices.Repo
 
   def update(assigns, socket) do
     socket =
@@ -32,9 +29,9 @@ defmodule SupervisedSlicesWeb.AdminLive.InsightsComponent do
       if Map.has_key?(socket.assigns, :metrics) do
         socket
       else
-        org_id = assigns.org.id
+        scope = assigns.ash_scope
 
-        assign_async(socket, :metrics, fn -> fetch_metrics(org_id) end)
+        assign_async(socket, :metrics, fn -> fetch_metrics(scope) end)
       end
 
     {:ok, socket}
@@ -74,52 +71,40 @@ defmodule SupervisedSlicesWeb.AdminLive.InsightsComponent do
     |> Ash.read!(authorize?: false)
   end
 
-  defp fetch_metrics(org_id) do
+  defp fetch_metrics(scope) do
     now = DateTime.utc_now()
     month_start = %{now | day: 1, hour: 0, minute: 0, second: 0, microsecond: {0, 0}}
     thirty_days_ago = DateTime.add(now, -30, :day)
 
-    orders_total =
-      Repo.one(
-        from o in "orders",
-          where:
-            o.organization_id == ^org_id and
-              o.inserted_at >= ^month_start and
-              o.status != "cancelled",
-          select: count()
-      )
+    orders =
+      Order
+      |> Ash.Query.for_read(:read, %{}, scope: scope, authorize?: false)
+      |> Ash.Query.filter(inserted_at >= ^thirty_days_ago and status != :cancelled)
+      |> Ash.read!(authorize?: false, load: [:order_items])
+
+    orders_this_month =
+      Enum.filter(orders, &(DateTime.compare(&1.inserted_at, month_start) != :lt))
+
+    orders_total = length(orders_this_month)
 
     orders_by_day =
-      Repo.all(
-        from o in "orders",
-          where:
-            o.organization_id == ^org_id and
-              o.inserted_at >= ^thirty_days_ago and
-              o.status != "cancelled",
-          group_by: fragment("date(? AT TIME ZONE 'UTC')", o.inserted_at),
-          order_by: fragment("date(? AT TIME ZONE 'UTC')", o.inserted_at),
-          select: {fragment("date(? AT TIME ZONE 'UTC')", o.inserted_at), count()}
-      )
+      orders
+      |> Enum.group_by(&DateTime.to_date(&1.inserted_at))
+      |> Enum.map(fn {date, os} -> {date, length(os)} end)
+      |> Enum.sort_by(&elem(&1, 0), Date)
 
     top_items =
-      Repo.all(
-        from oi in "order_items",
-          join: o in "orders",
-          on: o.id == oi.order_id,
-          where:
-            oi.organization_id == ^org_id and
-              o.inserted_at >= ^month_start and
-              o.status != "cancelled",
-          group_by: oi.item_name,
-          order_by: [desc: count()],
-          limit: 10,
-          select: {oi.item_name, count()}
-      )
+      orders_this_month
+      |> Enum.flat_map(& &1.order_items)
+      |> Enum.group_by(& &1.item_name)
+      |> Enum.map(fn {name, items} -> {name, length(items)} end)
+      |> Enum.sort_by(&elem(&1, 1), :desc)
+      |> Enum.take(10)
 
     {:ok,
      %{
        metrics: %{
-         orders_total: orders_total || 0,
+         orders_total: orders_total,
          orders_by_day: orders_by_day,
          top_items: top_items
        }
