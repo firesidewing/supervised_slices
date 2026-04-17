@@ -58,16 +58,33 @@ defmodule SupervisedSlicesWeb.MenuLive.ItemComponent do
       <main class="pt-[72px] pb-44">
         <!-- Hero Section -->
         <div
-          :if={@selected_item.image_url}
+          :if={all_images(@selected_item) != []}
           class="relative w-full aspect-[4/5] md:aspect-video overflow-hidden"
         >
-          <img
-            src={@selected_item.image_url}
-            alt={@selected_item.name}
-            class="w-full h-full object-cover"
-            style={"view-transition-name: item-img-#{@selected_item.id};"}
+          <div
+            id={"carousel-#{@selected_item.id}"}
+            phx-hook="Carousel"
+            class="flex h-full overflow-x-auto snap-x snap-mandatory scrollbar-hide"
+          >
+            <div
+              :for={{url, idx} <- Enum.with_index(all_images(@selected_item))}
+              id={"slide-#{@selected_item.id}-#{idx}"}
+              class="snap-center shrink-0 w-full h-full"
+            >
+              <img
+                src={url}
+                alt={@selected_item.name}
+                class="w-full h-full object-cover"
+                style={if idx == 0, do: "view-transition-name: item-img-#{@selected_item.id};", else: ""}
+              />
+            </div>
+          </div>
+          <div
+            :if={length(all_images(@selected_item)) > 1}
+            id={"carousel-dots-#{@selected_item.id}"}
+            class="absolute bottom-20 left-0 right-0 flex justify-center gap-1.5 z-10 pointer-events-none"
           />
-          <div class="absolute bottom-0 left-0 w-full h-2/3 bg-gradient-to-t from-surface to-transparent" />
+          <div class="absolute bottom-0 left-0 w-full h-2/3 bg-gradient-to-t from-surface to-transparent pointer-events-none" />
           <!-- Headline Overlay -->
           <div class="absolute bottom-8 left-8 right-8">
             <div class="flex items-center gap-2 mb-2">
@@ -85,7 +102,7 @@ defmodule SupervisedSlicesWeb.MenuLive.ItemComponent do
         </div>
 
         <%!-- Fallback for no image --%>
-        <div :if={!@selected_item.image_url} class="px-8 pt-12 pb-6 max-w-3xl mx-auto">
+        <div :if={all_images(@selected_item) == []} class="px-8 pt-12 pb-6 max-w-3xl mx-auto">
           <div class="flex items-center gap-2 mb-4">
             <span class="bg-secondary-container text-on-secondary-container text-[10px] px-3 py-1 rounded-full font-label tracking-widest uppercase font-bold">
               Artisan Selection
@@ -338,5 +355,14 @@ defmodule SupervisedSlicesWeb.MenuLive.ItemComponent do
     Money.to_string!(money)
   rescue
     _ -> "#{money}"
+  end
+
+  defp all_images(item) do
+    imgs =
+      (item.images || [])
+      |> Enum.sort_by(& &1.position)
+      |> Enum.map(& &1.url)
+
+    if imgs == [] and item.image_url, do: [item.image_url], else: imgs
   end
 end

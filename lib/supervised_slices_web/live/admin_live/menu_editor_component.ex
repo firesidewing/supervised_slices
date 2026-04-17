@@ -4,6 +4,7 @@ defmodule SupervisedSlicesWeb.AdminLive.MenuEditorComponent do
   alias SupervisedSlices.Menu.{
     Category,
     MenuItem,
+    MenuItemImage,
     MenuItemSize,
     MenuItemModifierGroup,
     MenuItemModifier,
@@ -22,7 +23,7 @@ defmodule SupervisedSlicesWeb.AdminLive.MenuEditorComponent do
      |> assign(:adding_modifier_to_group_id, nil)
      |> allow_upload(:item_image,
        accept: ~w(.jpg .jpeg .png .webp .gif),
-       max_entries: 1,
+       max_entries: 5,
        max_file_size: 8_000_000
      )}
   end
@@ -63,25 +64,47 @@ defmodule SupervisedSlicesWeb.AdminLive.MenuEditorComponent do
   def handle_event("save_item", %{"item" => params}, socket) do
     %{ash_scope: scope} = socket.assigns
 
-    uploaded_url =
+    uploaded_urls =
       consume_uploaded_entries(socket, :item_image, fn %{path: path}, entry ->
         {:ok, MenuImageUploader.upload(scope.current_tenant, path, entry.client_type)}
       end)
-      |> List.first()
+
+    item = MenuItem.get!(params["id"], scope: scope, load: [:images])
+
+    next_position = length(item.images)
+
+    uploaded_urls
+    |> Enum.with_index(next_position)
+    |> Enum.each(fn {url, pos} ->
+      MenuItemImage.create!(%{url: url, position: pos, menu_item_id: item.id}, scope: scope)
+    end)
+
+    image_url =
+      cond do
+        item.images != [] or uploaded_urls != [] -> item.image_url
+        params["image_url"] != "" -> params["image_url"]
+        true -> item.image_url
+      end
 
     attrs = %{
       name: params["name"],
       description: params["description"],
       price: parse_money(params["price"]),
-      image_url: uploaded_url || params["image_url"],
+      image_url: image_url,
       sort_order: String.to_integer(params["sort_order"] || "0")
     }
 
-    MenuItem.get!(params["id"], scope: scope)
-    |> MenuItem.update!(attrs, scope: scope)
+    MenuItem.update!(item, attrs, scope: scope)
 
     categories = load_categories(scope)
     {:noreply, assign(socket, categories: categories, editing_item_id: nil)}
+  end
+
+  def handle_event("delete_image", %{"id" => id}, socket) do
+    %{ash_scope: scope} = socket.assigns
+    MenuItemImage.destroy!(id, scope: scope)
+    categories = load_categories(scope)
+    {:noreply, assign(socket, :categories, categories)}
   end
 
   def handle_event("toggle_available", %{"id" => id}, socket) do
@@ -95,11 +118,10 @@ defmodule SupervisedSlicesWeb.AdminLive.MenuEditorComponent do
   def handle_event("create_item", %{"item" => params}, socket) do
     %{ash_scope: scope} = socket.assigns
 
-    uploaded_url =
+    uploaded_urls =
       consume_uploaded_entries(socket, :item_image, fn %{path: path}, entry ->
         {:ok, MenuImageUploader.upload(scope.current_tenant, path, entry.client_type)}
       end)
-      |> List.first()
 
     item =
       MenuItem.create!(
@@ -107,12 +129,18 @@ defmodule SupervisedSlicesWeb.AdminLive.MenuEditorComponent do
           name: params["name"],
           description: params["description"],
           price: parse_money(params["price"]),
-          image_url: uploaded_url || params["image_url"],
+          image_url: if(uploaded_urls == [], do: params["image_url"], else: nil),
           sort_order: String.to_integer(params["sort_order"] || "0"),
           category_id: params["category_id"]
         },
         scope: scope
       )
+
+    uploaded_urls
+    |> Enum.with_index()
+    |> Enum.each(fn {url, pos} ->
+      MenuItemImage.create!(%{url: url, position: pos, menu_item_id: item.id}, scope: scope)
+    end)
 
     categories = load_categories(scope)
 
@@ -527,15 +555,37 @@ defmodule SupervisedSlicesWeb.AdminLive.MenuEditorComponent do
                         </div>
                         <div class="md:col-span-2 space-y-2">
                           <label class="block text-xs font-bold text-on-surface-variant uppercase tracking-wider">
-                            Image
+                            Images
                           </label>
-                          <%= if item.image_url do %>
+                          <div :if={item.images != []} class="flex flex-wrap gap-2">
+                            <div
+                              :for={img <- Enum.sort_by(item.images, & &1.position)}
+                              class="relative group"
+                            >
+                              <img
+                                src={img.url}
+                                alt={item.name}
+                                class="h-16 w-16 rounded-lg object-cover"
+                              />
+                              <button
+                                type="button"
+                                phx-click="delete_image"
+                                phx-value-id={img.id}
+                                phx-target={@myself}
+                                class="absolute -top-1.5 -right-1.5 bg-error text-on-error rounded-full w-5 h-5 flex items-center justify-center text-xs font-bold opacity-0 group-hover:opacity-100 transition-opacity"
+                              >
+                                ×
+                              </button>
+                            </div>
+                          </div>
+                          <div :if={item.images == [] and item.image_url} class="relative group w-fit">
                             <img
                               src={item.image_url}
                               alt={item.name}
-                              class="h-16 w-16 rounded-lg object-cover"
+                              class="h-16 w-16 rounded-lg object-cover opacity-50"
                             />
-                          <% end %>
+                            <p class="text-[10px] text-on-surface-variant mt-1">Legacy URL</p>
+                          </div>
                           <div class="flex gap-2 items-center">
                             <.live_file_input
                               upload={@uploads.item_image}
@@ -543,7 +593,7 @@ defmodule SupervisedSlicesWeb.AdminLive.MenuEditorComponent do
                             />
                           </div>
                           <p class="text-[10px] text-on-surface-variant">
-                            Or paste a URL below (upload takes priority)
+                            Up to 5 images. Or paste a URL below for a single image.
                           </p>
                           <input
                             type="text"
@@ -897,6 +947,15 @@ defmodule SupervisedSlicesWeb.AdminLive.MenuEditorComponent do
                       ></textarea>
                     </div>
                   </div>
+                  <div>
+                    <label class="block text-[10px] font-black text-on-surface-variant uppercase tracking-widest mb-1.5">
+                      Images (optional)
+                    </label>
+                    <.live_file_input
+                      upload={@uploads.item_image}
+                      class="text-sm text-on-surface-variant file:mr-3 file:py-1.5 file:px-3 file:rounded-lg file:border-0 file:bg-surface-container file:text-xs file:font-bold file:uppercase file:tracking-wider file:cursor-pointer"
+                    />
+                  </div>
                   <div class="flex items-center gap-3 pt-2">
                     <button
                       type="submit"
@@ -1118,7 +1177,7 @@ defmodule SupervisedSlicesWeb.AdminLive.MenuEditorComponent do
   defp load_categories(scope) do
     Category.active!(
       scope: scope,
-      load: [menu_items: [modifier_groups: [:modifiers], sizes: []]]
+      load: [menu_items: [modifier_groups: [:modifiers], sizes: [], images: []]]
     )
   end
 

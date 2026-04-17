@@ -76,10 +76,11 @@ defmodule SupervisedSlicesWeb.MenuLive do
          MenuItem.get!(id,
            scope: scope,
            authorize?: false,
-           load: [modifier_groups: [:modifiers], sizes: []]
+           load: [modifier_groups: [:modifiers], sizes: [], images: []]
          )
 
-       {:ok, %{selected_item: item, selected_item_has_image: !is_nil(item.image_url)}}
+       has_image = !is_nil(item.image_url) or item.images != []
+       {:ok, %{selected_item: item, selected_item_has_image: has_image}}
      end)}
   end
 

@@ -369,6 +369,53 @@ export const PostHogIdentify = {
 }
 
 /**
+ * Carousel — CSS scroll-snap carousel with dot indicators.
+ *
+ * Renders dot indicators into the sibling `#carousel-dots-{id}` element and
+ * highlights the active dot as the user swipes between slides.
+ */
+export const Carousel = {
+  mounted() {
+    this.slides = Array.from(this.el.children)
+    if (this.slides.length <= 1) return
+
+    const dotsEl = document.getElementById(`carousel-dots-${this.el.id.replace("carousel-", "")}`)
+    if (!dotsEl) return
+
+    this.dots = this.slides.map((_, i) => {
+      const dot = document.createElement("div")
+      dot.className = i === 0
+        ? "w-2 h-2 rounded-full bg-white"
+        : "w-1.5 h-1.5 rounded-full bg-white/40"
+      dotsEl.appendChild(dot)
+      return dot
+    })
+
+    this._observer = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((entry) => {
+          if (entry.isIntersecting) {
+            const idx = this.slides.indexOf(entry.target)
+            this.dots.forEach((dot, i) => {
+              dot.className = i === idx
+                ? "w-2 h-2 rounded-full bg-white transition-all duration-200"
+                : "w-1.5 h-1.5 rounded-full bg-white/40 transition-all duration-200"
+            })
+          }
+        })
+      },
+      { root: this.el, threshold: 0.6 }
+    )
+
+    this.slides.forEach((slide) => this._observer.observe(slide))
+  },
+
+  destroyed() {
+    if (this._observer) this._observer.disconnect()
+  }
+}
+
+/**
  * GeoFenceMap — interactive Leaflet map for setting delivery area.
  */
 export const GeoFenceMap = {

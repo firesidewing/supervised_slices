@@ -128,6 +128,10 @@ defmodule SupervisedSlices.Menu.MenuItem do
 
     has_many :sizes, SupervisedSlices.Menu.MenuItemSize
 
+    has_many :images, SupervisedSlices.Menu.MenuItemImage do
+      public? true
+    end
+
     many_to_many :modifier_groups, SupervisedSlices.Menu.MenuItemModifierGroup do
       through SupervisedSlices.Menu.MenuItemModifierGroupLink
       source_attribute_on_join_resource :menu_item_id

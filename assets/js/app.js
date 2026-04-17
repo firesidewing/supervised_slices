@@ -25,6 +25,7 @@ import { LiveSocket } from "phoenix_live_view";
 import { hooks as colocatedHooks } from "phoenix-colocated/supervised_slices";
 import {
     TourGuide,
+    Carousel,
     Countdown,
     OrderNotifications,
     GeoFenceMap,
@@ -63,6 +64,7 @@ const liveSocket = new LiveSocket("/live", Socket, {
     hooks: {
         ...colocatedHooks,
         TourGuide,
+        Carousel,
         Countdown,
         OrderNotifications,
         GeoFenceMap,

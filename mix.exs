@@ -42,6 +42,7 @@ defmodule SupervisedSlices.MixProject do
   defp deps do
     [
       {:stripity_stripe, "~> 3.0"},
+      {:image, "~> 0.54"},
       {:ex_aws, "~> 2.5"},
       {:ex_aws_s3, "~> 2.5"},
       {:hackney, "~> 1.20"},
