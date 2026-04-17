@@ -494,7 +494,7 @@ defmodule SupervisedSlicesWeb.AdminLive.MenuEditorComponent do
   end
 
   def handle_event("purchase_menu_upload", _params, socket) do
-    %{org: org, user: user} = socket.assigns
+    %{org: org} = socket.assigns
     socket = assign(socket, :purchasing_upload, true)
 
     price_id = Application.get_env(:supervised_slices, :stripe)[:price_id_menu_upload]
@@ -504,10 +504,10 @@ defmodule SupervisedSlicesWeb.AdminLive.MenuEditorComponent do
 
     metadata = %{"menu_upload" => "true", "org_id" => org.id}
 
-    with {:ok, org} <- Billing.create_customer_for_org(org, user.email),
+    with {:ok, customer_id} <- get_stripe_customer_id(org),
          {:ok, session} <-
            Billing.create_one_time_checkout_session(
-             org.stripe_customer_id,
+             customer_id,
              price_id,
              metadata,
              success_url,
@@ -1524,6 +1524,11 @@ defmodule SupervisedSlicesWeb.AdminLive.MenuEditorComponent do
   # ---------------------------------------------------------------------------
   # Private helpers
   # ---------------------------------------------------------------------------
+
+  defp get_stripe_customer_id(%{stripe_customer_id: id}) when is_binary(id) and id != "",
+    do: {:ok, id}
+
+  defp get_stripe_customer_id(_org), do: {:error, :no_stripe_customer}
 
   defp load_categories(scope) do
     Category.active!(
