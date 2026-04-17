@@ -10,7 +10,7 @@ defmodule SupervisedSlicesWeb.MenuLive.ItemComponent do
     socket =
       if needs_init do
         default_size_id =
-          case (new_item.sizes || []) do
+          case new_item.sizes || [] do
             [first | _] -> to_string(first.id)
             [] -> nil
           end
@@ -75,7 +75,9 @@ defmodule SupervisedSlicesWeb.MenuLive.ItemComponent do
                 src={url}
                 alt={@selected_item.name}
                 class="w-full h-full object-cover"
-                style={if idx == 0, do: "view-transition-name: item-img-#{@selected_item.id};", else: ""}
+                style={
+                  if idx == 0, do: "view-transition-name: item-img-#{@selected_item.id};", else: ""
+                }
               />
             </div>
           </div>
@@ -132,7 +134,7 @@ defmodule SupervisedSlicesWeb.MenuLive.ItemComponent do
             </div>
             <div class="flex overflow-x-auto gap-4 pb-4 no-scrollbar">
               <.size_card
-                :for={size <- (@selected_item.sizes || [])}
+                :for={size <- @selected_item.sizes || []}
                 size={size}
                 selected={to_string(size.id) == @selected_size_id}
                 myself={@myself}

@@ -37,11 +37,11 @@ defmodule SupervisedSlicesWeb.MenuLive do
              menu_items:
                MenuItem
                |> Ash.Query.sort(sort_order: :asc)
-               |> Ash.Query.load([
+               |> Ash.Query.load(
                  modifier_groups: [:modifiers],
                  sizes: MenuItemSize |> Ash.Query.sort(sort_order: :asc),
                  images: []
-               ])
+               )
            ]
          )
 

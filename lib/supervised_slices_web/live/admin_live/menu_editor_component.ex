@@ -12,6 +12,7 @@ defmodule SupervisedSlicesWeb.AdminLive.MenuEditorComponent do
     MenuImageUploader,
     MenuUpload
   }
+
   require Ash.Query
 
   def mount(socket) do
@@ -62,8 +63,8 @@ defmodule SupervisedSlicesWeb.AdminLive.MenuEditorComponent do
       |> assign(:org, org)
       |> assign(:current_upload, current_upload)
       |> assign(:has_completed_upload, has_completed_upload)
-      |> assign_new(:categories, fn -> load_categories(socket.assigns.ash_scope) end)
-      |> assign_new(:modifier_groups, fn -> load_modifier_groups(socket.assigns.ash_scope) end)
+      |> assign_new(:categories, fn -> load_categories(scope) end)
+      |> assign_new(:modifier_groups, fn -> load_modifier_groups(scope) end)
 
     {:ok, assign(socket, Map.drop(assigns, [:ash_scope, :org]))}
   end
@@ -289,7 +290,6 @@ defmodule SupervisedSlicesWeb.AdminLive.MenuEditorComponent do
     {:noreply, assign(socket, categories: load_categories(scope))}
   end
 
-
   # ---------------------------------------------------------------------------
   # Size events
   # ---------------------------------------------------------------------------
@@ -351,13 +351,14 @@ defmodule SupervisedSlicesWeb.AdminLive.MenuEditorComponent do
   def handle_event("create_modifier_group", %{"group" => params}, socket) do
     %{ash_scope: scope} = socket.assigns
 
-    group = MenuItemModifierGroup.create!(
-      %{
-        name: params["name"],
-        required: Map.get(params, "required") == "true"
-      },
-      scope: scope
-    )
+    group =
+      MenuItemModifierGroup.create!(
+        %{
+          name: params["name"],
+          required: Map.get(params, "required") == "true"
+        },
+        scope: scope
+      )
 
     modifier_groups = load_modifier_groups(scope)
     expanded = Map.put(socket.assigns.expanded_modifier_groups, group.id, true)
@@ -423,7 +424,12 @@ defmodule SupervisedSlicesWeb.AdminLive.MenuEditorComponent do
 
   def handle_event("toggle_modifier_group_expanded", %{"id" => id}, socket) do
     expanded = socket.assigns.expanded_modifier_groups
-    new_expanded = if Map.has_key?(expanded, id), do: Map.delete(expanded, id), else: Map.put(expanded, id, true)
+
+    new_expanded =
+      if Map.has_key?(expanded, id),
+        do: Map.delete(expanded, id),
+        else: Map.put(expanded, id, true)
+
     {:noreply, assign(socket, :expanded_modifier_groups, new_expanded)}
   end
 
@@ -572,7 +578,10 @@ defmodule SupervisedSlicesWeb.AdminLive.MenuEditorComponent do
           </button>
         </form>
 
-        <div :if={@org.menu_upload_purchased and not @has_completed_upload} class="bg-surface-container-low p-6 rounded-xl border-2 border-dashed border-primary/30 mb-8">
+        <div
+          :if={@org.menu_upload_purchased and not @has_completed_upload}
+          class="bg-surface-container-low p-6 rounded-xl border-2 border-dashed border-primary/30 mb-8"
+        >
           <div class="flex items-center justify-between mb-4">
             <div>
               <h3 class="text-lg font-black text-on-surface font-headline uppercase tracking-tight">
@@ -585,17 +594,28 @@ defmodule SupervisedSlicesWeb.AdminLive.MenuEditorComponent do
             <div class="flex items-center gap-4">
               <form phx-submit="upload_menu" phx-target={@myself}>
                 <.live_file_input upload={@uploads.menu_file} class="hidden" id="menu-upload-input" />
-                <label for="menu-upload-input" class="cursor-pointer bg-primary text-white px-6 py-2.5 rounded-md font-bold text-sm uppercase tracking-wide transition-all active:scale-95 shadow-sm inline-block">
-                  <span class="material-symbols-outlined text-lg align-middle mr-1">upload_file</span> Choose File
+                <label
+                  for="menu-upload-input"
+                  class="cursor-pointer bg-primary text-white px-6 py-2.5 rounded-md font-bold text-sm uppercase tracking-wide transition-all active:scale-95 shadow-sm inline-block"
+                >
+                  <span class="material-symbols-outlined text-lg align-middle mr-1">upload_file</span>
+                  Choose File
                 </label>
-                <button :if={@uploads.menu_file.entries != []} type="submit" class="ml-4 bg-secondary text-white px-6 py-2.5 rounded-md font-bold text-sm uppercase tracking-wide transition-all active:scale-95 shadow-sm">
+                <button
+                  :if={@uploads.menu_file.entries != []}
+                  type="submit"
+                  class="ml-4 bg-secondary text-white px-6 py-2.5 rounded-md font-bold text-sm uppercase tracking-wide transition-all active:scale-95 shadow-sm"
+                >
                   Start Import
                 </button>
               </form>
             </div>
           </div>
-          
-          <div :for={entry <- @uploads.menu_file.entries} class="mt-4 flex items-center gap-4 text-sm text-on-surface-variant">
+
+          <div
+            :for={entry <- @uploads.menu_file.entries}
+            class="mt-4 flex items-center gap-4 text-sm text-on-surface-variant"
+          >
             <span class="font-bold">{entry.client_name}</span>
             <div class="flex-1 h-2 bg-surface-container-highest rounded-full overflow-hidden">
               <div class="h-full bg-primary transition-all" style={"width: #{entry.progress}%"}></div>
@@ -603,19 +623,31 @@ defmodule SupervisedSlicesWeb.AdminLive.MenuEditorComponent do
             <span>{entry.progress}%</span>
           </div>
 
-          <div :if={@current_upload} class="mt-4 p-4 bg-surface-container rounded-lg flex items-center gap-4">
-             <div :if={@current_upload.status == :pending or @current_upload.status == :processing} class="animate-pulse flex items-center gap-2 text-primary font-bold">
-               <span class="material-symbols-outlined animate-spin">refresh</span>
-               Processing your menu... This may take a minute.
-             </div>
-             <div :if={@current_upload.status == :completed} class="text-secondary font-bold flex items-center gap-2">
-                <span class="material-symbols-outlined">check_circle</span>
-                Import completed successfully!
-             </div>
-             <div :if={@current_upload.status == :failed} class="text-error font-bold flex items-center gap-2">
-               <span class="material-symbols-outlined">error</span>
-               Import failed: {@current_upload.error_message}
-             </div>
+          <div
+            :if={@current_upload}
+            class="mt-4 p-4 bg-surface-container rounded-lg flex items-center gap-4"
+          >
+            <div
+              :if={@current_upload.status == :pending or @current_upload.status == :processing}
+              class="animate-pulse flex items-center gap-2 text-primary font-bold"
+            >
+              <span class="material-symbols-outlined animate-spin">refresh</span>
+              Processing your menu... This may take a minute.
+            </div>
+            <div
+              :if={@current_upload.status == :completed}
+              class="text-secondary font-bold flex items-center gap-2"
+            >
+              <span class="material-symbols-outlined">check_circle</span>
+              Import completed successfully!
+            </div>
+            <div
+              :if={@current_upload.status == :failed}
+              class="text-error font-bold flex items-center gap-2"
+            >
+              <span class="material-symbols-outlined">error</span>
+              Import failed: {@current_upload.error_message}
+            </div>
           </div>
         </div>
 
@@ -1335,7 +1367,10 @@ defmodule SupervisedSlicesWeb.AdminLive.MenuEditorComponent do
                     </button>
                   </div>
 
-                  <div :if={Map.has_key?(@expanded_modifier_groups, group.id)} class="pl-6 space-y-1.5">
+                  <div
+                    :if={Map.has_key?(@expanded_modifier_groups, group.id)}
+                    class="pl-6 space-y-1.5"
+                  >
                     <%= for modifier <- group.modifiers || [] do %>
                       <div class="flex items-center gap-2 text-xs">
                         <span class="flex-1 text-on-surface">{modifier.name}</span>
@@ -1435,11 +1470,11 @@ defmodule SupervisedSlicesWeb.AdminLive.MenuEditorComponent do
         menu_items:
           MenuItem
           |> Ash.Query.sort(sort_order: :asc)
-          |> Ash.Query.load([
+          |> Ash.Query.load(
             modifier_groups: [:modifiers],
             sizes: MenuItemSize |> Ash.Query.sort(sort_order: :asc),
             images: []
-          ])
+          )
       ]
     )
   end

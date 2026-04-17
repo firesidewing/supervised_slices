@@ -121,9 +121,9 @@ defmodule SupervisedSlices.Menu.MenuUpload do
                       Enum.each(group_data["modifiers"] || [], fn modifier_data ->
                         price_delta =
                           if is_integer(modifier_data["price_delta"]) &&
-               modifier_data["price_delta"] != 0,
-                            do: Money.new!(:CAD, modifier_data["price_delta"]),
-                            else: nil
+                               modifier_data["price_delta"] != 0,
+                             do: Money.new!(:CAD, modifier_data["price_delta"]),
+                             else: nil
 
                         SupervisedSlices.Menu.MenuItemModifier
                         |> Ash.Changeset.for_create(:create, %{

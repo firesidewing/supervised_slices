@@ -80,7 +80,7 @@ defmodule SupervisedSlices.Menu.Category do
     end
 
     has_many :menu_items, SupervisedSlices.Menu.MenuItem do
-      sort [sort_order: :asc]
+      sort sort_order: :asc
     end
   end
 end
