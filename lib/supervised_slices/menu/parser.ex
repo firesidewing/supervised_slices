@@ -35,26 +35,65 @@ defmodule SupervisedSlices.Menu.Parser do
 
   defp call_claude(base64_image, content_type, api_key) do
     prompt = """
-    You are a menu parsing assistant. Analyze the provided menu image and extract the categories and menu items.
-    Return the result as a JSON object with the following structure:
+    You are a menu parsing assistant. Analyze the provided menu image and extract ALL categories, menu items, sizes, and modifiers/add-ons completely.
+
+    Return ONLY a JSON object with this exact structure. No markdown, no explanation:
     {
       "categories": [
         {
           "name": "Category Name",
+          "sort_order": 0,
           "items": [
             {
               "name": "Item Name",
-              "description": "Item Description",
-              "price": 1299 // price in cents as an integer. If no price is found, use null.
+              "description": "Item description or null if none",
+              "price": 1299,
+              "sort_order": 0,
+              "sizes": [
+                {
+                  "name": "Small",
+                  "price": 999,
+                  "sort_order": 0
+                }
+              ],
+              "modifier_groups": [
+                {
+                  "name": "Choose a sauce",
+                  "required": false,
+                  "min_selections": 0,
+                  "max_selections": 1,
+                  "sort_order": 0,
+                  "modifiers": [
+                    {
+                      "name": "Ranch",
+                      "price_delta": 0,
+                      "sort_order": 0
+                    },
+                    {
+                      "name": "Extra Cheese",
+                      "price_delta": 150,
+                      "sort_order": 1
+                    }
+                  ]
+                }
+              ]
             }
           ]
         }
       ]
     }
-    Only return the JSON object, nothing else. Do not include any markdown formatting like ```json.
+
+    Rules:
+    - All prices and price_delta values are integers in cents (e.g. $12.99 = 1299). Use 0 for free modifiers/add-ons.
+    - If an item has sizes, set price to null and populate the sizes array. If no sizes, set sizes to [].
+    - If an item has no modifier groups, set modifier_groups to [].
+    - Infer required/min_selections/max_selections from context (e.g. "choose one" = required true, max_selections 1).
+    - Use sort_order to preserve the visual order items appear on the menu (0-indexed).
+    - Extract every modifier group visible: toppings, sauces, preparation options, add-ons, sides, etc.
+    - If a modifier has no extra charge, set price_delta to 0.
+    - description should be null if no description is visible.
     """
 
-    # Anthropic expects specific media types: image/jpeg, image/png, image/gif, image/webp
     media_type =
       cond do
         String.contains?(content_type, "png") -> "image/png"
@@ -65,7 +104,7 @@ defmodule SupervisedSlices.Menu.Parser do
 
     body = %{
       model: @model,
-      max_tokens: 4096,
+      max_tokens: 8192,
       messages: [
         %{
           role: "user",
@@ -93,8 +132,7 @@ defmodule SupervisedSlices.Menu.Parser do
              {"x-api-key", api_key},
              {"anthropic-version", "2023-06-01"}
            ],
-           # Set a long timeout for LLM
-           receive_timeout: 60_000
+           receive_timeout: 120_000
          ) do
       {:ok, %{status: 200, body: %{"content" => [%{"text" => text} | _]}}} ->
         clean_json_decode(text)
