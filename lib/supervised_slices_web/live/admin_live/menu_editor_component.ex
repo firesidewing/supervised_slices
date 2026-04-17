@@ -16,6 +16,7 @@ defmodule SupervisedSlicesWeb.AdminLive.MenuEditorComponent do
   alias SupervisedSlices.Billing
 
   require Ash.Query
+  require Logger
 
   def mount(socket) do
     {:ok,
@@ -494,6 +495,7 @@ defmodule SupervisedSlicesWeb.AdminLive.MenuEditorComponent do
   end
 
   def handle_event("purchase_menu_upload", _params, socket) do
+    Logger.info("[MenuEditor] purchase_menu_upload fired")
     %{org: org, user: user} = socket.assigns
     socket = assign(socket, :purchasing_upload, true)
 
@@ -504,22 +506,35 @@ defmodule SupervisedSlicesWeb.AdminLive.MenuEditorComponent do
 
     metadata = %{"menu_upload" => "true", "org_id" => org.id}
 
-    with {:ok, org} <- Billing.create_customer_for_org(org, user.email),
-         {:ok, session} <-
-           Billing.create_one_time_checkout_session(
-             org.stripe_customer_id,
-             price_id,
-             metadata,
-             success_url,
-             cancel_url
-           ) do
-      {:noreply, redirect(socket, external: session.url)}
-    else
-      {:error, _reason} ->
+    Logger.info("[MenuEditor] creating customer for org=#{org.id}, price_id=#{inspect(price_id)}")
+
+    result =
+      with {:ok, org} <- Billing.create_customer_for_org(org, user.email),
+           {:ok, session} <-
+             Billing.create_one_time_checkout_session(
+               org.stripe_customer_id,
+               price_id,
+               metadata,
+               success_url,
+               cancel_url
+             ) do
+        {:redirect, session.url}
+      else
+        other ->
+          Logger.warning("[MenuEditor] purchase failed: #{inspect(other)}")
+          {:error, "Could not start checkout. Please try again."}
+      end
+
+    case result do
+      {:redirect, url} ->
+        Logger.info("[MenuEditor] redirecting to #{url}")
+        {:noreply, redirect(socket, external: url)}
+
+      {:error, msg} ->
         {:noreply,
          socket
          |> assign(:purchasing_upload, false)
-         |> put_flash(:error, "Could not start checkout. Please try again.")}
+         |> put_flash(:error, msg)}
     end
   end
 
