@@ -68,8 +68,7 @@ defmodule SupervisedSlices.Billing do
       line_items: [%{price: price_id, quantity: 1}],
       metadata: metadata,
       success_url: success_url <> "?session_id={CHECKOUT_SESSION_ID}",
-      cancel_url: cancel_url,
-      payment_method_collection: "always"
+      cancel_url: cancel_url
     })
   end
 
