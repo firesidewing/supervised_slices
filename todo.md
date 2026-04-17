@@ -5,3 +5,4 @@
 - [x] set up menu uploader using the service
 - [ ] adjust wording (Atelier)
 - [ ] scope analytics to open periods
+- [ ] group editing is expanding out of container

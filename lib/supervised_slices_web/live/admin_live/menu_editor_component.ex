@@ -579,6 +579,32 @@ defmodule SupervisedSlicesWeb.AdminLive.MenuEditorComponent do
         </form>
 
         <div
+          :if={not @org.menu_upload_purchased}
+          class="bg-surface-container-low p-6 rounded-xl border-2 border-dashed border-outline-variant/50 mb-8"
+        >
+          <div class="flex items-center justify-between">
+            <div>
+              <h3 class="text-lg font-black text-on-surface font-headline uppercase tracking-tight">
+                AI Menu Importer
+              </h3>
+              <p class="text-sm text-on-surface-variant mt-1">
+                Upload a photo of your menu and let our AI build your entire digital catalog — categories, items, sizes, and modifiers.
+              </p>
+            </div>
+            <div class="flex items-center gap-4 ml-8 shrink-0">
+              <span class="text-sm font-black text-on-surface-variant">$150 one-time</span>
+              <.link
+                navigate={~p"/billing/setup/#{@org.slug}"}
+                class="bg-primary text-white px-6 py-2.5 rounded-md font-bold text-sm uppercase tracking-wide transition-all active:scale-95 shadow-sm inline-flex items-center gap-2"
+              >
+                <span class="material-symbols-outlined text-lg">auto_awesome</span>
+                Purchase
+              </.link>
+            </div>
+          </div>
+        </div>
+
+        <div
           :if={@org.menu_upload_purchased and not @has_completed_upload}
           class="bg-surface-container-low p-6 rounded-xl border-2 border-dashed border-primary/30 mb-8"
         >
