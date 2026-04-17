@@ -359,9 +359,10 @@ defmodule SupervisedSlicesWeb.MenuLive.ItemComponent do
 
   defp all_images(item) do
     imgs =
-      (item.images || [])
-      |> Enum.sort_by(& &1.position)
-      |> Enum.map(& &1.url)
+      case item.images do
+        %Ash.NotLoaded{} -> []
+        images -> images |> Enum.sort_by(& &1.position) |> Enum.map(& &1.url)
+      end
 
     if imgs == [] and item.image_url, do: [item.image_url], else: imgs
   end

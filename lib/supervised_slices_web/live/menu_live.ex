@@ -33,7 +33,7 @@ defmodule SupervisedSlicesWeb.MenuLive do
          Category.active!(
            scope: scope,
            authorize?: false,
-           load: [menu_items: [modifier_groups: [:modifiers], sizes: []]]
+           load: [menu_items: [modifier_groups: [:modifiers], sizes: [], images: []]]
          )
 
        {:ok, %{categories: categories}}
