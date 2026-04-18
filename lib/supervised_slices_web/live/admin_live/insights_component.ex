@@ -4,6 +4,7 @@ defmodule SupervisedSlicesWeb.AdminLive.InsightsComponent do
   require Ash.Query
 
   alias SupervisedSlices.Orders.Order
+  alias SupervisedSlices.Orgs.Organization
 
   def update(assigns, socket) do
     socket =
@@ -31,7 +32,7 @@ defmodule SupervisedSlicesWeb.AdminLive.InsightsComponent do
       else
         scope = assigns.ash_scope
 
-        assign_async(socket, :metrics, fn -> fetch_metrics(scope) end)
+        assign_async(socket, :metrics, fn -> fetch_metrics(scope, assigns.org) end)
       end
 
     {:ok, socket}
@@ -71,7 +72,7 @@ defmodule SupervisedSlicesWeb.AdminLive.InsightsComponent do
     |> Ash.read!(authorize?: false)
   end
 
-  defp fetch_metrics(scope) do
+  defp fetch_metrics(scope, org) do
     now = DateTime.utc_now()
     month_start = %{now | day: 1, hour: 0, minute: 0, second: 0, microsecond: {0, 0}}
     thirty_days_ago = DateTime.add(now, -30, :day)
@@ -81,6 +82,7 @@ defmodule SupervisedSlicesWeb.AdminLive.InsightsComponent do
       |> Ash.Query.for_read(:read, %{}, scope: scope, authorize?: false)
       |> Ash.Query.filter(inserted_at >= ^thirty_days_ago and status != :cancelled)
       |> Ash.read!(authorize?: false, load: [:order_items])
+      |> Enum.filter(&Organization.was_open_at?(org, &1.inserted_at))
 
     orders_this_month =
       Enum.filter(orders, &(DateTime.compare(&1.inserted_at, month_start) != :lt))

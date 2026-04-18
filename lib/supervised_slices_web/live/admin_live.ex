@@ -9,6 +9,7 @@ defmodule SupervisedSlicesWeb.AdminLive do
   alias SupervisedSlices.Cart.Cart
   alias SupervisedSlices.Orders.Order
   alias SupervisedSlices.{OrgPresence, PubSubNotifier}
+  alias SupervisedSlices.Orgs.Organization
 
   alias SupervisedSlicesWeb.AdminLive.OrdersComponent
 
@@ -50,7 +51,7 @@ defmodule SupervisedSlicesWeb.AdminLive do
          {:ok, %{active_carts: load_active_carts(scope)}}
        end)
        |> assign_async(:fire_time_stats, fn ->
-         {avg, trend} = load_fire_time_stats(scope)
+         {avg, trend} = load_fire_time_stats(scope, org)
          {:ok, %{fire_time_stats: {avg, trend}}}
        end)}
     end
@@ -147,11 +148,12 @@ defmodule SupervisedSlicesWeb.AdminLive do
 
   def handle_info(:tick, socket) do
     scope = socket.assigns.ash_scope
+    org = socket.assigns.org
     send_update(OrdersComponent, id: "orders", tick: DateTime.utc_now())
 
     {:noreply,
      assign_async(socket, :fire_time_stats, fn ->
-       {avg, trend} = load_fire_time_stats(scope)
+       {avg, trend} = load_fire_time_stats(scope, org)
        {:ok, %{fire_time_stats: {avg, trend}}}
      end)}
   end
@@ -198,7 +200,7 @@ defmodule SupervisedSlicesWeb.AdminLive do
     end
   end
 
-  defp load_fire_time_stats(scope) do
+  defp load_fire_time_stats(scope, org) do
     now = DateTime.utc_now()
     one_hour_ago = DateTime.add(now, -60, :minute)
     two_hours_ago = DateTime.add(now, -120, :minute)
@@ -208,6 +210,7 @@ defmodule SupervisedSlicesWeb.AdminLive do
       |> Ash.Query.for_read(:read, %{}, scope: scope, authorize?: false)
       |> Ash.Query.filter(status == :completed and updated_at >= ^one_hour_ago)
       |> Ash.read!(authorize?: false)
+      |> Enum.filter(&Organization.was_open_at?(org, &1.inserted_at))
 
     prev_orders =
       Order
@@ -216,6 +219,7 @@ defmodule SupervisedSlicesWeb.AdminLive do
         status == :completed and updated_at >= ^two_hours_ago and updated_at < ^one_hour_ago
       )
       |> Ash.read!(authorize?: false)
+      |> Enum.filter(&Organization.was_open_at?(org, &1.inserted_at))
 
     current_avg = avg_fire_seconds(current_orders)
     prev_avg = avg_fire_seconds(prev_orders)
