@@ -280,6 +280,11 @@ defmodule SupervisedSlicesWeb.MenuLive do
     end
   end
 
+  def handle_event("add_to_cart", _params, %{assigns: %{store_open: false}} = socket) do
+    {:noreply,
+     put_flash(socket, :error, "We're currently closed. Please check back during business hours.")}
+  end
+
   def handle_event("add_to_cart", %{"item_id" => item_id} = params, socket) do
     %{ash_scope: scope, cart: cart, org: org} = socket.assigns
     size_id = params["size_id"]

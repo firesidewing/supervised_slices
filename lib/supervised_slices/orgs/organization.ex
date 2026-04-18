@@ -329,6 +329,29 @@ defmodule SupervisedSlices.Orgs.Organization do
     is_open == true and time_in_range?(current_time, open_str, close_str)
   end
 
+  def was_open_at?(%{operating_schedule: nil}, _datetime), do: true
+
+  def was_open_at?(%{operating_schedule: schedule, timezone: timezone}, datetime) do
+    tz = timezone || "Etc/UTC"
+
+    local_dt =
+      case DateTime.shift_zone(datetime, tz) do
+        {:ok, dt} -> dt
+        {:error, _} -> datetime
+      end
+
+    day = Date.day_of_week(DateTime.to_date(local_dt))
+    current_time = DateTime.to_time(local_dt)
+
+    {is_open_key, open_key, close_key} = day_schedule_keys(day)
+
+    is_open = Map.get(schedule, is_open_key)
+    open_str = Map.get(schedule, open_key)
+    close_str = Map.get(schedule, close_key)
+
+    is_open == true and time_in_range?(current_time, open_str, close_str)
+  end
+
   # ISO weekday: 1=Monday … 7=Sunday
   defp day_schedule_keys(1), do: {:mon_open, :mon_open_time, :mon_close_time}
   defp day_schedule_keys(2), do: {:tue_open, :tue_open_time, :tue_close_time}
