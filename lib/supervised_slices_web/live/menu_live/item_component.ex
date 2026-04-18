@@ -191,7 +191,8 @@ defmodule SupervisedSlicesWeb.MenuLive.ItemComponent do
             phx-value-item_id={@selected_item.id}
             phx-value-size_id={@selected_size_id}
             phx-value-modifier_ids={Enum.join(MapSet.to_list(@selected_modifiers), ",")}
-            class="flex-1 py-4 bg-gradient-to-tr from-primary to-primary-container text-white font-label font-bold tracking-widest uppercase rounded-md shadow-lg scale-100 active:scale-95 transition-all phx-click-loading:opacity-75 phx-click-loading:scale-95 phx-click-loading:cursor-wait phx-click-loading:pointer-events-none"
+            disabled={not @store_open}
+            class="flex-1 py-4 bg-gradient-to-tr from-primary to-primary-container text-white font-label font-bold tracking-widest uppercase rounded-md shadow-lg scale-100 active:scale-95 transition-all phx-click-loading:opacity-75 phx-click-loading:scale-95 phx-click-loading:cursor-wait phx-click-loading:pointer-events-none disabled:opacity-40 disabled:grayscale disabled:cursor-not-allowed"
             style="view-transition-name: basket;"
           >
             <span class="phx-click-loading:hidden">
