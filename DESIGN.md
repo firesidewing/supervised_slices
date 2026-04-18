@@ -70,6 +70,19 @@ If a border is required for accessibility (e.g., input fields), use the **Ghost 
 *   **Secondary:** Sage Green (`secondary`). Ghost Border style.
 *   **Tertiary:** Plus Jakarta Sans, Bold, Uppercase, 0.05em tracking. No container.
 
+### Loading States (Required for All Interactions)
+
+Every interactive element that triggers a server round-trip **must** show a loading state immediately on interaction. No interaction that takes longer than ~100ms can give zero feedback.
+
+**Rules:**
+- Use Phoenix LiveView's `phx-click-loading:`, `phx-submit-loading:`, and `phx-change-loading:` Tailwind variants (already defined in `app.css`). No manual boolean flags needed.
+- **Text buttons:** wrap the label in `<span class="phx-*-loading:!hidden">` and add a sibling `<span class="hidden phx-*-loading:!flex ...">` containing a spinner and brief action text ("Saving...", "Sending...").
+- **Icon-only buttons (material-symbols):** add `phx-click-loading:opacity-50 phx-click-loading:cursor-wait` to the button and `phx-click-loading:animate-spin` to the icon `<span>`.
+- **Selects (`phx-change`):** add `phx-change-loading:opacity-50 phx-change-loading:cursor-wait` to the `<select>`.
+- **Spinner:** always use `<.icon name="hero-arrow-path" class="size-N animate-spin" />`. Size guide: `size-3` for `text-[9px]`/`text-xs`, `size-4` for standard buttons, `size-5` for large full-width buttons.
+- **Opacity:** `opacity-70` for primary actions, `opacity-80` for full-width primary actions, `opacity-50` for secondary/utility elements.
+- Always pair opacity with `cursor-wait`.
+
 ### Input Fields
 *   **Style:** Minimalist. No background color (transparent). Only a bottom stroke using the "Ghost Border" (20% `outline-variant`).
 *   **States:** On focus, the bottom stroke transitions to `primary` (#8c161a) with a 2px weight.
