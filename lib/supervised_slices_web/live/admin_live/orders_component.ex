@@ -169,11 +169,14 @@ defmodule SupervisedSlicesWeb.AdminLive.OrdersComponent do
                   phx-value-id={order.id}
                   phx-target={@myself}
                   class={[
-                    "w-full py-3 rounded-md font-bold text-xs uppercase tracking-[0.1em] transition-all active:scale-[0.98]",
+                    "w-full py-3 rounded-md font-bold text-xs uppercase tracking-[0.1em] transition-all active:scale-[0.98] phx-click-loading:opacity-70 phx-click-loading:cursor-wait",
                     action_button_class(order.status)
                   ]}
                 >
-                  {next_status_label(order.status)}
+                  <span class="phx-click-loading:!hidden">{next_status_label(order.status)}</span>
+                  <span class="hidden phx-click-loading:!flex items-center justify-center gap-2">
+                    <.icon name="hero-arrow-path" class="size-4 animate-spin" />
+                  </span>
                 </button>
               <% end %>
 
@@ -183,9 +186,12 @@ defmodule SupervisedSlicesWeb.AdminLive.OrdersComponent do
                     phx-click="cancel_order"
                     phx-value-id={order.id}
                     phx-target={@myself}
-                    class="flex-1 py-2 text-[9px] font-bold uppercase tracking-widest text-on-surface-variant/40 hover:text-error transition-colors text-center"
+                    class="flex-1 py-2 text-[9px] font-bold uppercase tracking-widest text-on-surface-variant/40 hover:text-error transition-colors text-center phx-click-loading:opacity-50 phx-click-loading:cursor-wait"
                   >
-                    Cancel
+                    <span class="phx-click-loading:!hidden">Cancel</span>
+                    <span class="hidden phx-click-loading:!flex items-center justify-center">
+                      <.icon name="hero-arrow-path" class="size-3 animate-spin" />
+                    </span>
                   </button>
                 <% end %>
 
@@ -197,9 +203,12 @@ defmodule SupervisedSlicesWeb.AdminLive.OrdersComponent do
                         phx-value-id={order.id}
                         phx-value-message={msg}
                         phx-target={@myself}
-                        class="px-2 py-2 rounded bg-surface-container-highest/50 text-on-surface-variant text-[9px] font-black uppercase tracking-widest hover:bg-secondary-container hover:text-on-secondary-container transition-colors"
+                        class="px-2 py-2 rounded bg-surface-container-highest/50 text-on-surface-variant text-[9px] font-black uppercase tracking-widest hover:bg-secondary-container hover:text-on-secondary-container transition-colors phx-click-loading:opacity-50 phx-click-loading:cursor-wait"
                       >
-                        {msg}
+                        <span class="phx-click-loading:!hidden">{msg}</span>
+                        <span class="hidden phx-click-loading:!flex items-center justify-center">
+                          <.icon name="hero-arrow-path" class="size-3 animate-spin" />
+                        </span>
                       </button>
                     <% end %>
                   </div>
