@@ -36,9 +36,9 @@ defmodule SupervisedSlicesWeb.AdminLive.MenuEditorComponent do
        max_file_size: 8_000_000
      )
      |> allow_upload(:menu_file,
-       accept: ~w(.jpg .jpeg .png .webp),
+       accept: ~w(.jpg .jpeg .png .webp .pdf),
        max_entries: 1,
-       max_file_size: 10_000_000
+       max_file_size: 20_000_000
      )}
   end
 
@@ -600,7 +600,7 @@ defmodule SupervisedSlicesWeb.AdminLive.MenuEditorComponent do
                 AI Menu Importer
               </h3>
               <p class="text-sm text-on-surface-variant">
-                Upload your menu image (JPG, PNG, WebP) and let our AI artisan build your digital catalog.
+                Upload your menu (JPG, PNG, WebP, or PDF) and let our AI artisan build your digital catalog.
               </p>
             </div>
             <div class="flex items-center gap-4">

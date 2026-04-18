@@ -94,12 +94,22 @@ defmodule SupervisedSlices.Menu.Parser do
     - description should be null if no description is visible.
     """
 
-    media_type =
+    content_block =
       cond do
-        String.contains?(content_type, "png") -> "image/png"
-        String.contains?(content_type, "gif") -> "image/gif"
-        String.contains?(content_type, "webp") -> "image/webp"
-        true -> "image/jpeg"
+        String.contains?(content_type, "pdf") ->
+          %{type: "document", source: %{type: "base64", media_type: "application/pdf", data: base64_image}}
+
+        String.contains?(content_type, "png") ->
+          %{type: "image", source: %{type: "base64", media_type: "image/png", data: base64_image}}
+
+        String.contains?(content_type, "gif") ->
+          %{type: "image", source: %{type: "base64", media_type: "image/gif", data: base64_image}}
+
+        String.contains?(content_type, "webp") ->
+          %{type: "image", source: %{type: "base64", media_type: "image/webp", data: base64_image}}
+
+        true ->
+          %{type: "image", source: %{type: "base64", media_type: "image/jpeg", data: base64_image}}
       end
 
     body = %{
@@ -109,14 +119,7 @@ defmodule SupervisedSlices.Menu.Parser do
         %{
           role: "user",
           content: [
-            %{
-              type: "image",
-              source: %{
-                type: "base64",
-                media_type: media_type,
-                data: base64_image
-              }
-            },
+            content_block,
             %{
               type: "text",
               text: prompt
