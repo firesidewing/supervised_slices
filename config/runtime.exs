@@ -20,7 +20,7 @@ if stripe_secret_key = System.get_env("STRIPE_SECRET_KEY") do
   config :stripity_stripe, api_key: stripe_secret_key
 end
 
-if anthropic_api_key = System.get_env("ANTHROPIC_API_KEY") |> dbg do
+if anthropic_api_key = System.get_env("ANTHROPIC_API_KEY") do
   config :supervised_slices, :anthropic_api_key, anthropic_api_key
 end
 

@@ -215,8 +215,11 @@ defmodule SupervisedSlices.Menu.Parser do
     path = "/tmp/menu_parse_#{System.os_time(:second)}.json"
 
     case File.write(path, text) do
-      :ok -> Logger.info("Menu parse debug output saved to #{path}")
-      {:error, reason} -> Logger.warning("Failed to save menu parse debug output: #{inspect(reason)}")
+      :ok ->
+        Logger.info("Menu parse debug output saved to #{path}")
+
+      {:error, reason} ->
+        Logger.warning("Failed to save menu parse debug output: #{inspect(reason)}")
     end
   end
 

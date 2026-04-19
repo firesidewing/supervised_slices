@@ -44,6 +44,7 @@ defmodule SupervisedSlicesWeb.AdminLive.MenuEditorComponent do
 
   def update(%{reload_modifier_groups: _, reload_categories: _} = _assigns, socket) do
     scope = socket.assigns.ash_scope
+
     {:ok,
      socket
      |> assign(:modifier_groups, load_modifier_groups(scope))
@@ -172,6 +173,7 @@ defmodule SupervisedSlicesWeb.AdminLive.MenuEditorComponent do
     MenuItem.update!(item, attrs, scope: scope)
 
     categories = load_categories(scope)
+
     {:noreply,
      assign(socket,
        categories: categories,
@@ -398,8 +400,7 @@ defmodule SupervisedSlicesWeb.AdminLive.MenuEditorComponent do
 
     modifier_groups = load_modifier_groups(scope)
 
-    {:noreply,
-     assign(socket, modifier_groups: modifier_groups, creating_modifier_group: false)}
+    {:noreply, assign(socket, modifier_groups: modifier_groups, creating_modifier_group: false)}
   end
 
   def handle_event(
@@ -553,513 +554,523 @@ defmodule SupervisedSlicesWeb.AdminLive.MenuEditorComponent do
   # ---------------------------------------------------------------------------
 
   def render(assigns) do
-    assigns = assign(assigns, :open_item, resolve_open_item(assigns.open_item_id, assigns.categories))
+    assigns =
+      assign(assigns, :open_item, resolve_open_item(assigns.open_item_id, assigns.categories))
 
     ~H"""
-    <div class="flex flex-col lg:flex-row gap-12 items-start">
-      <div class="flex-1 space-y-12 w-full">
-        <div
-          :if={not @org.menu_upload_purchased}
-          class="bg-surface-container-low p-6 rounded-xl border-2 border-dashed border-outline-variant/50"
-        >
-          <div class="flex items-center justify-between">
-            <div>
-              <h3 class="text-lg font-black text-on-surface font-headline uppercase tracking-tight">
-                AI Menu Importer
-              </h3>
-              <p class="text-sm text-on-surface-variant mt-1">
-                Upload a photo of your menu and let our AI build your entire digital catalog — categories, items, sizes, and modifiers.
-              </p>
-            </div>
-            <div class="flex items-center gap-4 ml-8 shrink-0">
-              <span class="text-sm font-black text-on-surface-variant">$150 one-time</span>
-              <button
-                phx-click="purchase_menu_upload"
-                phx-target={@myself}
-                disabled={@purchasing_upload}
-                class="bg-primary text-white px-6 py-2.5 rounded-md font-bold text-sm uppercase tracking-wide transition-all active:scale-95 shadow-sm inline-flex items-center gap-2 disabled:opacity-60"
-              >
-                <span :if={not @purchasing_upload} class="material-symbols-outlined text-lg">
-                  auto_awesome
-                </span>
-                <span :if={@purchasing_upload} class="material-symbols-outlined text-lg animate-spin">
-                  refresh
-                </span>
-                {if @purchasing_upload, do: "Processing...", else: "Purchase"}
-              </button>
-            </div>
-          </div>
-        </div>
-
-        <div
-          :if={@org.menu_upload_purchased and not @has_completed_upload}
-          class="bg-surface-container-low p-6 rounded-xl border-2 border-dashed border-primary/30 mb-8"
-        >
-          <div class="flex items-center justify-between mb-4">
-            <div>
-              <h3 class="text-lg font-black text-on-surface font-headline uppercase tracking-tight">
-                AI Menu Importer
-              </h3>
-              <p class="text-sm text-on-surface-variant">
-                Upload your menu (JPG, PNG, WebP, or PDF) and we'll build your menu automatically.
-              </p>
-            </div>
-            <div class="flex items-center gap-4">
-              <form phx-submit="upload_menu" phx-change="validate_menu_upload" phx-target={@myself}>
-                <.live_file_input upload={@uploads.menu_file} class="hidden" />
-                <label
-                  for={@uploads.menu_file.ref}
-                  class="cursor-pointer bg-primary text-white px-6 py-2.5 rounded-md font-bold text-sm uppercase tracking-wide transition-all active:scale-95 shadow-sm inline-flex items-center gap-2"
-                >
-                  <span class="material-symbols-outlined text-lg">upload_file</span> Choose File
-                </label>
-                <button
-                  :if={@uploads.menu_file.entries != []}
-                  type="submit"
-                  class="ml-4 bg-secondary text-white px-6 py-2.5 rounded-md font-bold text-sm uppercase tracking-wide transition-all active:scale-95 shadow-sm"
-                >
-                  Start Import
-                </button>
-              </form>
-            </div>
-          </div>
-
+    <div>
+      <div class="flex flex-col lg:flex-row gap-12 items-start">
+        <div class="flex-1 space-y-12 w-full">
           <div
-            :for={entry <- @uploads.menu_file.entries}
-            class="mt-4 flex items-center gap-4 text-sm text-on-surface-variant"
+            :if={not @org.menu_upload_purchased}
+            class="bg-surface-container-low p-6 rounded-xl border-2 border-dashed border-outline-variant/50"
           >
-            <span class="font-bold">{entry.client_name}</span>
-            <div class="flex-1 h-2 bg-surface-container-highest rounded-full overflow-hidden">
-              <div class="h-full bg-primary transition-all" style={"width: #{entry.progress}%"}></div>
-            </div>
-            <span>{entry.progress}%</span>
-          </div>
-
-          <div
-            :if={@current_upload}
-            class="mt-4 p-4 bg-surface-container rounded-lg flex items-center gap-4"
-          >
-            <div
-              :if={@current_upload.status == :pending or @current_upload.status == :processing}
-              class="animate-pulse flex items-center gap-2 text-primary font-bold"
-            >
-              <span class="material-symbols-outlined animate-spin">refresh</span>
-              Processing your menu... This may take a minute.
-            </div>
-            <div
-              :if={@current_upload.status == :completed}
-              class="text-secondary font-bold flex items-center gap-2"
-            >
-              <span class="material-symbols-outlined">check_circle</span>
-              Import completed successfully!
-            </div>
-            <div
-              :if={@current_upload.status == :failed}
-              class="text-error font-bold flex items-center gap-2"
-            >
-              <span class="material-symbols-outlined">error</span>
-              Import failed: {@current_upload.error_message}
-            </div>
-          </div>
-        </div>
-
-        <div class="flex items-center justify-between">
-          <div>
-            <h2 class="font-headline text-2xl font-black text-on-surface">
-              Menu Items
-            </h2>
-            <p class="text-sm text-on-surface-variant mt-1">
-              Manage your menu items and customization options
-            </p>
-          </div>
-          <button
-            phx-click="add_category"
-            phx-target={@myself}
-            class="flex items-center gap-2 bg-primary text-white px-6 py-2.5 rounded-md font-bold text-sm uppercase tracking-wide transition-all active:scale-95 shadow-sm"
-          >
-            <span class="material-symbols-outlined text-lg">add</span> New Category
-          </button>
-        </div>
-
-        <form
-          :if={@creating_category}
-          phx-submit="create_category"
-          phx-target={@myself}
-          class="flex items-center gap-4 bg-surface-container-low p-4 rounded-md"
-        >
-          <input
-            type="text"
-            name="category[name]"
-            required
-            autofocus
-            placeholder="e.g. Starters"
-            class="flex-1 text-lg font-black bg-surface-container-highest border-0 rounded px-4 py-2 focus:ring-1 focus:ring-primary outline-none"
-          />
-          <input
-            type="number"
-            name="category[sort_order]"
-            placeholder="Order"
-            class="w-20 bg-surface-container-highest border-0 rounded px-3 py-2 text-sm focus:ring-1 focus:ring-primary outline-none"
-          />
-          <button
-            type="submit"
-            class="bg-primary text-white px-5 py-2 rounded-md text-sm font-bold uppercase tracking-wide phx-submit-loading:opacity-70 phx-submit-loading:cursor-wait"
-          >
-            <span class="phx-submit-loading:!hidden">Save</span>
-            <span class="hidden phx-submit-loading:!flex items-center justify-center">
-              <.icon name="hero-arrow-path" class="size-4 animate-spin" />
-            </span>
-          </button>
-          <button
-            type="button"
-            phx-click="cancel_add_category"
-            phx-target={@myself}
-            class="text-on-surface-variant hover:text-on-surface px-3 py-2"
-          >
-            <span class="material-symbols-outlined text-xl">close</span>
-          </button>
-        </form>
-
-        <%= if Enum.empty?(@categories) do %>
-          <div class="flex flex-col items-center py-24 text-on-surface-variant/20">
-            <span class="material-symbols-outlined text-8xl">restaurant_menu</span>
-            <p class="mt-4 text-xl font-black font-headline uppercase tracking-widest opacity-40">
-              No categories yet
-            </p>
-          </div>
-        <% end %>
-
-        <%= for category <- @categories do %>
-          <div class="space-y-4">
-            <%= if @editing_item_id == "cat:#{category.id}" do %>
-              <form
-                phx-submit="save_category"
-                phx-target={@myself}
-                class="flex items-center gap-4 bg-surface-container-low p-4 rounded-md"
-              >
-                <input type="hidden" name="category[id]" value={category.id} />
-                <input
-                  type="text"
-                  name="category[name]"
-                  value={category.name}
-                  class="flex-1 text-lg font-black bg-surface-container-highest border-0 rounded px-4 py-2 focus:ring-1 focus:ring-primary outline-none"
-                  autofocus
-                />
-                <input
-                  type="number"
-                  name="category[sort_order]"
-                  value={category.sort_order}
-                  class="w-20 bg-surface-container-highest border-0 rounded px-3 py-2 text-sm focus:ring-1 focus:ring-primary outline-none"
-                  placeholder="Order"
-                />
-                <button
-                  type="submit"
-                  class="bg-primary text-white px-5 py-2 rounded-md text-sm font-bold uppercase tracking-wide phx-submit-loading:opacity-70 phx-submit-loading:cursor-wait"
-                >
-                  <span class="phx-submit-loading:!hidden">Save</span>
-                  <span class="hidden phx-submit-loading:!flex items-center justify-center">
-                    <.icon name="hero-arrow-path" class="size-4 animate-spin" />
-                  </span>
-                </button>
-                <button
-                  type="button"
-                  phx-click="cancel_edit"
-                  phx-target={@myself}
-                  class="text-on-surface-variant hover:text-on-surface px-3 py-2"
-                >
-                  <span class="material-symbols-outlined text-xl">close</span>
-                </button>
-              </form>
-            <% else %>
-              <div class="flex items-center gap-2 group">
-                <h3 class="text-2xl font-black text-on-surface flex-1 font-headline tracking-tight">
-                  {category.name}
+            <div class="flex items-center justify-between">
+              <div>
+                <h3 class="text-lg font-black text-on-surface font-headline uppercase tracking-tight">
+                  AI Menu Importer
                 </h3>
-                <div class="opacity-0 group-hover:opacity-100 flex items-center gap-1 transition-all">
-                  <button
-                    phx-click="move_category"
-                    phx-value-id={category.id}
-                    phx-value-direction="up"
-                    phx-target={@myself}
-                    class="text-on-surface-variant/40 hover:text-primary p-1 phx-click-loading:opacity-50 phx-click-loading:cursor-wait"
-                    title="Move up"
+                <p class="text-sm text-on-surface-variant mt-1">
+                  Upload a photo of your menu and let our AI build your entire digital catalog — categories, items, sizes, and modifiers.
+                </p>
+              </div>
+              <div class="flex items-center gap-4 ml-8 shrink-0">
+                <span class="text-sm font-black text-on-surface-variant">$150 one-time</span>
+                <button
+                  phx-click="purchase_menu_upload"
+                  phx-target={@myself}
+                  disabled={@purchasing_upload}
+                  class="bg-primary text-white px-6 py-2.5 rounded-md font-bold text-sm uppercase tracking-wide transition-all active:scale-95 shadow-sm inline-flex items-center gap-2 disabled:opacity-60"
+                >
+                  <span :if={not @purchasing_upload} class="material-symbols-outlined text-lg">
+                    auto_awesome
+                  </span>
+                  <span
+                    :if={@purchasing_upload}
+                    class="material-symbols-outlined text-lg animate-spin"
                   >
-                    <span class="material-symbols-outlined text-lg phx-click-loading:animate-spin">
-                      arrow_upward
-                    </span>
-                  </button>
-                  <button
-                    phx-click="move_category"
-                    phx-value-id={category.id}
-                    phx-value-direction="down"
-                    phx-target={@myself}
-                    class="text-on-surface-variant/40 hover:text-primary p-1 phx-click-loading:opacity-50 phx-click-loading:cursor-wait"
-                    title="Move down"
+                    refresh
+                  </span>
+                  {if @purchasing_upload, do: "Processing...", else: "Purchase"}
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <div
+            :if={@org.menu_upload_purchased and not @has_completed_upload}
+            class="bg-surface-container-low p-6 rounded-xl border-2 border-dashed border-primary/30 mb-8"
+          >
+            <div class="flex items-center justify-between mb-4">
+              <div>
+                <h3 class="text-lg font-black text-on-surface font-headline uppercase tracking-tight">
+                  AI Menu Importer
+                </h3>
+                <p class="text-sm text-on-surface-variant">
+                  Upload your menu (JPG, PNG, WebP, or PDF) and we'll build your menu automatically.
+                </p>
+              </div>
+              <div class="flex items-center gap-4">
+                <form phx-submit="upload_menu" phx-change="validate_menu_upload" phx-target={@myself}>
+                  <.live_file_input upload={@uploads.menu_file} class="hidden" />
+                  <label
+                    for={@uploads.menu_file.ref}
+                    class="cursor-pointer bg-primary text-white px-6 py-2.5 rounded-md font-bold text-sm uppercase tracking-wide transition-all active:scale-95 shadow-sm inline-flex items-center gap-2"
                   >
-                    <span class="material-symbols-outlined text-lg phx-click-loading:animate-spin">
-                      arrow_downward
-                    </span>
-                  </button>
+                    <span class="material-symbols-outlined text-lg">upload_file</span> Choose File
+                  </label>
                   <button
-                    phx-click="edit_category"
-                    phx-value-id={category.id}
-                    phx-target={@myself}
-                    class="text-on-surface-variant/40 hover:text-primary p-1"
-                    title="Edit category"
+                    :if={@uploads.menu_file.entries != []}
+                    type="submit"
+                    class="ml-4 bg-secondary text-white px-6 py-2.5 rounded-md font-bold text-sm uppercase tracking-wide transition-all active:scale-95 shadow-sm"
                   >
-                    <span class="material-symbols-outlined text-lg">edit</span>
+                    Start Import
                   </button>
+                </form>
+              </div>
+            </div>
+
+            <div
+              :for={entry <- @uploads.menu_file.entries}
+              class="mt-4 flex items-center gap-4 text-sm text-on-surface-variant"
+            >
+              <span class="font-bold">{entry.client_name}</span>
+              <div class="flex-1 h-2 bg-surface-container-highest rounded-full overflow-hidden">
+                <div class="h-full bg-primary transition-all" style={"width: #{entry.progress}%"}>
                 </div>
               </div>
-            <% end %>
+              <span>{entry.progress}%</span>
+            </div>
 
-            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+            <div
+              :if={@current_upload}
+              class="mt-4 p-4 bg-surface-container rounded-lg flex items-center gap-4"
+            >
               <div
-                :for={item <- category.menu_items}
-                class={[
-                  "bg-surface-container-low rounded-md flex flex-col shadow-sm overflow-hidden transition-all duration-300 group",
-                  if(not item.available, do: "opacity-50 grayscale")
-                ]}
+                :if={@current_upload.status == :pending or @current_upload.status == :processing}
+                class="animate-pulse flex items-center gap-2 text-primary font-bold"
               >
-                    <div class="aspect-square relative overflow-hidden bg-surface-container-high">
-                      <%= if item.image_url do %>
-                        <img
-                          src={item.image_url}
-                          alt={item.name}
-                          class="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
-                        />
-                      <% else %>
-                        <div class="w-full h-full flex items-center justify-center text-on-surface-variant/20">
-                          <span class="material-symbols-outlined text-4xl">image</span>
-                        </div>
-                      <% end %>
-                      <div class="absolute top-3 right-3 flex gap-2">
-                        <button
-                          phx-click="toggle_available"
-                          phx-value-id={item.id}
-                          phx-target={@myself}
-                          class={[
-                            "px-2 py-1 rounded text-[10px] font-black uppercase tracking-widest shadow-lg backdrop-blur-md phx-click-loading:opacity-50 phx-click-loading:cursor-wait",
-                            if(item.available,
-                              do: "bg-secondary-container/90 text-on-secondary-container",
-                              else: "bg-surface-container-highest/90 text-on-surface-variant"
-                            )
-                          ]}
-                        >
-                          <span class="phx-click-loading:!hidden">
-                            {if item.available, do: "LIVE", else: "OFF"}
-                          </span>
-                          <span class="hidden phx-click-loading:!flex items-center justify-center">
-                            <.icon name="hero-arrow-path" class="size-3 animate-spin" />
-                          </span>
-                        </button>
-                      </div>
-                    </div>
-
-                    <div class="p-5 flex-1 flex flex-col">
-                      <div class="flex justify-between items-start gap-2 mb-2">
-                        <h4 class="font-bold text-on-surface text-sm leading-tight group-hover:text-primary transition-colors">
-                          {item.name}
-                        </h4>
-                        <span class="text-sm font-black text-primary shrink-0">
-                          <%= cond do %>
-                            <% item.price -> %>
-                              {format_money(item.price)}
-                            <% not Enum.empty?(item.sizes || []) -> %>
-                              From {item.sizes
-                              |> Enum.min_by(& &1.price.amount)
-                              |> then(& &1.price)
-                              |> format_money()}
-                            <% true -> %>
-                              —
-                          <% end %>
-                        </span>
-                      </div>
-                      <p class="text-xs text-on-surface-variant/60 line-clamp-2 mb-4 leading-relaxed italic">
-                        {item.description}
-                      </p>
-
-                      <div class="mt-auto flex items-center justify-between gap-4 pt-4 border-t border-on-surface/5">
-                        <div class="flex gap-1.5 overflow-hidden">
-                          <%= if not Enum.empty?(item.sizes || []) do %>
-                            <span class="bg-surface-container-highest text-[9px] font-black uppercase tracking-widest px-2 py-0.5 rounded text-on-surface-variant">
-                              {length(item.sizes)} SIZES
-                            </span>
-                          <% end %>
-                          <%= if not Enum.empty?(item.modifier_groups || []) do %>
-                            <span class="bg-surface-container-highest text-[9px] font-black uppercase tracking-widest px-2 py-0.5 rounded text-on-surface-variant">
-                              {length(item.modifier_groups)} MODS
-                            </span>
-                          <% end %>
-                          <%= if item.is_upsell do %>
-                            <span class="bg-surface-container-highest text-[9px] font-black uppercase tracking-widest px-2 py-0.5 rounded text-on-surface-variant">
-                              UPSELL
-                            </span>
-                          <% end %>
-                        </div>
-                        <div class="flex items-center gap-1">
-                          <button
-                            phx-click="move_item"
-                            phx-value-id={item.id}
-                            phx-value-direction="up"
-                            phx-target={@myself}
-                            class="text-on-surface-variant/40 hover:text-primary transition-colors p-1 phx-click-loading:opacity-50 phx-click-loading:cursor-wait"
-                            title="Move up"
-                          >
-                            <span class="material-symbols-outlined text-lg phx-click-loading:animate-spin">
-                              arrow_upward
-                            </span>
-                          </button>
-                          <button
-                            phx-click="move_item"
-                            phx-value-id={item.id}
-                            phx-value-direction="down"
-                            phx-target={@myself}
-                            class="text-on-surface-variant/40 hover:text-primary transition-colors p-1 phx-click-loading:opacity-50 phx-click-loading:cursor-wait"
-                            title="Move down"
-                          >
-                            <span class="material-symbols-outlined text-lg phx-click-loading:animate-spin">
-                              arrow_downward
-                            </span>
-                          </button>
-                          <button
-                            phx-click="edit_item"
-                            phx-value-id={item.id}
-                            phx-target={@myself}
-                            class="text-on-surface-variant/40 hover:text-primary transition-colors p-1"
-                            title="Edit item"
-                          >
-                            <span class="material-symbols-outlined text-lg">edit</span>
-                          </button>
-                        </div>
-                      </div>
-                    </div>
+                <span class="material-symbols-outlined animate-spin">refresh</span>
+                Processing your menu... This may take a minute.
               </div>
-
-              <button
-                phx-click="add_item"
-                phx-value-category_id={category.id}
-                phx-target={@myself}
-                class="flex flex-col items-center justify-center gap-3 p-8 rounded-md border-2 border-dashed border-on-surface/5 hover:border-primary/20 hover:bg-surface-container-low transition-all group"
+              <div
+                :if={@current_upload.status == :completed}
+                class="text-secondary font-bold flex items-center gap-2"
               >
-                <span class="material-symbols-outlined text-primary/40 group-hover:text-primary transition-colors text-3xl">
-                  add_circle
-                </span>
-                <span class="text-[10px] font-black text-on-surface-variant uppercase tracking-[0.2em]">
-                  Add item to {category.name}
-                </span>
-              </button>
+                <span class="material-symbols-outlined">check_circle</span>
+                Import completed successfully!
+              </div>
+              <div
+                :if={@current_upload.status == :failed}
+                class="text-error font-bold flex items-center gap-2"
+              >
+                <span class="material-symbols-outlined">error</span>
+                Import failed: {@current_upload.error_message}
+              </div>
             </div>
           </div>
-        <% end %>
-      </div>
 
-
-      <aside class="w-full lg:w-80 shrink-0 space-y-6">
-        <div class="bg-surface-container-low rounded-md p-6 space-y-6">
           <div class="flex items-center justify-between">
-            <p class="text-[0.65rem] font-black text-on-surface-variant uppercase tracking-[0.2em]">
-              Modifier Groups
-            </p>
+            <div>
+              <h2 class="font-headline text-2xl font-black text-on-surface">
+                Menu Items
+              </h2>
+              <p class="text-sm text-on-surface-variant mt-1">
+                Manage your menu items and customization options
+              </p>
+            </div>
             <button
-              phx-click="add_modifier_group"
+              phx-click="add_category"
               phx-target={@myself}
-              type="button"
-              class="flex items-center gap-1.5 text-[0.65rem] text-primary hover:opacity-80 font-black uppercase tracking-widest"
+              class="flex items-center gap-2 bg-primary text-white px-6 py-2.5 rounded-md font-bold text-sm uppercase tracking-wide transition-all active:scale-95 shadow-sm"
             >
-              <span class="material-symbols-outlined text-sm">add_circle</span> New Group
+              <span class="material-symbols-outlined text-lg">add</span> New Category
             </button>
           </div>
 
           <form
-            :if={@creating_modifier_group}
-            phx-submit="create_modifier_group"
+            :if={@creating_category}
+            phx-submit="create_category"
             phx-target={@myself}
-            class="bg-surface-container rounded-lg p-3 space-y-3 border border-primary/10"
+            class="flex items-center gap-4 bg-surface-container-low p-4 rounded-md"
           >
             <input
               type="text"
-              name="group[name]"
+              name="category[name]"
               required
               autofocus
-              placeholder="e.g. Extra Toppings"
-              class="w-full bg-surface-container-highest border-0 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-primary outline-none"
+              placeholder="e.g. Starters"
+              class="flex-1 text-lg font-black bg-surface-container-highest border-0 rounded px-4 py-2 focus:ring-1 focus:ring-primary outline-none"
             />
-            <div class="grid grid-cols-2 gap-2">
-              <div>
-                <label class="block text-[10px] font-bold text-on-surface-variant uppercase tracking-widest mb-1">Min</label>
-                <input
-                  type="number"
-                  name="group[min_selections]"
-                  placeholder="0"
-                  min="0"
-                  class="w-full bg-surface-container-highest border-0 rounded-lg px-3 py-2 text-xs focus:ring-2 focus:ring-primary outline-none"
-                />
-              </div>
-              <div>
-                <label class="block text-[10px] font-bold text-on-surface-variant uppercase tracking-widest mb-1">Max</label>
-                <input
-                  type="number"
-                  name="group[max_selections]"
-                  placeholder="No limit"
-                  min="1"
-                  class="w-full bg-surface-container-highest border-0 rounded-lg px-3 py-2 text-xs focus:ring-2 focus:ring-primary outline-none"
-                />
-              </div>
-            </div>
-            <div class="flex items-center justify-between">
-              <label class="flex items-center gap-2 text-sm text-on-surface-variant cursor-pointer">
-                <input type="checkbox" name="group[required]" value="true" class="rounded" />
-                Required
-              </label>
-              <div class="flex items-center gap-2">
-                <button
-                  type="submit"
-                  class="bg-primary text-white px-4 py-2 rounded-lg text-sm font-bold phx-submit-loading:opacity-70 phx-submit-loading:cursor-wait"
-                >
-                  <span class="phx-submit-loading:!hidden">Save</span>
-                  <span class="hidden phx-submit-loading:!flex items-center justify-center gap-2">
-                    <.icon name="hero-arrow-path" class="size-4 animate-spin" />
-                  </span>
-                </button>
-                <button
-                  type="button"
-                  phx-click="cancel_add_modifier_group"
-                  phx-target={@myself}
-                  class="text-on-surface-variant hover:text-on-surface text-sm px-3 py-2"
-                >
-                  Cancel
-                </button>
-              </div>
-            </div>
+            <input
+              type="number"
+              name="category[sort_order]"
+              placeholder="Order"
+              class="w-20 bg-surface-container-highest border-0 rounded px-3 py-2 text-sm focus:ring-1 focus:ring-primary outline-none"
+            />
+            <button
+              type="submit"
+              class="bg-primary text-white px-5 py-2 rounded-md text-sm font-bold uppercase tracking-wide phx-submit-loading:opacity-70 phx-submit-loading:cursor-wait"
+            >
+              <span class="phx-submit-loading:!hidden">Save</span>
+              <span class="hidden phx-submit-loading:!flex items-center justify-center">
+                <.icon name="hero-arrow-path" class="size-4 animate-spin" />
+              </span>
+            </button>
+            <button
+              type="button"
+              phx-click="cancel_add_category"
+              phx-target={@myself}
+              class="text-on-surface-variant hover:text-on-surface px-3 py-2"
+            >
+              <span class="material-symbols-outlined text-xl">close</span>
+            </button>
           </form>
 
-          <p :if={Enum.empty?(@modifier_groups)} class="text-xs text-on-surface-variant italic">
-            No modifier groups yet.
-          </p>
+          <%= if Enum.empty?(@categories) do %>
+            <div class="flex flex-col items-center py-24 text-on-surface-variant/20">
+              <span class="material-symbols-outlined text-8xl">restaurant_menu</span>
+              <p class="mt-4 text-xl font-black font-headline uppercase tracking-widest opacity-40">
+                No categories yet
+              </p>
+            </div>
+          <% end %>
 
-          <div :if={not Enum.empty?(@modifier_groups)} class="space-y-4">
-            <.live_component
-              :for={group <- @modifier_groups}
-              module={SupervisedSlicesWeb.AdminLive.ModifierGroupRowComponent}
-              id={"modifier-group-#{group.id}"}
-              group={group}
-              ash_scope={@ash_scope}
-            />
-          </div>
+          <%= for category <- @categories do %>
+            <div class="space-y-4">
+              <%= if @editing_item_id == "cat:#{category.id}" do %>
+                <form
+                  phx-submit="save_category"
+                  phx-target={@myself}
+                  class="flex items-center gap-4 bg-surface-container-low p-4 rounded-md"
+                >
+                  <input type="hidden" name="category[id]" value={category.id} />
+                  <input
+                    type="text"
+                    name="category[name]"
+                    value={category.name}
+                    class="flex-1 text-lg font-black bg-surface-container-highest border-0 rounded px-4 py-2 focus:ring-1 focus:ring-primary outline-none"
+                    autofocus
+                  />
+                  <input
+                    type="number"
+                    name="category[sort_order]"
+                    value={category.sort_order}
+                    class="w-20 bg-surface-container-highest border-0 rounded px-3 py-2 text-sm focus:ring-1 focus:ring-primary outline-none"
+                    placeholder="Order"
+                  />
+                  <button
+                    type="submit"
+                    class="bg-primary text-white px-5 py-2 rounded-md text-sm font-bold uppercase tracking-wide phx-submit-loading:opacity-70 phx-submit-loading:cursor-wait"
+                  >
+                    <span class="phx-submit-loading:!hidden">Save</span>
+                    <span class="hidden phx-submit-loading:!flex items-center justify-center">
+                      <.icon name="hero-arrow-path" class="size-4 animate-spin" />
+                    </span>
+                  </button>
+                  <button
+                    type="button"
+                    phx-click="cancel_edit"
+                    phx-target={@myself}
+                    class="text-on-surface-variant hover:text-on-surface px-3 py-2"
+                  >
+                    <span class="material-symbols-outlined text-xl">close</span>
+                  </button>
+                </form>
+              <% else %>
+                <div class="flex items-center gap-2 group">
+                  <h3 class="text-2xl font-black text-on-surface flex-1 font-headline tracking-tight">
+                    {category.name}
+                  </h3>
+                  <div class="opacity-0 group-hover:opacity-100 flex items-center gap-1 transition-all">
+                    <button
+                      phx-click="move_category"
+                      phx-value-id={category.id}
+                      phx-value-direction="up"
+                      phx-target={@myself}
+                      class="text-on-surface-variant/40 hover:text-primary p-1 phx-click-loading:opacity-50 phx-click-loading:cursor-wait"
+                      title="Move up"
+                    >
+                      <span class="material-symbols-outlined text-lg phx-click-loading:animate-spin">
+                        arrow_upward
+                      </span>
+                    </button>
+                    <button
+                      phx-click="move_category"
+                      phx-value-id={category.id}
+                      phx-value-direction="down"
+                      phx-target={@myself}
+                      class="text-on-surface-variant/40 hover:text-primary p-1 phx-click-loading:opacity-50 phx-click-loading:cursor-wait"
+                      title="Move down"
+                    >
+                      <span class="material-symbols-outlined text-lg phx-click-loading:animate-spin">
+                        arrow_downward
+                      </span>
+                    </button>
+                    <button
+                      phx-click="edit_category"
+                      phx-value-id={category.id}
+                      phx-target={@myself}
+                      class="text-on-surface-variant/40 hover:text-primary p-1"
+                      title="Edit category"
+                    >
+                      <span class="material-symbols-outlined text-lg">edit</span>
+                    </button>
+                  </div>
+                </div>
+              <% end %>
+
+              <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+                <div
+                  :for={item <- category.menu_items}
+                  class={[
+                    "bg-surface-container-low rounded-md flex flex-col shadow-sm overflow-hidden transition-all duration-300 group",
+                    if(not item.available, do: "opacity-50 grayscale")
+                  ]}
+                >
+                  <div class="aspect-square relative overflow-hidden bg-surface-container-high">
+                    <%= if item.image_url do %>
+                      <img
+                        src={item.image_url}
+                        alt={item.name}
+                        class="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
+                      />
+                    <% else %>
+                      <div class="w-full h-full flex items-center justify-center text-on-surface-variant/20">
+                        <span class="material-symbols-outlined text-4xl">image</span>
+                      </div>
+                    <% end %>
+                    <div class="absolute top-3 right-3 flex gap-2">
+                      <button
+                        phx-click="toggle_available"
+                        phx-value-id={item.id}
+                        phx-target={@myself}
+                        class={[
+                          "px-2 py-1 rounded text-[10px] font-black uppercase tracking-widest shadow-lg backdrop-blur-md phx-click-loading:opacity-50 phx-click-loading:cursor-wait",
+                          if(item.available,
+                            do: "bg-secondary-container/90 text-on-secondary-container",
+                            else: "bg-surface-container-highest/90 text-on-surface-variant"
+                          )
+                        ]}
+                      >
+                        <span class="phx-click-loading:!hidden">
+                          {if item.available, do: "LIVE", else: "OFF"}
+                        </span>
+                        <span class="hidden phx-click-loading:!flex items-center justify-center">
+                          <.icon name="hero-arrow-path" class="size-3 animate-spin" />
+                        </span>
+                      </button>
+                    </div>
+                  </div>
+
+                  <div class="p-5 flex-1 flex flex-col">
+                    <div class="flex justify-between items-start gap-2 mb-2">
+                      <h4 class="font-bold text-on-surface text-sm leading-tight group-hover:text-primary transition-colors">
+                        {item.name}
+                      </h4>
+                      <span class="text-sm font-black text-primary shrink-0">
+                        <%= cond do %>
+                          <% item.price -> %>
+                            {format_money(item.price)}
+                          <% not Enum.empty?(item.sizes || []) -> %>
+                            From {item.sizes
+                            |> Enum.min_by(& &1.price.amount)
+                            |> then(& &1.price)
+                            |> format_money()}
+                          <% true -> %>
+                            —
+                        <% end %>
+                      </span>
+                    </div>
+                    <p class="text-xs text-on-surface-variant/60 line-clamp-2 mb-4 leading-relaxed italic">
+                      {item.description}
+                    </p>
+
+                    <div class="mt-auto flex items-center justify-between gap-4 pt-4 border-t border-on-surface/5">
+                      <div class="flex gap-1.5 overflow-hidden">
+                        <%= if not Enum.empty?(item.sizes || []) do %>
+                          <span class="bg-surface-container-highest text-[9px] font-black uppercase tracking-widest px-2 py-0.5 rounded text-on-surface-variant">
+                            {length(item.sizes)} SIZES
+                          </span>
+                        <% end %>
+                        <%= if not Enum.empty?(item.modifier_groups || []) do %>
+                          <span class="bg-surface-container-highest text-[9px] font-black uppercase tracking-widest px-2 py-0.5 rounded text-on-surface-variant">
+                            {length(item.modifier_groups)} MODS
+                          </span>
+                        <% end %>
+                        <%= if item.is_upsell do %>
+                          <span class="bg-surface-container-highest text-[9px] font-black uppercase tracking-widest px-2 py-0.5 rounded text-on-surface-variant">
+                            UPSELL
+                          </span>
+                        <% end %>
+                      </div>
+                      <div class="flex items-center gap-1">
+                        <button
+                          phx-click="move_item"
+                          phx-value-id={item.id}
+                          phx-value-direction="up"
+                          phx-target={@myself}
+                          class="text-on-surface-variant/40 hover:text-primary transition-colors p-1 phx-click-loading:opacity-50 phx-click-loading:cursor-wait"
+                          title="Move up"
+                        >
+                          <span class="material-symbols-outlined text-lg phx-click-loading:animate-spin">
+                            arrow_upward
+                          </span>
+                        </button>
+                        <button
+                          phx-click="move_item"
+                          phx-value-id={item.id}
+                          phx-value-direction="down"
+                          phx-target={@myself}
+                          class="text-on-surface-variant/40 hover:text-primary transition-colors p-1 phx-click-loading:opacity-50 phx-click-loading:cursor-wait"
+                          title="Move down"
+                        >
+                          <span class="material-symbols-outlined text-lg phx-click-loading:animate-spin">
+                            arrow_downward
+                          </span>
+                        </button>
+                        <button
+                          phx-click="edit_item"
+                          phx-value-id={item.id}
+                          phx-target={@myself}
+                          class="text-on-surface-variant/40 hover:text-primary transition-colors p-1"
+                          title="Edit item"
+                        >
+                          <span class="material-symbols-outlined text-lg">edit</span>
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                <button
+                  phx-click="add_item"
+                  phx-value-category_id={category.id}
+                  phx-target={@myself}
+                  class="flex flex-col items-center justify-center gap-3 p-8 rounded-md border-2 border-dashed border-on-surface/5 hover:border-primary/20 hover:bg-surface-container-low transition-all group"
+                >
+                  <span class="material-symbols-outlined text-primary/40 group-hover:text-primary transition-colors text-3xl">
+                    add_circle
+                  </span>
+                  <span class="text-[10px] font-black text-on-surface-variant uppercase tracking-[0.2em]">
+                    Add item to {category.name}
+                  </span>
+                </button>
+              </div>
+            </div>
+          <% end %>
         </div>
-      </aside>
-    </div>
 
-    <.menu_item_drawer
-      item={@open_item}
-      open_item_id={@open_item_id}
-      category_id={@open_item_category_id}
-      modifier_groups={@modifier_groups}
-      show_delete_confirm={@show_delete_confirm}
-      myself={@myself}
-      uploads={@uploads}
-    />
+        <aside class="w-full lg:w-80 shrink-0 space-y-6">
+          <div class="bg-surface-container-low rounded-md p-6 space-y-6">
+            <div class="flex items-center justify-between">
+              <p class="text-[0.65rem] font-black text-on-surface-variant uppercase tracking-[0.2em]">
+                Modifier Groups
+              </p>
+              <button
+                phx-click="add_modifier_group"
+                phx-target={@myself}
+                type="button"
+                class="flex items-center gap-1.5 text-[0.65rem] text-primary hover:opacity-80 font-black uppercase tracking-widest"
+              >
+                <span class="material-symbols-outlined text-sm">add_circle</span> New Group
+              </button>
+            </div>
+
+            <form
+              :if={@creating_modifier_group}
+              phx-submit="create_modifier_group"
+              phx-target={@myself}
+              class="bg-surface-container rounded-lg p-3 space-y-3 border border-primary/10"
+            >
+              <input
+                type="text"
+                name="group[name]"
+                required
+                autofocus
+                placeholder="e.g. Extra Toppings"
+                class="w-full bg-surface-container-highest border-0 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-primary outline-none"
+              />
+              <div class="grid grid-cols-2 gap-2">
+                <div>
+                  <label class="block text-[10px] font-bold text-on-surface-variant uppercase tracking-widest mb-1">
+                    Min
+                  </label>
+                  <input
+                    type="number"
+                    name="group[min_selections]"
+                    placeholder="0"
+                    min="0"
+                    class="w-full bg-surface-container-highest border-0 rounded-lg px-3 py-2 text-xs focus:ring-2 focus:ring-primary outline-none"
+                  />
+                </div>
+                <div>
+                  <label class="block text-[10px] font-bold text-on-surface-variant uppercase tracking-widest mb-1">
+                    Max
+                  </label>
+                  <input
+                    type="number"
+                    name="group[max_selections]"
+                    placeholder="No limit"
+                    min="1"
+                    class="w-full bg-surface-container-highest border-0 rounded-lg px-3 py-2 text-xs focus:ring-2 focus:ring-primary outline-none"
+                  />
+                </div>
+              </div>
+              <div class="flex items-center justify-between">
+                <label class="flex items-center gap-2 text-sm text-on-surface-variant cursor-pointer">
+                  <input type="checkbox" name="group[required]" value="true" class="rounded" />
+                  Required
+                </label>
+                <div class="flex items-center gap-2">
+                  <button
+                    type="submit"
+                    class="bg-primary text-white px-4 py-2 rounded-lg text-sm font-bold phx-submit-loading:opacity-70 phx-submit-loading:cursor-wait"
+                  >
+                    <span class="phx-submit-loading:!hidden">Save</span>
+                    <span class="hidden phx-submit-loading:!flex items-center justify-center gap-2">
+                      <.icon name="hero-arrow-path" class="size-4 animate-spin" />
+                    </span>
+                  </button>
+                  <button
+                    type="button"
+                    phx-click="cancel_add_modifier_group"
+                    phx-target={@myself}
+                    class="text-on-surface-variant hover:text-on-surface text-sm px-3 py-2"
+                  >
+                    Cancel
+                  </button>
+                </div>
+              </div>
+            </form>
+
+            <p :if={Enum.empty?(@modifier_groups)} class="text-xs text-on-surface-variant italic">
+              No modifier groups yet.
+            </p>
+
+            <div :if={not Enum.empty?(@modifier_groups)} class="space-y-4">
+              <.live_component
+                :for={group <- @modifier_groups}
+                module={SupervisedSlicesWeb.AdminLive.ModifierGroupRowComponent}
+                id={"modifier-group-#{group.id}"}
+                group={group}
+                ash_scope={@ash_scope}
+              />
+            </div>
+          </div>
+        </aside>
+      </div>
+
+      <.menu_item_drawer
+        item={@open_item}
+        open_item_id={@open_item_id}
+        category_id={@open_item_category_id}
+        modifier_groups={@modifier_groups}
+        show_delete_confirm={@show_delete_confirm}
+        myself={@myself}
+        uploads={@uploads}
+      />
+    </div>
     """
   end
 
@@ -1216,7 +1227,10 @@ defmodule SupervisedSlicesWeb.AdminLive.MenuEditorComponent do
                 </span>
               </summary>
               <div class="pt-4 space-y-3">
-                <div :for={size <- @item.sizes || []} class="flex items-center gap-3 px-3 py-2 bg-surface-container-low rounded-lg">
+                <div
+                  :for={size <- @item.sizes || []}
+                  class="flex items-center gap-3 px-3 py-2 bg-surface-container-low rounded-lg"
+                >
                   <span class="flex-1 text-sm text-on-surface">{size.name}</span>
                   <span class="text-sm font-bold text-primary">{format_money(size.price)}</span>
                   <button
@@ -1232,7 +1246,11 @@ defmodule SupervisedSlicesWeb.AdminLive.MenuEditorComponent do
                 <p :if={Enum.empty?(@item.sizes || [])} class="text-xs text-on-surface-variant italic">
                   No sizes yet. Add a size to let customers choose (e.g. Small, Medium, Large).
                 </p>
-                <form phx-submit="create_size" phx-target={@myself} class="flex flex-wrap items-center gap-2 pt-2">
+                <form
+                  phx-submit="create_size"
+                  phx-target={@myself}
+                  class="flex flex-wrap items-center gap-2 pt-2"
+                >
                   <input type="hidden" name="size[menu_item_id]" value={@item.id} />
                   <input
                     type="text"
@@ -1277,11 +1295,19 @@ defmodule SupervisedSlicesWeb.AdminLive.MenuEditorComponent do
                   <div class="bg-surface-container-low rounded-lg overflow-hidden">
                     <div class="flex items-center gap-3 px-3 py-2">
                       <span class="flex-1 text-sm font-semibold text-on-surface">{group.name}</span>
-                      <span :if={group.required} class="text-[10px] font-bold uppercase tracking-wider bg-primary-fixed text-on-primary-fixed-variant px-2 py-0.5 rounded-full">
+                      <span
+                        :if={group.required}
+                        class="text-[10px] font-bold uppercase tracking-wider bg-primary-fixed text-on-primary-fixed-variant px-2 py-0.5 rounded-full"
+                      >
                         Required
                       </span>
-                      <span :if={group.max_selections} class="text-[10px] font-bold uppercase tracking-wider bg-surface-container text-on-surface-variant px-2 py-0.5 rounded-full">
-                        {if group.max_selections == 1, do: "Pick 1", else: "Max #{group.max_selections}"}
+                      <span
+                        :if={group.max_selections}
+                        class="text-[10px] font-bold uppercase tracking-wider bg-surface-container text-on-surface-variant px-2 py-0.5 rounded-full"
+                      >
+                        {if group.max_selections == 1,
+                          do: "Pick 1",
+                          else: "Max #{group.max_selections}"}
                       </span>
                       <span class="text-xs text-on-surface-variant">
                         {length(group.modifiers || [])} options
@@ -1295,7 +1321,9 @@ defmodule SupervisedSlicesWeb.AdminLive.MenuEditorComponent do
                         class="text-on-surface-variant hover:text-error transition-colors p-1"
                         title="Remove from item"
                       >
-                        <span class="material-symbols-outlined" style="font-size: 16px;">link_off</span>
+                        <span class="material-symbols-outlined" style="font-size: 16px;">
+                          link_off
+                        </span>
                       </button>
                     </div>
 
@@ -1308,9 +1336,13 @@ defmodule SupervisedSlicesWeb.AdminLive.MenuEditorComponent do
                           <table class="w-full text-xs">
                             <thead>
                               <tr>
-                                <th class="text-left text-[10px] font-bold text-on-surface-variant uppercase tracking-widest pb-1 pr-2">Option</th>
+                                <th class="text-left text-[10px] font-bold text-on-surface-variant uppercase tracking-widest pb-1 pr-2">
+                                  Option
+                                </th>
                                 <%= for size <- @item.sizes do %>
-                                  <th class="text-left text-[10px] font-bold text-on-surface-variant uppercase tracking-widest pb-1 px-1">{size.name}</th>
+                                  <th class="text-left text-[10px] font-bold text-on-surface-variant uppercase tracking-widest pb-1 px-1">
+                                    {size.name}
+                                  </th>
                                 <% end %>
                               </tr>
                             </thead>
@@ -1330,10 +1362,16 @@ defmodule SupervisedSlicesWeb.AdminLive.MenuEditorComponent do
                                       <input
                                         type="text"
                                         inputmode="decimal"
-                                        placeholder={if modifier.price_delta, do: money_amount(modifier.price_delta), else: "0.00"}
+                                        placeholder={
+                                          if modifier.price_delta,
+                                            do: money_amount(modifier.price_delta),
+                                            else: "0.00"
+                                        }
                                         value={
                                           modifier.size_prices
-                                          |> Enum.find(fn sp -> to_string(sp.size_id) == to_string(size.id) end)
+                                          |> Enum.find(fn sp ->
+                                            to_string(sp.size_id) == to_string(size.id)
+                                          end)
                                           |> case do
                                             nil -> nil
                                             sp -> money_amount(sp.price_delta)
@@ -1364,8 +1402,7 @@ defmodule SupervisedSlicesWeb.AdminLive.MenuEditorComponent do
                 ) do %>
                   <details class="group/assign-mods">
                     <summary class="list-none cursor-pointer flex items-center gap-1 text-[10px] font-black uppercase tracking-wider text-primary hover:opacity-80">
-                      <span class="material-symbols-outlined text-sm">link</span>
-                      Link modifier group
+                      <span class="material-symbols-outlined text-sm">link</span> Link modifier group
                     </summary>
                     <div class="flex flex-wrap gap-2 mt-3">
                       <%= for mg <- Enum.reject(@modifier_groups, fn mg ->
@@ -1421,8 +1458,12 @@ defmodule SupervisedSlicesWeb.AdminLive.MenuEditorComponent do
                     class="rounded"
                   />
                   <div>
-                    <span class="text-sm font-semibold text-on-surface">Show as upsell suggestion</span>
-                    <p class="text-xs text-on-surface-variant">May appear as a suggestion in other customers' baskets.</p>
+                    <span class="text-sm font-semibold text-on-surface">
+                      Show as upsell suggestion
+                    </span>
+                    <p class="text-xs text-on-surface-variant">
+                      May appear as a suggestion in other customers' baskets.
+                    </p>
                   </div>
                 </label>
               </div>
@@ -1465,7 +1506,10 @@ defmodule SupervisedSlicesWeb.AdminLive.MenuEditorComponent do
             </div>
           </div>
 
-          <div :if={@show_delete_confirm} class="bg-error-container rounded-lg p-4 flex items-center justify-between gap-4">
+          <div
+            :if={@show_delete_confirm}
+            class="bg-error-container rounded-lg p-4 flex items-center justify-between gap-4"
+          >
             <p class="text-sm font-bold text-on-error-container">
               Delete {if is_struct(@item), do: @item.name, else: "this item"}? This cannot be undone.
             </p>
@@ -1571,7 +1615,11 @@ defmodule SupervisedSlicesWeb.AdminLive.MenuEditorComponent do
           </div>
         </div>
         <div :if={@item && @item.images == [] && @item.image_url} class="relative group w-fit">
-          <img src={@item.image_url} alt="item image" class="h-16 w-16 rounded-lg object-cover opacity-50" />
+          <img
+            src={@item.image_url}
+            alt="item image"
+            class="h-16 w-16 rounded-lg object-cover opacity-50"
+          />
           <p class="text-[10px] text-on-surface-variant mt-1">Legacy URL</p>
         </div>
         <.live_file_input

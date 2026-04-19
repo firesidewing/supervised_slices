@@ -53,10 +53,6 @@ defmodule SupervisedSlices.Menu.MenuItemModifierSizePrice do
     update_timestamp :updated_at
   end
 
-  identities do
-    identity :modifier_and_size, [:modifier_id, :size_id]
-  end
-
   relationships do
     belongs_to :organization, SupervisedSlices.Orgs.Organization do
       allow_nil? false
@@ -72,5 +68,9 @@ defmodule SupervisedSlices.Menu.MenuItemModifierSizePrice do
       allow_nil? false
       public? true
     end
+  end
+
+  identities do
+    identity :modifier_and_size, [:modifier_id, :size_id]
   end
 end

@@ -34,12 +34,16 @@ defmodule SupervisedSlicesWeb.AdminLive.ModifierGroupRowComponent do
   def handle_event("save_group", %{"group" => params}, socket) do
     %{ash_scope: scope, group: group} = socket.assigns
 
-    MenuItemModifierGroup.update!(group, %{
-      name: params["name"],
-      required: Map.get(params, "required") == "true",
-      min_selections: parse_int(params["min_selections"]),
-      max_selections: parse_int(params["max_selections"])
-    }, scope: scope)
+    MenuItemModifierGroup.update!(
+      group,
+      %{
+        name: params["name"],
+        required: Map.get(params, "required") == "true",
+        min_selections: parse_int(params["min_selections"]),
+        max_selections: parse_int(params["max_selections"])
+      },
+      scope: scope
+    )
 
     group = MenuItemModifierGroup.get!(group.id, scope: scope, load: [:modifiers])
     notify_parent(socket, reload_categories: true)
@@ -149,8 +153,7 @@ defmodule SupervisedSlicesWeb.AdminLive.ModifierGroupRowComponent do
                 value="true"
                 checked={@group.required}
                 class="rounded"
-              />
-              Required
+              /> Required
             </label>
             <div class="flex items-center gap-2">
               <button
@@ -281,9 +284,9 @@ defmodule SupervisedSlicesWeb.AdminLive.ModifierGroupRowComponent do
         >
           <input type="hidden" name="modifier[modifier_group_id]" value={@group.id} />
           <input
+            :if={@adding_modifier}
             type="text"
             name="modifier[name]"
-            :if={@adding_modifier}
             required
             autofocus
             placeholder="Option name"

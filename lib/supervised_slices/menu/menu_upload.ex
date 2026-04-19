@@ -75,7 +75,9 @@ defmodule SupervisedSlices.Menu.MenuUpload do
                       Enum.map(group_data.modifiers, fn modifier_data ->
                         price_delta =
                           case modifier_data.price_delta do
-                            nil -> nil
+                            nil ->
+                              nil
+
                             d ->
                               if Decimal.compare(d, Decimal.new(0)) == :eq,
                                 do: nil,
