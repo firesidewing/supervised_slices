@@ -50,91 +50,95 @@ defmodule SupervisedSlices.Menu.MenuUpload do
 
       change fn changeset, _ ->
         Ash.Changeset.after_action(changeset, fn _changeset, upload ->
-          # Run the parsing in a separate task or just here?
-          # Oban is already running this in a worker, so here is fine.
           case SupervisedSlices.Menu.Parser.parse(upload.file_url) do
-            {:ok, %{"categories" => categories}} ->
+            {:ok, %SupervisedSlices.Menu.Parser.ParsedMenu{} = parsed} ->
               try do
-                Enum.each(categories, fn cat_data ->
+                group_map =
+                  Enum.reduce(parsed.modifier_groups, %{}, fn group_data, acc ->
+                    group =
+                      SupervisedSlices.Menu.MenuItemModifierGroup
+                      |> Ash.Changeset.for_create(:create, %{
+                        name: group_data.name || "Options",
+                        required: group_data.required,
+                        min_selections: group_data.min_selections,
+                        max_selections: group_data.max_selections,
+                        sort_order: group_data.sort_order,
+                        organization_id: upload.organization_id
+                      })
+                      |> Ash.create!(authorize?: false)
+
+                    Enum.each(group_data.modifiers, fn modifier_data ->
+                      price_delta =
+                        if is_integer(modifier_data.price_delta) && modifier_data.price_delta != 0,
+                          do: Money.new!(:CAD, modifier_data.price_delta),
+                          else: nil
+
+                      SupervisedSlices.Menu.MenuItemModifier
+                      |> Ash.Changeset.for_create(:create, %{
+                        name: modifier_data.name || "Option",
+                        price_delta: price_delta,
+                        sort_order: modifier_data.sort_order,
+                        modifier_group_id: group.id,
+                        organization_id: upload.organization_id
+                      })
+                      |> Ash.create!(authorize?: false)
+                    end)
+
+                    Map.put(acc, group_data.name, group)
+                  end)
+
+                Enum.each(parsed.categories, fn cat_data ->
                   cat =
                     SupervisedSlices.Menu.Category
                     |> Ash.Changeset.for_create(:create, %{
-                      name: cat_data["name"] || "Uncategorized",
-                      sort_order: cat_data["sort_order"] || 0,
+                      name: cat_data.name || "Uncategorized",
+                      sort_order: cat_data.sort_order,
                       organization_id: upload.organization_id
                     })
                     |> Ash.create!(authorize?: false)
 
-                  Enum.each(cat_data["items"] || [], fn item_data ->
+                  Enum.each(cat_data.items, fn item_data ->
                     price =
-                      if item_data["price"] && is_integer(item_data["price"]),
-                        do: Money.new!(:CAD, item_data["price"]),
+                      if item_data.price,
+                        do: Money.new!(:CAD, item_data.price),
                         else: nil
 
                     item =
                       SupervisedSlices.Menu.MenuItem
                       |> Ash.Changeset.for_create(:create, %{
-                        name: item_data["name"] || "Unnamed Item",
-                        description: item_data["description"],
+                        name: item_data.name || "Unnamed Item",
+                        description: item_data.description,
                         price: price,
-                        sort_order: item_data["sort_order"] || 0,
+                        sort_order: item_data.sort_order,
                         category_id: cat.id,
                         organization_id: upload.organization_id
                       })
                       |> Ash.create!(authorize?: false)
 
-                    Enum.each(item_data["sizes"] || [], fn size_data ->
-                      size_price = Money.new!(:CAD, size_data["price"] || 0)
+                    Enum.each(item_data.sizes, fn size_data ->
+                      size_price = Money.new!(:CAD, size_data.price || 0)
 
                       SupervisedSlices.Menu.MenuItemSize
                       |> Ash.Changeset.for_create(:create, %{
-                        name: size_data["name"] || "Regular",
+                        name: size_data.name || "Regular",
                         price: size_price,
-                        sort_order: size_data["sort_order"] || 0,
+                        sort_order: size_data.sort_order,
                         menu_item_id: item.id,
                         organization_id: upload.organization_id
                       })
                       |> Ash.create!(authorize?: false)
                     end)
 
-                    Enum.each(item_data["modifier_groups"] || [], fn group_data ->
-                      group =
-                        SupervisedSlices.Menu.MenuItemModifierGroup
+                    Enum.each(item_data.modifier_group_names, fn name ->
+                      if group = Map.get(group_map, name) do
+                        SupervisedSlices.Menu.MenuItemModifierGroupLink
                         |> Ash.Changeset.for_create(:create, %{
-                          name: group_data["name"] || "Options",
-                          required: group_data["required"] || false,
-                          min_selections: group_data["min_selections"] || 0,
-                          max_selections: group_data["max_selections"],
-                          sort_order: group_data["sort_order"] || 0,
-                          organization_id: upload.organization_id
-                        })
-                        |> Ash.create!(authorize?: false)
-
-                      SupervisedSlices.Menu.MenuItemModifierGroupLink
-                      |> Ash.Changeset.for_create(:create, %{
-                        menu_item_id: item.id,
-                        modifier_group_id: group.id,
-                        organization_id: upload.organization_id
-                      })
-                      |> Ash.create!(authorize?: false)
-
-                      Enum.each(group_data["modifiers"] || [], fn modifier_data ->
-                        price_delta =
-                          if is_integer(modifier_data["price_delta"]) &&
-                               modifier_data["price_delta"] != 0,
-                             do: Money.new!(:CAD, modifier_data["price_delta"]),
-                             else: nil
-
-                        SupervisedSlices.Menu.MenuItemModifier
-                        |> Ash.Changeset.for_create(:create, %{
-                          name: modifier_data["name"] || "Option",
-                          price_delta: price_delta,
-                          sort_order: modifier_data["sort_order"] || 0,
+                          menu_item_id: item.id,
                           modifier_group_id: group.id,
                           organization_id: upload.organization_id
                         })
                         |> Ash.create!(authorize?: false)
-                      end)
+                      end
                     end)
                   end)
                 end)
