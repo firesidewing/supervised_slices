@@ -203,6 +203,15 @@ defmodule SupervisedSlices.Menu.Parser do
     end
   end
 
+  defp save_debug_output(text) do
+    path = "/tmp/menu_parse_#{System.os_time(:second)}.json"
+
+    case File.write(path, text) do
+      :ok -> Logger.info("Menu parse debug output saved to #{path}")
+      {:error, reason} -> Logger.warning("Failed to save menu parse debug output: #{inspect(reason)}")
+    end
+  end
+
   defp clean_json_decode(text) do
     IO.inspect(text)
 
@@ -228,6 +237,10 @@ defmodule SupervisedSlices.Menu.Parser do
     end
   end
 
+  defp cents_to_decimal(nil), do: nil
+  defp cents_to_decimal(cents) when is_integer(cents), do: Decimal.div(Decimal.new(cents), 100)
+  defp cents_to_decimal(_), do: nil
+
   defp decode_to_structs(raw) do
     modifier_groups =
       (raw["modifier_groups"] || [])
@@ -237,7 +250,7 @@ defmodule SupervisedSlices.Menu.Parser do
           |> Enum.map(fn m ->
             %ParsedModifier{
               name: m["name"],
-              price_delta: m["price_delta"],
+              price_delta: cents_to_decimal(m["price_delta"]),
               sort_order: m["sort_order"] || 0
             }
           end)
@@ -263,7 +276,7 @@ defmodule SupervisedSlices.Menu.Parser do
               |> Enum.map(fn s ->
                 %ParsedSize{
                   name: s["name"],
-                  price: s["price"],
+                  price: cents_to_decimal(s["price"]),
                   sort_order: s["sort_order"] || 0
                 }
               end)
@@ -271,7 +284,7 @@ defmodule SupervisedSlices.Menu.Parser do
             %ParsedItem{
               name: i["name"],
               description: i["description"],
-              price: if(is_integer(i["price"]), do: i["price"], else: nil),
+              price: cents_to_decimal(i["price"]),
               sort_order: i["sort_order"] || 0,
               sizes: sizes,
               modifier_group_names: i["modifier_group_names"] || []

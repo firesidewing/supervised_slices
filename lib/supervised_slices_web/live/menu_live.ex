@@ -678,6 +678,7 @@ defmodule SupervisedSlicesWeb.MenuLive do
       selected_item={@selected_item.result || @quick_item}
       cart_items_map={@cart_items_map}
       org={@org}
+      store_open={@store_open}
     />
 
     <.menu_nav :if={@live_action != :show} cart_count={@cart_count} org={@org} cart={@cart} />

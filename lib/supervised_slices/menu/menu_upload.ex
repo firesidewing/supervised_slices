@@ -53,14 +53,49 @@ defmodule SupervisedSlices.Menu.MenuUpload do
           case SupervisedSlices.Menu.Parser.parse(upload.file_url) do
             {:ok, %SupervisedSlices.Menu.Parser.ParsedMenu{} = parsed} ->
               try do
-                Enum.each(categories, fn cat_data ->
-                  tenant = upload.organization_id
+                tenant = upload.organization_id
 
+                group_map =
+                  Map.new(parsed.modifier_groups, fn group_data ->
+                    group =
+                      SupervisedSlices.Menu.MenuItemModifierGroup
+                      |> Ash.Changeset.for_create(:create, %{
+                        name: group_data.name || "Options",
+                        required: group_data.required || false,
+                        min_selections: group_data.min_selections || 0,
+                        max_selections: group_data.max_selections,
+                        sort_order: group_data.sort_order || 0
+                      })
+                      |> Ash.Changeset.set_tenant(tenant)
+                      |> Ash.create!(authorize?: false)
+
+                    Enum.each(group_data.modifiers, fn modifier_data ->
+                      price_delta =
+                        if is_integer(modifier_data.price_delta) &&
+                             modifier_data.price_delta != 0,
+                           do: Money.new!(:CAD, modifier_data.price_delta),
+                           else: nil
+
+                      SupervisedSlices.Menu.MenuItemModifier
+                      |> Ash.Changeset.for_create(:create, %{
+                        name: modifier_data.name || "Option",
+                        price_delta: price_delta,
+                        sort_order: modifier_data.sort_order || 0,
+                        modifier_group_id: group.id
+                      })
+                      |> Ash.Changeset.set_tenant(tenant)
+                      |> Ash.create!(authorize?: false)
+                    end)
+
+                    {group_data.name, group}
+                  end)
+
+                Enum.each(parsed.categories, fn cat_data ->
                   cat =
                     SupervisedSlices.Menu.Category
                     |> Ash.Changeset.for_create(:create, %{
-                      name: cat_data["name"] || "Uncategorized",
-                      sort_order: cat_data["sort_order"] || 0
+                      name: cat_data.name || "Uncategorized",
+                      sort_order: cat_data.sort_order || 0
                     })
                     |> Ash.Changeset.set_tenant(tenant)
                     |> Ash.create!(authorize?: false)
@@ -77,7 +112,7 @@ defmodule SupervisedSlices.Menu.MenuUpload do
                         name: item_data.name || "Unnamed Item",
                         description: item_data.description,
                         price: price,
-                        sort_order: item_data["sort_order"] || 0,
+                        sort_order: item_data.sort_order || 0,
                         category_id: cat.id
                       })
                       |> Ash.Changeset.set_tenant(tenant)
@@ -90,7 +125,7 @@ defmodule SupervisedSlices.Menu.MenuUpload do
                       |> Ash.Changeset.for_create(:create, %{
                         name: size_data.name || "Regular",
                         price: size_price,
-                        sort_order: size_data["sort_order"] || 0,
+                        sort_order: size_data.sort_order || 0,
                         menu_item_id: item.id
                       })
                       |> Ash.Changeset.set_tenant(tenant)
@@ -101,35 +136,7 @@ defmodule SupervisedSlices.Menu.MenuUpload do
                       if group = Map.get(group_map, name) do
                         SupervisedSlices.Menu.MenuItemModifierGroupLink
                         |> Ash.Changeset.for_create(:create, %{
-                          name: group_data["name"] || "Options",
-                          required: group_data["required"] || false,
-                          min_selections: group_data["min_selections"] || 0,
-                          max_selections: group_data["max_selections"],
-                          sort_order: group_data["sort_order"] || 0
-                        })
-                        |> Ash.Changeset.set_tenant(tenant)
-                        |> Ash.create!(authorize?: false)
-
-                      SupervisedSlices.Menu.MenuItemModifierGroupLink
-                      |> Ash.Changeset.for_create(:create, %{
-                        menu_item_id: item.id,
-                        modifier_group_id: group.id
-                      })
-                      |> Ash.Changeset.set_tenant(tenant)
-                      |> Ash.create!(authorize?: false)
-
-                      Enum.each(group_data["modifiers"] || [], fn modifier_data ->
-                        price_delta =
-                          if is_integer(modifier_data["price_delta"]) &&
-                               modifier_data["price_delta"] != 0,
-                             do: Money.new!(:CAD, modifier_data["price_delta"]),
-                             else: nil
-
-                        SupervisedSlices.Menu.MenuItemModifier
-                        |> Ash.Changeset.for_create(:create, %{
-                          name: modifier_data["name"] || "Option",
-                          price_delta: price_delta,
-                          sort_order: modifier_data["sort_order"] || 0,
+                          menu_item_id: item.id,
                           modifier_group_id: group.id
                         })
                         |> Ash.Changeset.set_tenant(tenant)
