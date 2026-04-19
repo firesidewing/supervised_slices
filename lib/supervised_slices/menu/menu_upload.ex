@@ -56,13 +56,15 @@ defmodule SupervisedSlices.Menu.MenuUpload do
             {:ok, %{"categories" => categories}} ->
               try do
                 Enum.each(categories, fn cat_data ->
+                  tenant = upload.organization_id
+
                   cat =
                     SupervisedSlices.Menu.Category
                     |> Ash.Changeset.for_create(:create, %{
                       name: cat_data["name"] || "Uncategorized",
-                      sort_order: cat_data["sort_order"] || 0,
-                      organization_id: upload.organization_id
+                      sort_order: cat_data["sort_order"] || 0
                     })
+                    |> Ash.Changeset.set_tenant(tenant)
                     |> Ash.create!(authorize?: false)
 
                   Enum.each(cat_data["items"] || [], fn item_data ->
@@ -78,9 +80,9 @@ defmodule SupervisedSlices.Menu.MenuUpload do
                         description: item_data["description"],
                         price: price,
                         sort_order: item_data["sort_order"] || 0,
-                        category_id: cat.id,
-                        organization_id: upload.organization_id
+                        category_id: cat.id
                       })
+                      |> Ash.Changeset.set_tenant(tenant)
                       |> Ash.create!(authorize?: false)
 
                     Enum.each(item_data["sizes"] || [], fn size_data ->
@@ -91,9 +93,9 @@ defmodule SupervisedSlices.Menu.MenuUpload do
                         name: size_data["name"] || "Regular",
                         price: size_price,
                         sort_order: size_data["sort_order"] || 0,
-                        menu_item_id: item.id,
-                        organization_id: upload.organization_id
+                        menu_item_id: item.id
                       })
+                      |> Ash.Changeset.set_tenant(tenant)
                       |> Ash.create!(authorize?: false)
                     end)
 
@@ -105,17 +107,17 @@ defmodule SupervisedSlices.Menu.MenuUpload do
                           required: group_data["required"] || false,
                           min_selections: group_data["min_selections"] || 0,
                           max_selections: group_data["max_selections"],
-                          sort_order: group_data["sort_order"] || 0,
-                          organization_id: upload.organization_id
+                          sort_order: group_data["sort_order"] || 0
                         })
+                        |> Ash.Changeset.set_tenant(tenant)
                         |> Ash.create!(authorize?: false)
 
                       SupervisedSlices.Menu.MenuItemModifierGroupLink
                       |> Ash.Changeset.for_create(:create, %{
                         menu_item_id: item.id,
-                        modifier_group_id: group.id,
-                        organization_id: upload.organization_id
+                        modifier_group_id: group.id
                       })
+                      |> Ash.Changeset.set_tenant(tenant)
                       |> Ash.create!(authorize?: false)
 
                       Enum.each(group_data["modifiers"] || [], fn modifier_data ->
@@ -130,9 +132,9 @@ defmodule SupervisedSlices.Menu.MenuUpload do
                           name: modifier_data["name"] || "Option",
                           price_delta: price_delta,
                           sort_order: modifier_data["sort_order"] || 0,
-                          modifier_group_id: group.id,
-                          organization_id: upload.organization_id
+                          modifier_group_id: group.id
                         })
+                        |> Ash.Changeset.set_tenant(tenant)
                         |> Ash.create!(authorize?: false)
                       end)
                     end)

@@ -3,33 +3,26 @@ defmodule SupervisedSlices.Menu.Parser do
 
   @model "claude-sonnet-4-6"
 
-  def parse(file_url) do
+  def parse(file_name) do
     api_key = Application.get_env(:supervised_slices, :anthropic_api_key)
 
     if is_nil(api_key) || api_key == "" do
       {:error, "ANTHROPIC_API_KEY not set"}
     else
-      do_parse(file_url, api_key)
+      do_parse(file_name, api_key)
     end
   end
 
-  defp do_parse(file_url, api_key) do
-    case Req.get(file_url) do
-      {:ok, %{status: 200, body: body, headers: headers}} ->
-        content_type =
-          case List.keyfind(headers, "content-type", 0) do
-            {"content-type", ct} -> ct
-            _ -> "image/jpeg"
-          end
+  defp do_parse(file_name, api_key) do
+    bucket = Application.fetch_env!(:supervised_slices, :tigris_bucket)
 
-        base64_image = Base.encode64(body)
-        call_claude(base64_image, content_type, api_key)
-
-      {:ok, %{status: status}} ->
-        {:error, "Failed to fetch image: status #{status}"}
-
-      {:error, reason} ->
-        {:error, "Failed to fetch image: #{inspect(reason)}"}
+    with {:ok, %{body: body}} <-
+           ExAws.S3.get_object(bucket, file_name) |> ExAws.request() do
+      content_type = content_type_from_key(file_name)
+      base64_image = Base.encode64(body)
+      call_claude(base64_image, content_type, api_key)
+    else
+      {:error, reason} -> {:error, "Failed to fetch file: #{inspect(reason)}"}
     end
   end
 
@@ -97,7 +90,10 @@ defmodule SupervisedSlices.Menu.Parser do
     content_block =
       cond do
         String.contains?(content_type, "pdf") ->
-          %{type: "document", source: %{type: "base64", media_type: "application/pdf", data: base64_image}}
+          %{
+            type: "document",
+            source: %{type: "base64", media_type: "application/pdf", data: base64_image}
+          }
 
         String.contains?(content_type, "png") ->
           %{type: "image", source: %{type: "base64", media_type: "image/png", data: base64_image}}
@@ -106,15 +102,21 @@ defmodule SupervisedSlices.Menu.Parser do
           %{type: "image", source: %{type: "base64", media_type: "image/gif", data: base64_image}}
 
         String.contains?(content_type, "webp") ->
-          %{type: "image", source: %{type: "base64", media_type: "image/webp", data: base64_image}}
+          %{
+            type: "image",
+            source: %{type: "base64", media_type: "image/webp", data: base64_image}
+          }
 
         true ->
-          %{type: "image", source: %{type: "base64", media_type: "image/jpeg", data: base64_image}}
+          %{
+            type: "image",
+            source: %{type: "base64", media_type: "image/jpeg", data: base64_image}
+          }
       end
 
     body = %{
       model: @model,
-      max_tokens: 8192,
+      max_tokens: 32768,
       messages: [
         %{
           role: "user",
@@ -135,28 +137,52 @@ defmodule SupervisedSlices.Menu.Parser do
              {"x-api-key", api_key},
              {"anthropic-version", "2023-06-01"}
            ],
-           receive_timeout: 120_000
+           receive_timeout: 300_000
          ) do
       {:ok, %{status: 200, body: %{"content" => [%{"text" => text} | _]}}} ->
         clean_json_decode(text)
 
       {:ok, %{status: status, body: body}} ->
+        dbg(body)
         {:error, "Claude API error (#{status}): #{inspect(body)}"}
 
       {:error, reason} ->
+        dbg(reason)
         {:error, "Request to Claude failed: #{inspect(reason)}"}
     end
   end
 
+  defp content_type_from_key(key) do
+    cond do
+      String.ends_with?(key, ".pdf") -> "application/pdf"
+      String.ends_with?(key, ".png") -> "image/png"
+      String.ends_with?(key, ".gif") -> "image/gif"
+      String.ends_with?(key, ".webp") -> "image/webp"
+      true -> "image/jpeg"
+    end
+  end
+
   defp clean_json_decode(text) do
+    IO.inspect(text)
+
     case Jason.decode(text) do
       {:ok, decoded} ->
         {:ok, decoded}
 
       {:error, _} ->
         case Regex.run(~r/\{.*\}/s, text) do
-          [json_str] -> Jason.decode(json_str)
-          _ -> {:error, "Failed to parse JSON from Claude response"}
+          [json_str] ->
+            case Jason.decode(json_str) do
+              {:ok, decoded} ->
+                {:ok, decoded}
+
+              {:error, e} ->
+                dbg(e)
+                {:error, "Failed to parse JSON from Claude response: #{Exception.message(e)}"}
+            end
+
+          _ ->
+            {:error, "Failed to parse JSON from Claude response"}
         end
     end
   end

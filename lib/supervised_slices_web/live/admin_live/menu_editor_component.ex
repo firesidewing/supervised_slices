@@ -523,17 +523,22 @@ defmodule SupervisedSlicesWeb.AdminLive.MenuEditorComponent do
     end
   end
 
+  def handle_event("validate_menu_upload", _params, socket) do
+    {:noreply, socket}
+  end
+
   def handle_event("upload_menu", _params, socket) do
     %{org: org} = socket.assigns
 
-    uploaded_urls =
+    uploaded_file_names =
       consume_uploaded_entries(socket, :menu_file, fn %{path: path}, entry ->
         {:ok, MenuImageUploader.upload(org.id, path, entry.client_type)}
       end)
 
-    case uploaded_urls do
-      [url] ->
-        case MenuUpload.create(%{file_url: url, organization_id: org.id}, authorize?: false) do
+    case uploaded_file_names do
+      [file_name] ->
+        case MenuUpload.create(%{file_url: file_name, organization_id: org.id}, authorize?: false)
+             |> dbg do
           {:ok, upload} ->
             {:noreply,
              socket
@@ -541,6 +546,7 @@ defmodule SupervisedSlicesWeb.AdminLive.MenuEditorComponent do
              |> assign(:current_upload, upload)}
 
           {:error, error} ->
+            dbg(error)
             {:noreply, put_flash(socket, :error, "Failed to start upload: #{inspect(error)}")}
         end
 
@@ -604,14 +610,13 @@ defmodule SupervisedSlicesWeb.AdminLive.MenuEditorComponent do
               </p>
             </div>
             <div class="flex items-center gap-4">
-              <form phx-submit="upload_menu" phx-target={@myself}>
+              <form phx-submit="upload_menu" phx-change="validate_menu_upload" phx-target={@myself}>
                 <.live_file_input upload={@uploads.menu_file} class="hidden" />
                 <label
                   for={@uploads.menu_file.ref}
                   class="cursor-pointer bg-primary text-white px-6 py-2.5 rounded-md font-bold text-sm uppercase tracking-wide transition-all active:scale-95 shadow-sm inline-flex items-center gap-2"
                 >
-                  <span class="material-symbols-outlined text-lg">upload_file</span>
-                  Choose File
+                  <span class="material-symbols-outlined text-lg">upload_file</span> Choose File
                 </label>
                 <button
                   :if={@uploads.menu_file.entries != []}

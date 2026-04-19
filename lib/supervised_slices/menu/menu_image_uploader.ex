@@ -9,7 +9,7 @@ defmodule SupervisedSlices.Menu.MenuImageUploader do
     |> ExAws.S3.upload(bucket, key, content_type: "application/pdf", acl: :public_read)
     |> ExAws.request!()
 
-    "https://#{bucket}.fly.storage.tigris.dev/#{key}"
+    key
   end
 
   def upload(org_id, tmp_path, _content_type) do
@@ -30,6 +30,6 @@ defmodule SupervisedSlices.Menu.MenuImageUploader do
 
     File.rm(resized_path)
 
-    "https://#{bucket}.fly.storage.tigris.dev/#{key}"
+    key
   end
 end
