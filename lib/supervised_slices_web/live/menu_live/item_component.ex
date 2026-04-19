@@ -106,9 +106,6 @@ defmodule SupervisedSlicesWeb.MenuLive.ItemComponent do
         <%!-- Fallback for no image --%>
         <div :if={all_images(@selected_item) == []} class="px-8 pt-12 pb-6 max-w-3xl mx-auto">
           <div class="flex items-center gap-2 mb-4">
-            <span class="bg-secondary-container text-on-secondary-container text-[10px] px-3 py-1 rounded-full font-label tracking-widest uppercase font-bold">
-              Artisan Selection
-            </span>
           </div>
           <h2 class="font-headline text-5xl md:text-6xl font-bold tracking-tight text-on-surface leading-tight">
             {@selected_item.name}

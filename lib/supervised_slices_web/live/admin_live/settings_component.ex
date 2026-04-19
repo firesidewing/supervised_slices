@@ -677,10 +677,10 @@ defmodule SupervisedSlicesWeb.AdminLive.SettingsComponent do
       <div class="bg-surface-container-low rounded-md shadow-sm p-10 space-y-10">
         <div>
           <h2 class="font-headline text-2xl font-black text-on-surface">
-            Visual Atelier
+            Branding
           </h2>
           <p class="font-body text-sm text-on-surface-variant/60 mt-1 italic">
-            Customize the artisan identity.
+            Customize how your shop looks to customers.
           </p>
         </div>
 
@@ -771,7 +771,7 @@ defmodule SupervisedSlicesWeb.AdminLive.SettingsComponent do
       <div class="bg-surface-container-low rounded-md shadow-sm p-10 space-y-10">
         <div>
           <h2 class="font-headline text-2xl font-black text-on-surface">
-            Artisan Team
+            Your Team
           </h2>
           <p class="font-body text-sm text-on-surface-variant/60 mt-1 italic">
             Manage your kitchen staff.

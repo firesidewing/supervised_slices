@@ -600,7 +600,7 @@ defmodule SupervisedSlicesWeb.AdminLive.MenuEditorComponent do
                 AI Menu Importer
               </h3>
               <p class="text-sm text-on-surface-variant">
-                Upload your menu (JPG, PNG, WebP, or PDF) and let our AI artisan build your digital catalog.
+                Upload your menu (JPG, PNG, WebP, or PDF) and we'll build your menu automatically.
               </p>
             </div>
             <div class="flex items-center gap-4">
@@ -666,10 +666,10 @@ defmodule SupervisedSlicesWeb.AdminLive.MenuEditorComponent do
         <div class="flex items-center justify-between">
           <div>
             <h2 class="font-headline text-2xl font-black text-on-surface">
-              Menu Atelier
+              Menu Items
             </h2>
             <p class="text-sm text-on-surface-variant mt-1">
-              Curate your artisan offerings and modifiers
+              Manage your menu items and customization options
             </p>
           </div>
           <button
@@ -1249,7 +1249,7 @@ defmodule SupervisedSlicesWeb.AdminLive.MenuEditorComponent do
                 >
                   <input type="hidden" name="item[category_id]" value={category.id} />
                   <h4 class="text-xs font-black text-on-surface uppercase tracking-[0.2em]">
-                    New artisan offering
+                    New menu item
                   </h4>
                   <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div>

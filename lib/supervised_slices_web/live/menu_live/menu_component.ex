@@ -14,7 +14,6 @@ defmodule SupervisedSlicesWeb.MenuLive.MenuComponent do
             {category.name}
           </h2>
           <span class="font-label text-[0.65rem] uppercase tracking-[0.2em] text-outline mb-1">
-            Artisan Selection
           </span>
         </div>
 
