@@ -50,10 +50,8 @@ defmodule SupervisedSlices.Menu.MenuUpload do
 
       change fn changeset, _ ->
         Ash.Changeset.after_action(changeset, fn _changeset, upload ->
-          # Run the parsing in a separate task or just here?
-          # Oban is already running this in a worker, so here is fine.
           case SupervisedSlices.Menu.Parser.parse(upload.file_url) do
-            {:ok, %{"categories" => categories}} ->
+            {:ok, %SupervisedSlices.Menu.Parser.ParsedMenu{} = parsed} ->
               try do
                 Enum.each(categories, fn cat_data ->
                   tenant = upload.organization_id
@@ -67,17 +65,17 @@ defmodule SupervisedSlices.Menu.MenuUpload do
                     |> Ash.Changeset.set_tenant(tenant)
                     |> Ash.create!(authorize?: false)
 
-                  Enum.each(cat_data["items"] || [], fn item_data ->
+                  Enum.each(cat_data.items, fn item_data ->
                     price =
-                      if item_data["price"] && is_integer(item_data["price"]),
-                        do: Money.new!(:CAD, item_data["price"]),
+                      if item_data.price,
+                        do: Money.new!(:CAD, item_data.price),
                         else: nil
 
                     item =
                       SupervisedSlices.Menu.MenuItem
                       |> Ash.Changeset.for_create(:create, %{
-                        name: item_data["name"] || "Unnamed Item",
-                        description: item_data["description"],
+                        name: item_data.name || "Unnamed Item",
+                        description: item_data.description,
                         price: price,
                         sort_order: item_data["sort_order"] || 0,
                         category_id: cat.id
@@ -85,12 +83,12 @@ defmodule SupervisedSlices.Menu.MenuUpload do
                       |> Ash.Changeset.set_tenant(tenant)
                       |> Ash.create!(authorize?: false)
 
-                    Enum.each(item_data["sizes"] || [], fn size_data ->
-                      size_price = Money.new!(:CAD, size_data["price"] || 0)
+                    Enum.each(item_data.sizes, fn size_data ->
+                      size_price = Money.new!(:CAD, size_data.price || 0)
 
                       SupervisedSlices.Menu.MenuItemSize
                       |> Ash.Changeset.for_create(:create, %{
-                        name: size_data["name"] || "Regular",
+                        name: size_data.name || "Regular",
                         price: size_price,
                         sort_order: size_data["sort_order"] || 0,
                         menu_item_id: item.id
@@ -99,9 +97,9 @@ defmodule SupervisedSlices.Menu.MenuUpload do
                       |> Ash.create!(authorize?: false)
                     end)
 
-                    Enum.each(item_data["modifier_groups"] || [], fn group_data ->
-                      group =
-                        SupervisedSlices.Menu.MenuItemModifierGroup
+                    Enum.each(item_data.modifier_group_names, fn name ->
+                      if group = Map.get(group_map, name) do
+                        SupervisedSlices.Menu.MenuItemModifierGroupLink
                         |> Ash.Changeset.for_create(:create, %{
                           name: group_data["name"] || "Options",
                           required: group_data["required"] || false,
@@ -136,7 +134,7 @@ defmodule SupervisedSlices.Menu.MenuUpload do
                         })
                         |> Ash.Changeset.set_tenant(tenant)
                         |> Ash.create!(authorize?: false)
-                      end)
+                      end
                     end)
                   end)
                 end)

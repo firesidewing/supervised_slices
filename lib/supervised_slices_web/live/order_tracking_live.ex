@@ -394,7 +394,7 @@ defmodule SupervisedSlicesWeb.OrderTrackingLive do
                   <span class="material-symbols-outlined">restaurant</span>
                 </div>
                 <div>
-                  <p class="font-serif text-sm font-bold text-on-surface">Atelier Notes</p>
+                  <p class="font-serif text-sm font-bold text-on-surface">Order Notes</p>
                   <p class="text-[0.65rem] text-on-surface-variant leading-relaxed mt-1">
                     {@order.notes}
                   </p>

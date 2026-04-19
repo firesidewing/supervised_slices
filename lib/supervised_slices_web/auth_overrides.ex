@@ -74,14 +74,14 @@ defmodule SupervisedSlicesWeb.AuthOverrides do
     set :label_class,
         "font-headline text-lg font-bold uppercase tracking-tight text-on-surface/40 mb-10 text-center"
 
-    set :button_text, "SIGN IN TO THE ATELIER"
+    set :button_text, "SIGN IN"
   end
 
   override AshAuthentication.Phoenix.Components.Password.RegisterForm do
     set :label_class,
         "font-headline text-lg font-bold uppercase tracking-tight text-on-surface/40 mb-10 text-center"
 
-    set :button_text, "COMMISSION YOUR ATELIER"
+    set :button_text, "CREATE YOUR ACCOUNT"
   end
 
   override AshAuthentication.Phoenix.Components.Password.ResetForm do

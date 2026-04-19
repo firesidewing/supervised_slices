@@ -663,9 +663,12 @@ defmodule SupervisedSlicesWeb.AdminLive.SettingsComponent do
 
             <button
               type="submit"
-              class="w-full bg-primary text-white font-black py-4 rounded-md text-xs uppercase tracking-[0.2em] transition-all active:scale-95 shadow-lg shadow-primary/10"
+              class="w-full bg-primary text-white font-black py-4 rounded-md text-xs uppercase tracking-[0.2em] transition-all active:scale-95 shadow-lg shadow-primary/10 phx-submit-loading:opacity-80 phx-submit-loading:cursor-wait"
             >
-              Commit Settings
+              <span class="phx-submit-loading:!hidden">Commit Settings</span>
+              <span class="hidden phx-submit-loading:!flex items-center justify-center gap-3">
+                Saving... <.icon name="hero-arrow-path" class="size-5 animate-spin" />
+              </span>
             </button>
           </div>
         </form>
@@ -674,10 +677,10 @@ defmodule SupervisedSlicesWeb.AdminLive.SettingsComponent do
       <div class="bg-surface-container-low rounded-md shadow-sm p-10 space-y-10">
         <div>
           <h2 class="font-headline text-2xl font-black text-on-surface">
-            Visual Atelier
+            Branding
           </h2>
           <p class="font-body text-sm text-on-surface-variant/60 mt-1 italic">
-            Customize the artisan identity.
+            Customize how your shop looks to customers.
           </p>
         </div>
 
@@ -754,9 +757,12 @@ defmodule SupervisedSlicesWeb.AdminLive.SettingsComponent do
 
             <button
               type="submit"
-              class="w-full bg-primary text-white font-black py-4 rounded-md text-xs uppercase tracking-[0.2em] transition-all active:scale-95 shadow-lg shadow-primary/10"
+              class="w-full bg-primary text-white font-black py-4 rounded-md text-xs uppercase tracking-[0.2em] transition-all active:scale-95 shadow-lg shadow-primary/10 phx-submit-loading:opacity-80 phx-submit-loading:cursor-wait"
             >
-              Update Identity
+              <span class="phx-submit-loading:!hidden">Update Identity</span>
+              <span class="hidden phx-submit-loading:!flex items-center justify-center gap-3">
+                Saving... <.icon name="hero-arrow-path" class="size-5 animate-spin" />
+              </span>
             </button>
           </div>
         </form>
@@ -765,7 +771,7 @@ defmodule SupervisedSlicesWeb.AdminLive.SettingsComponent do
       <div class="bg-surface-container-low rounded-md shadow-sm p-10 space-y-10">
         <div>
           <h2 class="font-headline text-2xl font-black text-on-surface">
-            Artisan Team
+            Your Team
           </h2>
           <p class="font-body text-sm text-on-surface-variant/60 mt-1 italic">
             Manage your kitchen staff.
@@ -789,7 +795,7 @@ defmodule SupervisedSlicesWeb.AdminLive.SettingsComponent do
                   phx-value-id={m.id}
                   phx-target={@myself}
                   name="role"
-                  class="rounded bg-surface-container-highest border-0 text-[10px] font-black uppercase tracking-widest px-3 py-1.5 text-on-surface focus:ring-1 focus:ring-primary outline-none"
+                  class="rounded bg-surface-container-highest border-0 text-[10px] font-black uppercase tracking-widest px-3 py-1.5 text-on-surface focus:ring-1 focus:ring-primary outline-none phx-change-loading:opacity-50 phx-change-loading:cursor-wait"
                 >
                   <option value="admin" selected={m.role == :admin}>Admin</option>
                   <option value="staff" selected={m.role == :staff}>Staff</option>
@@ -799,9 +805,9 @@ defmodule SupervisedSlicesWeb.AdminLive.SettingsComponent do
                   phx-click="remove_member"
                   phx-value-id={m.id}
                   phx-target={@myself}
-                  class="p-1.5 text-on-surface-variant/20 hover:text-primary transition-colors"
+                  class="p-1.5 text-on-surface-variant/20 hover:text-primary transition-colors phx-click-loading:opacity-50 phx-click-loading:cursor-wait"
                 >
-                  <span class="material-symbols-outlined text-lg">close</span>
+                  <span class="material-symbols-outlined text-lg phx-click-loading:animate-spin">close</span>
                 </button>
               </div>
             </div>
@@ -856,9 +862,12 @@ defmodule SupervisedSlicesWeb.AdminLive.SettingsComponent do
 
             <button
               type="submit"
-              class="w-full bg-primary text-white font-black py-4 rounded-md text-xs uppercase tracking-[0.2em] transition-all active:scale-95 shadow-lg shadow-primary/10"
+              class="w-full bg-primary text-white font-black py-4 rounded-md text-xs uppercase tracking-[0.2em] transition-all active:scale-95 shadow-lg shadow-primary/10 phx-submit-loading:opacity-80 phx-submit-loading:cursor-wait"
             >
-              Send Invite
+              <span class="phx-submit-loading:!hidden">Send Invite</span>
+              <span class="hidden phx-submit-loading:!flex items-center justify-center gap-3">
+                Sending... <.icon name="hero-arrow-path" class="size-5 animate-spin" />
+              </span>
             </button>
           </div>
         </form>

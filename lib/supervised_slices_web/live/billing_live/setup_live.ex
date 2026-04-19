@@ -21,7 +21,7 @@ defmodule SupervisedSlicesWeb.BillingLive.Setup do
               Activate Your Kitchen
             </h1>
             <p class="text-on-surface-variant/60 text-sm mt-2 text-center font-medium">
-              Choose the tier that matches your ambition.
+              Choose the plan that works for you.
             </p>
           </div>
 
@@ -39,7 +39,7 @@ defmodule SupervisedSlicesWeb.BillingLive.Setup do
             <%!-- Basic Plan --%>
             <div class="bg-surface border border-outline-variant/10 rounded-2xl p-6 flex flex-col">
               <div class="mb-4">
-                <h3 class="font-headline text-xl font-black mb-1">Base Dough</h3>
+                <h3 class="font-headline text-xl font-black mb-1">Starter</h3>
                 <p class="text-2xl font-headline font-black text-primary">
                   $79<span class="text-xs text-on-surface-variant/60 font-body">/mo</span>
                 </p>
@@ -82,7 +82,7 @@ defmodule SupervisedSlicesWeb.BillingLive.Setup do
                 Recommended
               </div>
               <div class="mb-4">
-                <h3 class="font-headline text-xl font-black mb-1">Pro Crust</h3>
+                <h3 class="font-headline text-xl font-black mb-1">Pro</h3>
                 <p class="text-2xl font-headline font-black text-primary">
                   $149<span class="text-xs text-white/40 font-body">/mo</span>
                 </p>

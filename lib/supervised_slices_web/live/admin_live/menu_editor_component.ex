@@ -606,7 +606,7 @@ defmodule SupervisedSlicesWeb.AdminLive.MenuEditorComponent do
                 AI Menu Importer
               </h3>
               <p class="text-sm text-on-surface-variant">
-                Upload your menu (JPG, PNG, WebP, or PDF) and let our AI artisan build your digital catalog.
+                Upload your menu (JPG, PNG, WebP, or PDF) and we'll build your menu automatically.
               </p>
             </div>
             <div class="flex items-center gap-4">
@@ -671,10 +671,10 @@ defmodule SupervisedSlicesWeb.AdminLive.MenuEditorComponent do
         <div class="flex items-center justify-between">
           <div>
             <h2 class="font-headline text-2xl font-black text-on-surface">
-              Menu Atelier
+              Menu Items
             </h2>
             <p class="text-sm text-on-surface-variant mt-1">
-              Curate your artisan offerings and modifiers
+              Manage your menu items and customization options
             </p>
           </div>
           <button
@@ -708,9 +708,12 @@ defmodule SupervisedSlicesWeb.AdminLive.MenuEditorComponent do
           />
           <button
             type="submit"
-            class="bg-primary text-white px-5 py-2 rounded-md text-sm font-bold uppercase tracking-wide"
+            class="bg-primary text-white px-5 py-2 rounded-md text-sm font-bold uppercase tracking-wide phx-submit-loading:opacity-70 phx-submit-loading:cursor-wait"
           >
-            Save
+            <span class="phx-submit-loading:!hidden">Save</span>
+            <span class="hidden phx-submit-loading:!flex items-center justify-center">
+              <.icon name="hero-arrow-path" class="size-4 animate-spin" />
+            </span>
           </button>
           <button
             type="button"
@@ -756,9 +759,12 @@ defmodule SupervisedSlicesWeb.AdminLive.MenuEditorComponent do
                 />
                 <button
                   type="submit"
-                  class="bg-primary text-white px-5 py-2 rounded-md text-sm font-bold uppercase tracking-wide"
+                  class="bg-primary text-white px-5 py-2 rounded-md text-sm font-bold uppercase tracking-wide phx-submit-loading:opacity-70 phx-submit-loading:cursor-wait"
                 >
-                  Save
+                  <span class="phx-submit-loading:!hidden">Save</span>
+                  <span class="hidden phx-submit-loading:!flex items-center justify-center">
+                    <.icon name="hero-arrow-path" class="size-4 animate-spin" />
+                  </span>
                 </button>
                 <button
                   type="button"
@@ -780,20 +786,20 @@ defmodule SupervisedSlicesWeb.AdminLive.MenuEditorComponent do
                     phx-value-id={category.id}
                     phx-value-direction="up"
                     phx-target={@myself}
-                    class="text-on-surface-variant/40 hover:text-primary p-1"
+                    class="text-on-surface-variant/40 hover:text-primary p-1 phx-click-loading:opacity-50 phx-click-loading:cursor-wait"
                     title="Move up"
                   >
-                    <span class="material-symbols-outlined text-lg">arrow_upward</span>
+                    <span class="material-symbols-outlined text-lg phx-click-loading:animate-spin">arrow_upward</span>
                   </button>
                   <button
                     phx-click="move_category"
                     phx-value-id={category.id}
                     phx-value-direction="down"
                     phx-target={@myself}
-                    class="text-on-surface-variant/40 hover:text-primary p-1"
+                    class="text-on-surface-variant/40 hover:text-primary p-1 phx-click-loading:opacity-50 phx-click-loading:cursor-wait"
                     title="Move down"
                   >
-                    <span class="material-symbols-outlined text-lg">arrow_downward</span>
+                    <span class="material-symbols-outlined text-lg phx-click-loading:animate-spin">arrow_downward</span>
                   </button>
                   <button
                     phx-click="edit_category"
@@ -919,9 +925,12 @@ defmodule SupervisedSlicesWeb.AdminLive.MenuEditorComponent do
                       <div class="flex items-center gap-3 pt-2">
                         <button
                           type="submit"
-                          class="bg-primary text-white px-6 py-2.5 rounded-xl font-bold hover:opacity-90 transition-opacity"
+                          class="bg-primary text-white px-6 py-2.5 rounded-xl font-bold hover:opacity-90 transition-opacity phx-submit-loading:opacity-70 phx-submit-loading:cursor-wait"
                         >
-                          Save Changes
+                          <span class="phx-submit-loading:!hidden">Save Changes</span>
+                          <span class="hidden phx-submit-loading:!flex items-center justify-center gap-2">
+                            Saving... <.icon name="hero-arrow-path" class="size-4 animate-spin" />
+                          </span>
                         </button>
                         <button
                           type="button"
@@ -1093,9 +1102,12 @@ defmodule SupervisedSlicesWeb.AdminLive.MenuEditorComponent do
                           <div class="flex items-center gap-1">
                             <button
                               type="submit"
-                              class="bg-primary text-white px-3 py-2 rounded-lg text-sm font-bold hover:opacity-90 whitespace-nowrap"
+                              class="bg-primary text-white px-3 py-2 rounded-lg text-sm font-bold hover:opacity-90 whitespace-nowrap phx-submit-loading:opacity-70 phx-submit-loading:cursor-wait"
                             >
-                              Add
+                              <span class="phx-submit-loading:!hidden">Add</span>
+                              <span class="hidden phx-submit-loading:!flex items-center justify-center">
+                                <.icon name="hero-arrow-path" class="size-3 animate-spin" />
+                              </span>
                             </button>
                             <button
                               type="button"
@@ -1141,14 +1153,17 @@ defmodule SupervisedSlicesWeb.AdminLive.MenuEditorComponent do
                           phx-value-id={item.id}
                           phx-target={@myself}
                           class={[
-                            "px-2 py-1 rounded text-[10px] font-black uppercase tracking-widest shadow-lg backdrop-blur-md",
+                            "px-2 py-1 rounded text-[10px] font-black uppercase tracking-widest shadow-lg backdrop-blur-md phx-click-loading:opacity-50 phx-click-loading:cursor-wait",
                             if(item.available,
                               do: "bg-secondary-container/90 text-on-secondary-container",
                               else: "bg-surface-container-highest/90 text-on-surface-variant"
                             )
                           ]}
                         >
-                          {if item.available, do: "LIVE", else: "OFF"}
+                          <span class="phx-click-loading:!hidden">{if item.available, do: "LIVE", else: "OFF"}</span>
+                          <span class="hidden phx-click-loading:!flex items-center justify-center">
+                            <.icon name="hero-arrow-path" class="size-3 animate-spin" />
+                          </span>
                         </button>
                       </div>
                     </div>
@@ -1200,20 +1215,20 @@ defmodule SupervisedSlicesWeb.AdminLive.MenuEditorComponent do
                             phx-value-id={item.id}
                             phx-value-direction="up"
                             phx-target={@myself}
-                            class="text-on-surface-variant/40 hover:text-primary transition-colors p-1"
+                            class="text-on-surface-variant/40 hover:text-primary transition-colors p-1 phx-click-loading:opacity-50 phx-click-loading:cursor-wait"
                             title="Move up"
                           >
-                            <span class="material-symbols-outlined text-lg">arrow_upward</span>
+                            <span class="material-symbols-outlined text-lg phx-click-loading:animate-spin">arrow_upward</span>
                           </button>
                           <button
                             phx-click="move_item"
                             phx-value-id={item.id}
                             phx-value-direction="down"
                             phx-target={@myself}
-                            class="text-on-surface-variant/40 hover:text-primary transition-colors p-1"
+                            class="text-on-surface-variant/40 hover:text-primary transition-colors p-1 phx-click-loading:opacity-50 phx-click-loading:cursor-wait"
                             title="Move down"
                           >
-                            <span class="material-symbols-outlined text-lg">arrow_downward</span>
+                            <span class="material-symbols-outlined text-lg phx-click-loading:animate-spin">arrow_downward</span>
                           </button>
                           <button
                             phx-click="edit_item"
@@ -1239,7 +1254,7 @@ defmodule SupervisedSlicesWeb.AdminLive.MenuEditorComponent do
                 >
                   <input type="hidden" name="item[category_id]" value={category.id} />
                   <h4 class="text-xs font-black text-on-surface uppercase tracking-[0.2em]">
-                    New artisan offering
+                    New menu item
                   </h4>
                   <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div>
@@ -1302,9 +1317,12 @@ defmodule SupervisedSlicesWeb.AdminLive.MenuEditorComponent do
                   <div class="flex items-center gap-3 pt-2">
                     <button
                       type="submit"
-                      class="bg-primary text-white px-6 py-2.5 rounded-md font-bold text-xs uppercase tracking-widest transition-all active:scale-95"
+                      class="bg-primary text-white px-6 py-2.5 rounded-md font-bold text-xs uppercase tracking-widest transition-all active:scale-95 phx-submit-loading:opacity-70 phx-submit-loading:cursor-wait"
                     >
-                      Add Offering
+                      <span class="phx-submit-loading:!hidden">Add Offering</span>
+                      <span class="hidden phx-submit-loading:!flex items-center justify-center gap-2">
+                        Adding... <.icon name="hero-arrow-path" class="size-4 animate-spin" />
+                      </span>
                     </button>
                     <button
                       type="button"
@@ -1379,9 +1397,12 @@ defmodule SupervisedSlicesWeb.AdminLive.MenuEditorComponent do
               <div class="flex items-center gap-2">
                 <button
                   type="submit"
-                  class="bg-primary text-white px-4 py-2 rounded-lg text-sm font-bold hover:opacity-90 flex-1"
+                  class="bg-primary text-white px-4 py-2 rounded-lg text-sm font-bold hover:opacity-90 flex-1 phx-submit-loading:opacity-70 phx-submit-loading:cursor-wait"
                 >
-                  Save
+                  <span class="phx-submit-loading:!hidden">Save</span>
+                  <span class="hidden phx-submit-loading:!flex items-center justify-center gap-2">
+                    <.icon name="hero-arrow-path" class="size-4 animate-spin" />
+                  </span>
                 </button>
                 <button
                   type="button"
@@ -1489,9 +1510,12 @@ defmodule SupervisedSlicesWeb.AdminLive.MenuEditorComponent do
                           />
                           <button
                             type="submit"
-                            class="bg-primary text-white px-3 py-1.5 rounded text-xs font-bold hover:opacity-90"
+                            class="bg-primary text-white px-3 py-1.5 rounded text-xs font-bold hover:opacity-90 phx-submit-loading:opacity-70 phx-submit-loading:cursor-wait"
                           >
-                            Add
+                            <span class="phx-submit-loading:!hidden">Add</span>
+                            <span class="hidden phx-submit-loading:!flex items-center justify-center">
+                              <.icon name="hero-arrow-path" class="size-3 animate-spin" />
+                            </span>
                           </button>
                           <button
                             type="button"
