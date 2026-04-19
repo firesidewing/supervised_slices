@@ -218,7 +218,7 @@ defmodule SupervisedSlicesWeb.AdminLive.InsightsComponent do
         <%!-- Date picker --%>
         <div class="flex flex-col sm:flex-row sm:items-center gap-4 justify-between">
           <div>
-            <h2 class="font-headline text-xl font-bold text-on-surface">Archive Atelier</h2>
+            <h2 class="font-headline text-xl font-bold text-on-surface">Order History</h2>
             <p class="font-body text-sm text-on-surface-variant mt-0.5">
               Completed and cancelled orders
             </p>
