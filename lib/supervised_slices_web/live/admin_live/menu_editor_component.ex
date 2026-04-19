@@ -22,13 +22,11 @@ defmodule SupervisedSlicesWeb.AdminLive.MenuEditorComponent do
     {:ok,
      socket
      |> assign(:editing_item_id, nil)
-     |> assign(:adding_to_category_id, nil)
      |> assign(:creating_category, false)
-     |> assign(:adding_size_to_item_id, nil)
      |> assign(:creating_modifier_group, false)
-     |> assign(:adding_modifier_to_group_id, nil)
-     |> assign(:editing_modifier_group_id, nil)
-     |> assign(:expanded_modifier_groups, %{})
+     |> assign(:open_item_id, nil)
+     |> assign(:open_item_category_id, nil)
+     |> assign(:show_delete_confirm, false)
      |> assign(:current_upload, nil)
      |> assign(:has_completed_upload, false)
      |> assign(:purchasing_upload, false)
@@ -42,6 +40,24 @@ defmodule SupervisedSlicesWeb.AdminLive.MenuEditorComponent do
        max_entries: 1,
        max_file_size: 20_000_000
      )}
+  end
+
+  def update(%{reload_modifier_groups: _, reload_categories: _} = _assigns, socket) do
+    scope = socket.assigns.ash_scope
+    {:ok,
+     socket
+     |> assign(:modifier_groups, load_modifier_groups(scope))
+     |> assign(:categories, load_categories(scope))}
+  end
+
+  def update(%{reload_modifier_groups: true} = _assigns, socket) do
+    scope = socket.assigns.ash_scope
+    {:ok, assign(socket, :modifier_groups, load_modifier_groups(scope))}
+  end
+
+  def update(%{reload_categories: true} = _assigns, socket) do
+    scope = socket.assigns.ash_scope
+    {:ok, assign(socket, :categories, load_categories(scope))}
   end
 
   def update(%{ash_scope: scope, org: org} = assigns, socket) do
@@ -79,21 +95,44 @@ defmodule SupervisedSlicesWeb.AdminLive.MenuEditorComponent do
   # ---------------------------------------------------------------------------
 
   def handle_event("edit_item", %{"id" => id}, socket) do
-    {:noreply, assign(socket, editing_item_id: id, adding_to_category_id: nil)}
+    {:noreply, assign(socket, open_item_id: id, show_delete_confirm: false)}
   end
 
   def handle_event("add_item", %{"category_id" => id}, socket) do
-    {:noreply, assign(socket, adding_to_category_id: id, editing_item_id: nil)}
+    {:noreply,
+     assign(socket, open_item_id: :new, open_item_category_id: id, show_delete_confirm: false)}
   end
 
   def handle_event("cancel_edit", _params, socket) do
     {:noreply,
      assign(socket,
        editing_item_id: nil,
-       adding_to_category_id: nil,
-       adding_size_to_item_id: nil,
-       adding_modifier_to_group_id: nil,
-       creating_modifier_group: false
+       open_item_id: nil,
+       open_item_category_id: nil,
+       show_delete_confirm: false
+     )}
+  end
+
+  def handle_event("delete_item", _params, socket) do
+    {:noreply, assign(socket, :show_delete_confirm, true)}
+  end
+
+  def handle_event("cancel_delete", _params, socket) do
+    {:noreply, assign(socket, :show_delete_confirm, false)}
+  end
+
+  def handle_event("confirm_delete_item", _params, socket) do
+    %{ash_scope: scope, open_item_id: item_id} = socket.assigns
+    item = MenuItem.get!(item_id, scope: scope)
+    MenuItem.destroy!(item, scope: scope)
+    categories = load_categories(scope)
+
+    {:noreply,
+     assign(socket,
+       categories: categories,
+       open_item_id: nil,
+       open_item_category_id: nil,
+       show_delete_confirm: false
      )}
   end
 
@@ -133,7 +172,13 @@ defmodule SupervisedSlicesWeb.AdminLive.MenuEditorComponent do
     MenuItem.update!(item, attrs, scope: scope)
 
     categories = load_categories(scope)
-    {:noreply, assign(socket, categories: categories, editing_item_id: nil)}
+    {:noreply,
+     assign(socket,
+       categories: categories,
+       open_item_id: nil,
+       open_item_category_id: nil,
+       show_delete_confirm: false
+     )}
   end
 
   def handle_event("delete_image", %{"id" => id}, socket) do
@@ -181,7 +226,12 @@ defmodule SupervisedSlicesWeb.AdminLive.MenuEditorComponent do
     categories = load_categories(scope)
 
     {:noreply,
-     assign(socket, categories: categories, adding_to_category_id: nil, editing_item_id: item.id)}
+     assign(socket,
+       categories: categories,
+       open_item_id: item.id,
+       open_item_category_id: nil,
+       show_delete_confirm: false
+     )}
   end
 
   # ---------------------------------------------------------------------------
@@ -189,16 +239,11 @@ defmodule SupervisedSlicesWeb.AdminLive.MenuEditorComponent do
   # ---------------------------------------------------------------------------
 
   def handle_event("edit_category", %{"id" => id}, socket) do
-    {:noreply, assign(socket, editing_item_id: "cat:#{id}", adding_to_category_id: nil)}
+    {:noreply, assign(socket, editing_item_id: "cat:#{id}")}
   end
 
   def handle_event("add_category", _params, socket) do
-    {:noreply,
-     assign(socket,
-       creating_category: true,
-       editing_item_id: nil,
-       adding_to_category_id: nil
-     )}
+    {:noreply, assign(socket, creating_category: true, editing_item_id: nil)}
   end
 
   def handle_event("cancel_add_category", _params, socket) do
@@ -299,18 +344,6 @@ defmodule SupervisedSlicesWeb.AdminLive.MenuEditorComponent do
   # Size events
   # ---------------------------------------------------------------------------
 
-  def handle_event("add_size", %{"item_id" => item_id}, socket) do
-    {:noreply,
-     assign(socket,
-       adding_size_to_item_id: item_id,
-       adding_modifier_to_group_id: nil
-     )}
-  end
-
-  def handle_event("cancel_add_size", _params, socket) do
-    {:noreply, assign(socket, :adding_size_to_item_id, nil)}
-  end
-
   def handle_event("create_size", %{"size" => params}, socket) do
     %{ash_scope: scope} = socket.assigns
 
@@ -327,7 +360,7 @@ defmodule SupervisedSlicesWeb.AdminLive.MenuEditorComponent do
     |> MenuItem.update!(%{price: nil}, scope: scope)
 
     categories = load_categories(scope)
-    {:noreply, assign(socket, categories: categories, adding_size_to_item_id: nil)}
+    {:noreply, assign(socket, :categories, categories)}
   end
 
   def handle_event("delete_size", %{"id" => id}, socket) do
@@ -342,11 +375,7 @@ defmodule SupervisedSlicesWeb.AdminLive.MenuEditorComponent do
   # ---------------------------------------------------------------------------
 
   def handle_event("add_modifier_group", _params, socket) do
-    {:noreply,
-     assign(socket,
-       creating_modifier_group: true,
-       adding_modifier_to_group_id: nil
-     )}
+    {:noreply, assign(socket, :creating_modifier_group, true)}
   end
 
   def handle_event("cancel_add_modifier_group", _params, socket) do
@@ -368,57 +397,9 @@ defmodule SupervisedSlicesWeb.AdminLive.MenuEditorComponent do
       )
 
     modifier_groups = load_modifier_groups(scope)
-    expanded = Map.put(socket.assigns.expanded_modifier_groups, group.id, true)
 
     {:noreply,
-     assign(socket,
-       modifier_groups: modifier_groups,
-       creating_modifier_group: false,
-       expanded_modifier_groups: expanded
-     )}
-  end
-
-  def handle_event("delete_modifier_group", %{"id" => id}, socket) do
-    %{ash_scope: scope} = socket.assigns
-
-    group = MenuItemModifierGroup.get!(id, scope: scope, load: :modifiers)
-    Enum.each(group.modifiers, &MenuItemModifier.destroy!(&1, scope: scope))
-    MenuItemModifierGroup.destroy!(group, scope: scope)
-
-    modifier_groups = load_modifier_groups(scope)
-    categories = load_categories(scope)
-    {:noreply, assign(socket, modifier_groups: modifier_groups, categories: categories)}
-  end
-
-  def handle_event("edit_modifier_group", %{"id" => id}, socket) do
-    {:noreply, assign(socket, editing_modifier_group_id: id)}
-  end
-
-  def handle_event("cancel_edit_modifier_group", _params, socket) do
-    {:noreply, assign(socket, editing_modifier_group_id: nil)}
-  end
-
-  def handle_event("save_modifier_group", %{"group" => params}, socket) do
-    %{ash_scope: scope} = socket.assigns
-
-    group = MenuItemModifierGroup.get!(params["id"], scope: scope)
-
-    MenuItemModifierGroup.update!(group, %{
-      name: params["name"],
-      required: Map.get(params, "required") == "true",
-      min_selections: parse_int(params["min_selections"]),
-      max_selections: parse_int(params["max_selections"])
-    }, scope: scope)
-
-    modifier_groups = load_modifier_groups(scope)
-    categories = load_categories(scope)
-
-    {:noreply,
-     assign(socket,
-       modifier_groups: modifier_groups,
-       categories: categories,
-       editing_modifier_group_id: nil
-     )}
+     assign(socket, modifier_groups: modifier_groups, creating_modifier_group: false)}
   end
 
   def handle_event(
@@ -446,56 +427,6 @@ defmodule SupervisedSlicesWeb.AdminLive.MenuEditorComponent do
 
     categories = load_categories(scope)
     {:noreply, assign(socket, categories: categories)}
-  end
-
-  # ---------------------------------------------------------------------------
-  # Modifier events
-  # ---------------------------------------------------------------------------
-
-  def handle_event("add_modifier", %{"group_id" => group_id}, socket) do
-    {:noreply,
-     assign(socket,
-       adding_modifier_to_group_id: group_id,
-       adding_size_to_item_id: nil
-     )}
-  end
-
-  def handle_event("cancel_add_modifier", _params, socket) do
-    {:noreply, assign(socket, :adding_modifier_to_group_id, nil)}
-  end
-
-  def handle_event("create_modifier", %{"modifier" => params}, socket) do
-    %{ash_scope: scope} = socket.assigns
-
-    MenuItemModifier.create!(
-      %{
-        name: params["name"],
-        price_delta: parse_money(params["price_delta"]),
-        modifier_group_id: params["modifier_group_id"]
-      },
-      scope: scope
-    )
-
-    modifier_groups = load_modifier_groups(scope)
-    {:noreply, assign(socket, modifier_groups: modifier_groups, adding_modifier_to_group_id: nil)}
-  end
-
-  def handle_event("delete_modifier", %{"id" => id}, socket) do
-    %{ash_scope: scope} = socket.assigns
-    MenuItemModifier.get!(id, scope: scope) |> MenuItemModifier.destroy!(scope: scope)
-    modifier_groups = load_modifier_groups(scope)
-    {:noreply, assign(socket, :modifier_groups, modifier_groups)}
-  end
-
-  def handle_event("toggle_modifier_group_expanded", %{"id" => id}, socket) do
-    expanded = socket.assigns.expanded_modifier_groups
-
-    new_expanded =
-      if Map.has_key?(expanded, id),
-        do: Map.delete(expanded, id),
-        else: Map.put(expanded, id, true)
-
-    {:noreply, assign(socket, :expanded_modifier_groups, new_expanded)}
   end
 
   # ---------------------------------------------------------------------------
@@ -622,6 +553,8 @@ defmodule SupervisedSlicesWeb.AdminLive.MenuEditorComponent do
   # ---------------------------------------------------------------------------
 
   def render(assigns) do
+    assigns = assign(assigns, :open_item, resolve_open_item(assigns.open_item_id, assigns.categories))
+
     ~H"""
     <div class="flex flex-col lg:flex-row gap-12 items-start">
       <div class="flex-1 space-y-12 w-full">
@@ -881,399 +814,13 @@ defmodule SupervisedSlicesWeb.AdminLive.MenuEditorComponent do
             <% end %>
 
             <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-              <%= for item <- category.menu_items do %>
-                <%= if @editing_item_id == item.id do %>
-                  <div class="bg-surface-container-lowest rounded-xl p-5 space-y-5">
-                    <form phx-submit="save_item" phx-target={@myself} class="space-y-4">
-                      <input type="hidden" name="item[id]" value={item.id} />
-                      <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        <div>
-                          <label class="block text-xs font-bold text-on-surface-variant uppercase tracking-wider mb-1">
-                            Name
-                          </label>
-                          <input
-                            type="text"
-                            name="item[name]"
-                            value={item.name}
-                            autofocus
-                            class="w-full bg-surface-container-low border-0 rounded-lg px-4 py-2.5 text-sm focus:ring-2 focus:ring-primary outline-none"
-                          />
-                        </div>
-                        <%= if Enum.empty?(item.sizes || []) do %>
-                          <div>
-                            <label class="block text-xs font-bold text-on-surface-variant uppercase tracking-wider mb-1">
-                              Base Price (CAD)
-                            </label>
-                            <input
-                              type="text"
-                              name="item[price]"
-                              value={money_amount(item.price)}
-                              inputmode="decimal"
-                              placeholder="e.g. 14.50"
-                              class="w-full bg-surface-container-low border-0 rounded-lg px-4 py-2.5 text-sm focus:ring-2 focus:ring-primary outline-none"
-                            />
-                          </div>
-                        <% else %>
-                          <input type="hidden" name="item[price]" value="" />
-                        <% end %>
-                        <div class="md:col-span-2">
-                          <label class="block text-xs font-bold text-on-surface-variant uppercase tracking-wider mb-1">
-                            Description
-                          </label>
-                          <textarea
-                            name="item[description]"
-                            rows="2"
-                            class="w-full bg-surface-container-low border-0 rounded-lg px-4 py-2.5 text-sm focus:ring-2 focus:ring-primary outline-none resize-none"
-                          >{item.description}</textarea>
-                        </div>
-                        <div class="md:col-span-2 space-y-2">
-                          <label class="block text-xs font-bold text-on-surface-variant uppercase tracking-wider">
-                            Images
-                          </label>
-                          <div :if={item.images != []} class="flex flex-wrap gap-2">
-                            <div
-                              :for={img <- Enum.sort_by(item.images, & &1.position)}
-                              class="relative group"
-                            >
-                              <img
-                                src={img.url}
-                                alt={item.name}
-                                class="h-16 w-16 rounded-lg object-cover"
-                              />
-                              <button
-                                type="button"
-                                phx-click="delete_image"
-                                phx-value-id={img.id}
-                                phx-target={@myself}
-                                class="absolute -top-1.5 -right-1.5 bg-error text-on-error rounded-full w-5 h-5 flex items-center justify-center text-xs font-bold opacity-0 group-hover:opacity-100 transition-opacity"
-                              >
-                                ×
-                              </button>
-                            </div>
-                          </div>
-                          <div :if={item.images == [] and item.image_url} class="relative group w-fit">
-                            <img
-                              src={item.image_url}
-                              alt={item.name}
-                              class="h-16 w-16 rounded-lg object-cover opacity-50"
-                            />
-                            <p class="text-[10px] text-on-surface-variant mt-1">Legacy URL</p>
-                          </div>
-                          <div class="flex gap-2 items-center">
-                            <.live_file_input
-                              upload={@uploads.item_image}
-                              class="text-sm text-on-surface-variant file:mr-3 file:py-1.5 file:px-3 file:rounded-lg file:border-0 file:bg-surface-container file:text-xs file:font-bold file:uppercase file:tracking-wider file:cursor-pointer"
-                            />
-                          </div>
-                          <p class="text-[10px] text-on-surface-variant">
-                            Up to 5 images. Or paste a URL below for a single image.
-                          </p>
-                          <input
-                            type="text"
-                            name="item[image_url]"
-                            value={item.image_url || ""}
-                            placeholder="https://…"
-                            class="w-full bg-surface-container-low border-0 rounded-lg px-4 py-2.5 text-sm focus:ring-2 focus:ring-primary outline-none"
-                          />
-                        </div>
-                        <div>
-                          <label class="block text-xs font-bold text-on-surface-variant uppercase tracking-wider mb-1">
-                            Sort Order
-                          </label>
-                          <input
-                            type="number"
-                            name="item[sort_order]"
-                            value={item.sort_order}
-                            class="w-full bg-surface-container-low border-0 rounded-lg px-4 py-2.5 text-sm focus:ring-2 focus:ring-primary outline-none"
-                          />
-                        </div>
-                      </div>
-                      <div class="flex items-center gap-3 pt-2">
-                        <button
-                          type="submit"
-                          class="bg-primary text-white px-6 py-2.5 rounded-xl font-bold hover:opacity-90 transition-opacity phx-submit-loading:opacity-70 phx-submit-loading:cursor-wait"
-                        >
-                          <span class="phx-submit-loading:!hidden">Save Changes</span>
-                          <span class="hidden phx-submit-loading:!flex items-center justify-center gap-2">
-                            Saving... <.icon name="hero-arrow-path" class="size-4 animate-spin" />
-                          </span>
-                        </button>
-                        <button
-                          type="button"
-                          phx-click="cancel_edit"
-                          phx-target={@myself}
-                          class="text-on-surface-variant hover:text-on-surface font-medium px-4 py-2.5"
-                        >
-                          Cancel
-                        </button>
-                      </div>
-                    </form>
-
-                    <div class="border-t border-surface-container-low pt-4 space-y-3">
-                      <p class="text-xs font-bold text-on-surface-variant uppercase tracking-wider">
-                        Modifier Groups
-                      </p>
-                      <p class="text-xs text-on-surface-variant">
-                        Assign global modifier groups to this item. Manage group options in the sidebar.
-                      </p>
-
-                      <%= for group <- (item.modifier_groups || []) do %>
-                        <div class="bg-surface-container-low rounded-lg overflow-hidden">
-                          <div class="flex items-center gap-3 px-3 py-2">
-                            <span class="flex-1 text-sm font-semibold text-on-surface">
-                              {group.name}
-                            </span>
-                            <%= if group.required do %>
-                              <span class="text-[10px] font-bold uppercase tracking-wider bg-primary-fixed text-on-primary-fixed-variant px-2 py-0.5 rounded-full">
-                                Required
-                              </span>
-                            <% end %>
-                            <%= if group.max_selections do %>
-                              <span class="text-[10px] font-bold uppercase tracking-wider bg-surface-container text-on-surface-variant px-2 py-0.5 rounded-full">
-                                {if group.max_selections == 1, do: "Pick 1", else: "Max #{group.max_selections}"}
-                              </span>
-                            <% end %>
-                            <span class="text-xs text-on-surface-variant">
-                              {length(group.modifiers || [])} options
-                            </span>
-                            <button
-                              phx-click="remove_item_modifier_group"
-                              phx-value-item_id={item.id}
-                              phx-value-group_id={group.id}
-                              phx-target={@myself}
-                              type="button"
-                              class="text-on-surface-variant hover:text-error transition-colors p-1"
-                              title="Remove from item"
-                            >
-                              <span class="material-symbols-outlined" style="font-size: 16px;">
-                                link_off
-                              </span>
-                            </button>
-                          </div>
-
-                          <%= if not Enum.empty?(item.sizes || []) and not Enum.empty?(group.modifiers || []) do %>
-                            <div class="border-t border-surface-container px-3 pb-3 pt-2">
-                              <p class="text-[10px] font-bold text-on-surface-variant uppercase tracking-widest mb-2">
-                                Size pricing overrides
-                              </p>
-                              <div class="overflow-x-auto">
-                                <table class="w-full text-xs">
-                                  <thead>
-                                    <tr>
-                                      <th class="text-left text-[10px] font-bold text-on-surface-variant uppercase tracking-widest pb-1 pr-2">
-                                        Option
-                                      </th>
-                                      <%= for size <- item.sizes do %>
-                                        <th class="text-left text-[10px] font-bold text-on-surface-variant uppercase tracking-widest pb-1 px-1">
-                                          {size.name}
-                                        </th>
-                                      <% end %>
-                                    </tr>
-                                  </thead>
-                                  <tbody>
-                                    <%= for modifier <- group.modifiers do %>
-                                      <tr>
-                                        <td class="pr-2 py-1 text-on-surface font-medium whitespace-nowrap">
-                                          {modifier.name}
-                                          <span class="text-on-surface-variant font-normal">
-                                            {if modifier.price_delta,
-                                              do: " (default +#{format_money(modifier.price_delta)})",
-                                              else: " (default free)"}
-                                          </span>
-                                        </td>
-                                        <%= for size <- item.sizes do %>
-                                          <td class="px-1 py-1">
-                                            <input
-                                              type="text"
-                                              inputmode="decimal"
-                                              placeholder={
-                                                if modifier.price_delta,
-                                                  do: money_amount(modifier.price_delta),
-                                                  else: "0.00"
-                                              }
-                                              value={
-                                                modifier.size_prices
-                                                |> Enum.find(fn sp ->
-                                                  to_string(sp.size_id) == to_string(size.id)
-                                                end)
-                                                |> case do
-                                                  nil -> nil
-                                                  sp -> money_amount(sp.price_delta)
-                                                end
-                                              }
-                                              phx-blur="save_modifier_size_price"
-                                              phx-value-modifier_id={modifier.id}
-                                              phx-value-size_id={size.id}
-                                              phx-target={@myself}
-                                              class="w-20 bg-surface-container-highest border-0 rounded px-2 py-1 text-xs focus:ring-1 focus:ring-primary outline-none"
-                                            />
-                                          </td>
-                                        <% end %>
-                                      </tr>
-                                    <% end %>
-                                  </tbody>
-                                </table>
-                              </div>
-                            </div>
-                          <% end %>
-                        </div>
-                      <% end %>
-
-                      <%= if not Enum.empty?(
-                        Enum.reject(@modifier_groups, fn mg ->
-                          Enum.any?(item.modifier_groups || [], &(&1.id == mg.id))
-                        end)
-                      ) do %>
-                        <details class="group/assign-mods">
-                          <summary class="list-none cursor-pointer flex items-center gap-1 text-[10px] font-black uppercase tracking-wider text-primary hover:opacity-80">
-                            <span class="material-symbols-outlined text-sm">link</span>
-                            Link modifier group
-                          </summary>
-                          <div class="flex flex-wrap gap-2 mt-3">
-                            <%= for mg <- Enum.reject(@modifier_groups, fn mg ->
-                            Enum.any?(item.modifier_groups || [], &(&1.id == mg.id))
-                          end) do %>
-                              <button
-                                phx-click="assign_modifier_group"
-                                phx-value-item_id={item.id}
-                                phx-value-group_id={mg.id}
-                                phx-target={@myself}
-                                type="button"
-                                class="flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-dashed border-on-surface-variant/30 text-xs text-on-surface-variant hover:border-primary hover:text-primary transition-colors"
-                              >
-                                <span class="material-symbols-outlined" style="font-size: 14px;">
-                                  add
-                                </span>
-                                {mg.name}
-                              </button>
-                            <% end %>
-                          </div>
-                        </details>
-                      <% end %>
-                    </div>
-
-                    <div class="border-t border-surface-container-low pt-4 space-y-3">
-                      <p class="text-xs font-bold text-on-surface-variant uppercase tracking-wider">
-                        Upsell
-                      </p>
-                      <p class="text-xs text-on-surface-variant">
-                        When enabled, this item may appear as a suggestion in other customers' baskets.
-                      </p>
-                      <label class="flex items-center gap-3 cursor-pointer">
-                        <input
-                          type="checkbox"
-                          phx-click="toggle_upsell"
-                          phx-value-id={item.id}
-                          phx-target={@myself}
-                          checked={item.is_upsell}
-                          class="rounded"
-                        />
-                        <span class="text-sm font-semibold text-on-surface">
-                          Show as upsell suggestion
-                        </span>
-                      </label>
-                    </div>
-
-                    <div class="border-t border-surface-container-low pt-4 space-y-3">
-                      <div class="flex items-center justify-between">
-                        <p class="text-xs font-bold text-on-surface-variant uppercase tracking-wider">
-                          Sizes
-                        </p>
-                        <%= if @adding_size_to_item_id != item.id do %>
-                          <button
-                            phx-click="add_size"
-                            phx-value-item_id={item.id}
-                            phx-target={@myself}
-                            type="button"
-                            class="flex items-center gap-1 text-sm text-primary hover:opacity-80 font-bold"
-                          >
-                            <span class="material-symbols-outlined" style="font-size: 16px;">
-                              add_circle
-                            </span>
-                            Add size
-                          </button>
-                        <% end %>
-                      </div>
-
-                      <%= for size <- (item.sizes || []) do %>
-                        <div class="flex items-center gap-3 px-3 py-2 bg-surface-container-low rounded-lg">
-                          <span class="flex-1 text-sm text-on-surface">{size.name}</span>
-                          <span class="text-sm font-bold text-primary">
-                            {format_money(size.price)}
-                          </span>
-                          <button
-                            phx-click="delete_size"
-                            phx-value-id={size.id}
-                            phx-target={@myself}
-                            type="button"
-                            class="text-on-surface-variant hover:text-error transition-colors p-1"
-                          >
-                            <span class="material-symbols-outlined" style="font-size: 14px;">
-                              close
-                            </span>
-                          </button>
-                        </div>
-                      <% end %>
-
-                      <%= if @adding_size_to_item_id == item.id do %>
-                        <form
-                          phx-submit="create_size"
-                          phx-target={@myself}
-                          class="flex flex-wrap items-center gap-2"
-                        >
-                          <input type="hidden" name="size[menu_item_id]" value={item.id} />
-                          <input
-                            type="text"
-                            name="size[name]"
-                            required
-                            autofocus
-                            placeholder="Name"
-                            class="flex-[2] min-w-[100px] bg-surface-container-low border-0 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-primary outline-none"
-                          />
-                          <input
-                            type="text"
-                            name="size[price]"
-                            required
-                            placeholder="Price"
-                            inputmode="decimal"
-                            class="flex-1 min-w-[80px] bg-surface-container-low border-0 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-primary outline-none"
-                          />
-                          <div class="flex items-center gap-1">
-                            <button
-                              type="submit"
-                              class="bg-primary text-white px-3 py-2 rounded-lg text-sm font-bold hover:opacity-90 whitespace-nowrap phx-submit-loading:opacity-70 phx-submit-loading:cursor-wait"
-                            >
-                              <span class="phx-submit-loading:!hidden">Add</span>
-                              <span class="hidden phx-submit-loading:!flex items-center justify-center">
-                                <.icon name="hero-arrow-path" class="size-3 animate-spin" />
-                              </span>
-                            </button>
-                            <button
-                              type="button"
-                              phx-click="cancel_add_size"
-                              phx-target={@myself}
-                              class="text-on-surface-variant hover:text-on-surface p-1"
-                            >
-                              <span class="material-symbols-outlined" style="font-size: 16px;">
-                                close
-                              </span>
-                            </button>
-                          </div>
-                        </form>
-                      <% end %>
-
-                      <%= if Enum.empty?(item.sizes || []) and @adding_size_to_item_id != item.id do %>
-                        <p class="text-xs text-on-surface-variant italic">
-                          No sizes yet. Add sizes to let customers choose (e.g. Small, Medium, Large).
-                        </p>
-                      <% end %>
-                    </div>
-                  </div>
-                <% else %>
-                  <div class={[
-                    "bg-surface-container-low rounded-md flex flex-col shadow-sm overflow-hidden transition-all duration-300 group",
-                    if(not item.available, do: "opacity-50 grayscale")
-                  ]}>
+              <div
+                :for={item <- category.menu_items}
+                class={[
+                  "bg-surface-container-low rounded-md flex flex-col shadow-sm overflow-hidden transition-all duration-300 group",
+                  if(not item.available, do: "opacity-50 grayscale")
+                ]}
+              >
                     <div class="aspect-square relative overflow-hidden bg-surface-container-high">
                       <%= if item.image_url do %>
                         <img
@@ -1387,117 +934,26 @@ defmodule SupervisedSlicesWeb.AdminLive.MenuEditorComponent do
                         </div>
                       </div>
                     </div>
-                  </div>
-                <% end %>
-              <% end %>
+              </div>
 
-              <%= if @adding_to_category_id == category.id do %>
-                <form
-                  phx-submit="create_item"
-                  phx-target={@myself}
-                  class="bg-surface-container-low rounded-md p-6 space-y-4 shadow-sm border-2 border-primary/20"
-                >
-                  <input type="hidden" name="item[category_id]" value={category.id} />
-                  <h4 class="text-xs font-black text-on-surface uppercase tracking-[0.2em]">
-                    New menu item
-                  </h4>
-                  <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div>
-                      <label class="block text-[10px] font-black text-on-surface-variant uppercase tracking-widest mb-1.5">
-                        Name
-                      </label>
-                      <input
-                        type="text"
-                        name="item[name]"
-                        required
-                        autofocus
-                        placeholder="e.g. Classic Margherita"
-                        class="w-full bg-surface-container-highest border-0 rounded px-4 py-2.5 text-sm focus:ring-1 focus:ring-primary outline-none"
-                      />
-                    </div>
-                    <div>
-                      <label class="block text-[10px] font-black text-on-surface-variant uppercase tracking-widest mb-1.5">
-                        Base Price (CAD)
-                      </label>
-                      <input
-                        type="text"
-                        name="item[price]"
-                        placeholder="14.50"
-                        inputmode="decimal"
-                        class="w-full bg-surface-container-highest border-0 rounded px-4 py-2.5 text-sm focus:ring-1 focus:ring-primary outline-none"
-                      />
-                    </div>
-                    <div>
-                      <label class="block text-[10px] font-black text-on-surface-variant uppercase tracking-widest mb-1.5">
-                        Sort Order
-                      </label>
-                      <input
-                        type="number"
-                        name="item[sort_order]"
-                        value="0"
-                        class="w-full bg-surface-container-highest border-0 rounded px-4 py-2.5 text-sm focus:ring-1 focus:ring-primary outline-none"
-                      />
-                    </div>
-                    <div class="md:col-span-2">
-                      <label class="block text-[10px] font-black text-on-surface-variant uppercase tracking-widest mb-1.5">
-                        Description
-                      </label>
-                      <textarea
-                        name="item[description]"
-                        rows="2"
-                        placeholder="Describe the dish…"
-                        class="w-full bg-surface-container-highest border-0 rounded px-4 py-2.5 text-sm focus:ring-1 focus:ring-primary outline-none resize-none"
-                      ></textarea>
-                    </div>
-                  </div>
-                  <div>
-                    <label class="block text-[10px] font-black text-on-surface-variant uppercase tracking-widest mb-1.5">
-                      Images (optional)
-                    </label>
-                    <.live_file_input
-                      upload={@uploads.item_image}
-                      class="text-sm text-on-surface-variant file:mr-3 file:py-1.5 file:px-3 file:rounded-lg file:border-0 file:bg-surface-container file:text-xs file:font-bold file:uppercase file:tracking-wider file:cursor-pointer"
-                    />
-                  </div>
-                  <div class="flex items-center gap-3 pt-2">
-                    <button
-                      type="submit"
-                      class="bg-primary text-white px-6 py-2.5 rounded-md font-bold text-xs uppercase tracking-widest transition-all active:scale-95 phx-submit-loading:opacity-70 phx-submit-loading:cursor-wait"
-                    >
-                      <span class="phx-submit-loading:!hidden">Add Offering</span>
-                      <span class="hidden phx-submit-loading:!flex items-center justify-center gap-2">
-                        Adding... <.icon name="hero-arrow-path" class="size-4 animate-spin" />
-                      </span>
-                    </button>
-                    <button
-                      type="button"
-                      phx-click="cancel_edit"
-                      phx-target={@myself}
-                      class="text-on-surface-variant/40 hover:text-on-surface font-bold text-xs uppercase tracking-widest px-4 py-2.5"
-                    >
-                      Cancel
-                    </button>
-                  </div>
-                </form>
-              <% else %>
-                <button
-                  phx-click="add_item"
-                  phx-value-category_id={category.id}
-                  phx-target={@myself}
-                  class="flex flex-col items-center justify-center gap-3 p-8 rounded-md border-2 border-dashed border-on-surface/5 hover:border-primary/20 hover:bg-surface-container-low transition-all group"
-                >
-                  <span class="material-symbols-outlined text-primary/40 group-hover:text-primary transition-colors text-3xl">
-                    add_circle
-                  </span>
-                  <span class="text-[10px] font-black text-on-surface-variant uppercase tracking-[0.2em]">
-                    Add item to {category.name}
-                  </span>
-                </button>
-              <% end %>
+              <button
+                phx-click="add_item"
+                phx-value-category_id={category.id}
+                phx-target={@myself}
+                class="flex flex-col items-center justify-center gap-3 p-8 rounded-md border-2 border-dashed border-on-surface/5 hover:border-primary/20 hover:bg-surface-container-low transition-all group"
+              >
+                <span class="material-symbols-outlined text-primary/40 group-hover:text-primary transition-colors text-3xl">
+                  add_circle
+                </span>
+                <span class="text-[10px] font-black text-on-surface-variant uppercase tracking-[0.2em]">
+                  Add item to {category.name}
+                </span>
+              </button>
             </div>
           </div>
         <% end %>
       </div>
+
 
       <aside class="w-full lg:w-80 shrink-0 space-y-6">
         <div class="bg-surface-container-low rounded-md p-6 space-y-6">
@@ -1515,290 +971,95 @@ defmodule SupervisedSlicesWeb.AdminLive.MenuEditorComponent do
             </button>
           </div>
 
-          <%= if @creating_modifier_group do %>
-            <form
-              phx-submit="create_modifier_group"
-              phx-target={@myself}
-              class="bg-surface-container-low rounded-lg p-3 space-y-3 shadow-sm border border-primary/10"
-            >
-              <input
-                type="text"
-                name="group[name]"
-                required
-                autofocus
-                placeholder="e.g. Extra Toppings"
-                class="w-full bg-white border-0 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-primary outline-none"
-              />
-              <div class="grid grid-cols-2 gap-2">
+          <form
+            :if={@creating_modifier_group}
+            phx-submit="create_modifier_group"
+            phx-target={@myself}
+            class="bg-surface-container rounded-lg p-3 space-y-3 border border-primary/10"
+          >
+            <input
+              type="text"
+              name="group[name]"
+              required
+              autofocus
+              placeholder="e.g. Extra Toppings"
+              class="w-full bg-surface-container-highest border-0 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-primary outline-none"
+            />
+            <div class="grid grid-cols-2 gap-2">
+              <div>
+                <label class="block text-[10px] font-bold text-on-surface-variant uppercase tracking-widest mb-1">Min</label>
                 <input
                   type="number"
                   name="group[min_selections]"
-                  placeholder="Min (0)"
+                  placeholder="0"
                   min="0"
-                  class="bg-white border-0 rounded-lg px-3 py-2 text-xs focus:ring-2 focus:ring-primary outline-none"
+                  class="w-full bg-surface-container-highest border-0 rounded-lg px-3 py-2 text-xs focus:ring-2 focus:ring-primary outline-none"
                 />
+              </div>
+              <div>
+                <label class="block text-[10px] font-bold text-on-surface-variant uppercase tracking-widest mb-1">Max</label>
                 <input
                   type="number"
                   name="group[max_selections]"
-                  placeholder="Max (none)"
+                  placeholder="No limit"
                   min="1"
-                  class="bg-white border-0 rounded-lg px-3 py-2 text-xs focus:ring-2 focus:ring-primary outline-none"
+                  class="w-full bg-surface-container-highest border-0 rounded-lg px-3 py-2 text-xs focus:ring-2 focus:ring-primary outline-none"
                 />
               </div>
-              <div class="flex items-center justify-between">
-                <label class="flex items-center gap-2 text-sm text-on-surface-variant cursor-pointer">
-                  <input type="checkbox" name="group[required]" value="true" class="rounded" />
-                  Required
-                </label>
-                <div class="flex items-center gap-2">
-                  <button
-                    type="submit"
-                    class="bg-primary text-white px-4 py-2 rounded-lg text-sm font-bold hover:opacity-90 phx-submit-loading:opacity-70 phx-submit-loading:cursor-wait"
-                  >
-                    <span class="phx-submit-loading:!hidden">Save</span>
-                    <span class="hidden phx-submit-loading:!flex items-center justify-center gap-2">
-                      <.icon name="hero-arrow-path" class="size-4 animate-spin" />
-                    </span>
-                  </button>
-                  <button
-                    type="button"
-                    phx-click="cancel_add_modifier_group"
-                    phx-target={@myself}
-                    class="text-on-surface-variant hover:text-on-surface text-sm px-3 py-2"
-                  >
-                    Cancel
-                  </button>
-                </div>
-              </div>
-            </form>
-          <% end %>
-
-          <%= if Enum.empty?(@modifier_groups) do %>
-            <p class="text-xs text-on-surface-variant italic">
-              No modifier groups yet.
-            </p>
-          <% else %>
-            <div class="space-y-4">
-              <%= for group <- @modifier_groups do %>
-                <div class="space-y-2">
-                  <%= if @editing_modifier_group_id == group.id do %>
-                    <form
-                      phx-submit="save_modifier_group"
-                      phx-target={@myself}
-                      class="bg-surface-container rounded-lg p-3 space-y-3 border border-primary/10"
-                    >
-                      <input type="hidden" name="group[id]" value={group.id} />
-                      <input
-                        type="text"
-                        name="group[name]"
-                        value={group.name}
-                        required
-                        autofocus
-                        class="w-full bg-white border-0 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-primary outline-none"
-                      />
-                      <div class="grid grid-cols-2 gap-2">
-                        <div>
-                          <label class="block text-[10px] font-bold text-on-surface-variant uppercase tracking-widest mb-1">
-                            Min
-                          </label>
-                          <input
-                            type="number"
-                            name="group[min_selections]"
-                            value={group.min_selections}
-                            min="0"
-                            class="w-full bg-white border-0 rounded-lg px-3 py-2 text-xs focus:ring-2 focus:ring-primary outline-none"
-                          />
-                        </div>
-                        <div>
-                          <label class="block text-[10px] font-bold text-on-surface-variant uppercase tracking-widest mb-1">
-                            Max
-                          </label>
-                          <input
-                            type="number"
-                            name="group[max_selections]"
-                            value={group.max_selections}
-                            min="1"
-                            placeholder="No limit"
-                            class="w-full bg-white border-0 rounded-lg px-3 py-2 text-xs focus:ring-2 focus:ring-primary outline-none"
-                          />
-                        </div>
-                      </div>
-                      <div class="flex items-center justify-between">
-                        <label class="flex items-center gap-2 text-sm text-on-surface-variant cursor-pointer">
-                          <input
-                            type="checkbox"
-                            name="group[required]"
-                            value="true"
-                            checked={group.required}
-                            class="rounded"
-                          />
-                          Required
-                        </label>
-                        <div class="flex items-center gap-2">
-                          <button
-                            type="submit"
-                            class="bg-primary text-white px-3 py-1.5 rounded text-xs font-bold phx-submit-loading:opacity-70 phx-submit-loading:cursor-wait"
-                          >
-                            <span class="phx-submit-loading:!hidden">Save</span>
-                            <span class="hidden phx-submit-loading:!flex items-center justify-center">
-                              <.icon name="hero-arrow-path" class="size-3 animate-spin" />
-                            </span>
-                          </button>
-                          <button
-                            type="button"
-                            phx-click="cancel_edit_modifier_group"
-                            phx-target={@myself}
-                            class="text-on-surface-variant hover:text-on-surface text-xs px-2 py-1.5"
-                          >
-                            Cancel
-                          </button>
-                        </div>
-                      </div>
-                    </form>
-                  <% else %>
-                  <div class="flex items-center gap-2">
-                    <button
-                      type="button"
-                      phx-click="toggle_modifier_group_expanded"
-                      phx-value-id={group.id}
-                      phx-target={@myself}
-                      class="flex items-center gap-2 flex-1 text-left"
-                    >
-                      <span class={[
-                        "material-symbols-outlined text-sm transition-transform duration-200",
-                        if(Map.has_key?(@expanded_modifier_groups, group.id), do: "rotate-90")
-                      ]}>
-                        chevron_right
-                      </span>
-                      <span class="text-sm font-bold text-on-surface">
-                        {group.name}
-                      </span>
-                    </button>
-                    <%= if group.required do %>
-                      <span class="text-[10px] font-bold uppercase tracking-wider bg-primary-fixed text-on-primary-fixed-variant px-2 py-0.5 rounded-full">
-                        Req.
-                      </span>
-                    <% end %>
-                    <%= if group.max_selections do %>
-                      <span class="text-[10px] font-bold uppercase tracking-wider bg-surface-container text-on-surface-variant px-2 py-0.5 rounded-full">
-                        {if group.max_selections == 1, do: "1 only", else: "max #{group.max_selections}"}
-                      </span>
-                    <% end %>
-                    <button
-                      phx-click="edit_modifier_group"
-                      phx-value-id={group.id}
-                      phx-target={@myself}
-                      type="button"
-                      class="text-on-surface-variant hover:text-primary transition-colors p-1"
-                      title="Edit group"
-                    >
-                      <span class="material-symbols-outlined" style="font-size: 16px;">edit</span>
-                    </button>
-                    <button
-                      phx-click="delete_modifier_group"
-                      phx-value-id={group.id}
-                      phx-target={@myself}
-                      type="button"
-                      class="text-on-surface-variant hover:text-error transition-colors p-1"
-                      title="Delete group"
-                    >
-                      <span class="material-symbols-outlined" style="font-size: 16px;">delete</span>
-                    </button>
-                  </div>
-                  <% end %>
-
-                  <div
-                    :if={Map.has_key?(@expanded_modifier_groups, group.id)}
-                    class="pl-6 space-y-1.5"
-                  >
-                    <%= for modifier <- group.modifiers || [] do %>
-                      <div class="flex items-center gap-2 text-xs">
-                        <span class="flex-1 text-on-surface">{modifier.name}</span>
-                        <span class="text-[10px] text-on-surface-variant whitespace-nowrap">
-                          {if modifier.price_delta,
-                            do: "+#{format_money(modifier.price_delta)}",
-                            else: "Free"}
-                        </span>
-                        <button
-                          phx-click="delete_modifier"
-                          phx-value-id={modifier.id}
-                          phx-target={@myself}
-                          type="button"
-                          class="text-on-surface-variant hover:text-error transition-colors p-0.5"
-                        >
-                          <span class="material-symbols-outlined" style="font-size: 14px;">
-                            close
-                          </span>
-                        </button>
-                      </div>
-                    <% end %>
-
-                    <%= if @adding_modifier_to_group_id == group.id do %>
-                      <form
-                        phx-submit="create_modifier"
-                        phx-target={@myself}
-                        class="flex flex-col gap-2 mt-2 p-2 bg-white rounded-lg shadow-sm border border-primary/10"
-                      >
-                        <input type="hidden" name="modifier[modifier_group_id]" value={group.id} />
-                        <input
-                          type="text"
-                          name="modifier[name]"
-                          required
-                          autofocus
-                          placeholder="Option name"
-                          class="w-full bg-surface-container-highest border-0 rounded px-2 py-1.5 text-xs focus:ring-1 focus:ring-primary outline-none"
-                        />
-                        <div class="flex items-center gap-2">
-                          <input
-                            type="text"
-                            name="modifier[price_delta]"
-                            placeholder="+0.00"
-                            inputmode="decimal"
-                            class="flex-1 bg-surface-container-highest border-0 rounded px-2 py-1.5 text-xs focus:ring-1 focus:ring-primary outline-none"
-                          />
-                          <button
-                            type="submit"
-                            class="bg-primary text-white px-3 py-1.5 rounded text-xs font-bold hover:opacity-90 phx-submit-loading:opacity-70 phx-submit-loading:cursor-wait"
-                          >
-                            <span class="phx-submit-loading:!hidden">Add</span>
-                            <span class="hidden phx-submit-loading:!flex items-center justify-center">
-                              <.icon name="hero-arrow-path" class="size-3 animate-spin" />
-                            </span>
-                          </button>
-                          <button
-                            type="button"
-                            phx-click="cancel_add_modifier"
-                            phx-target={@myself}
-                            class="text-on-surface-variant hover:text-on-surface p-1"
-                          >
-                            <span class="material-symbols-outlined" style="font-size: 14px;">
-                              close
-                            </span>
-                          </button>
-                        </div>
-                      </form>
-                    <% else %>
-                      <button
-                        phx-click="add_modifier"
-                        phx-value-group_id={group.id}
-                        phx-target={@myself}
-                        type="button"
-                        class="flex items-center gap-1 text-[10px] font-black uppercase tracking-wider text-primary hover:opacity-70 transition-colors mt-1"
-                      >
-                        <span class="material-symbols-outlined" style="font-size: 14px;">
-                          add_circle
-                        </span>
-                        Add option
-                      </button>
-                    <% end %>
-                  </div>
-                </div>
-              <% end %>
             </div>
-          <% end %>
+            <div class="flex items-center justify-between">
+              <label class="flex items-center gap-2 text-sm text-on-surface-variant cursor-pointer">
+                <input type="checkbox" name="group[required]" value="true" class="rounded" />
+                Required
+              </label>
+              <div class="flex items-center gap-2">
+                <button
+                  type="submit"
+                  class="bg-primary text-white px-4 py-2 rounded-lg text-sm font-bold phx-submit-loading:opacity-70 phx-submit-loading:cursor-wait"
+                >
+                  <span class="phx-submit-loading:!hidden">Save</span>
+                  <span class="hidden phx-submit-loading:!flex items-center justify-center gap-2">
+                    <.icon name="hero-arrow-path" class="size-4 animate-spin" />
+                  </span>
+                </button>
+                <button
+                  type="button"
+                  phx-click="cancel_add_modifier_group"
+                  phx-target={@myself}
+                  class="text-on-surface-variant hover:text-on-surface text-sm px-3 py-2"
+                >
+                  Cancel
+                </button>
+              </div>
+            </div>
+          </form>
+
+          <p :if={Enum.empty?(@modifier_groups)} class="text-xs text-on-surface-variant italic">
+            No modifier groups yet.
+          </p>
+
+          <div :if={not Enum.empty?(@modifier_groups)} class="space-y-4">
+            <.live_component
+              :for={group <- @modifier_groups}
+              module={SupervisedSlicesWeb.AdminLive.ModifierGroupRowComponent}
+              id={"modifier-group-#{group.id}"}
+              group={group}
+              ash_scope={@ash_scope}
+            />
+          </div>
         </div>
       </aside>
     </div>
+
+    <.menu_item_drawer
+      item={@open_item}
+      open_item_id={@open_item_id}
+      category_id={@open_item_category_id}
+      modifier_groups={@modifier_groups}
+      show_delete_confirm={@show_delete_confirm}
+      myself={@myself}
+      uploads={@uploads}
+    />
     """
   end
 
@@ -1869,4 +1130,464 @@ defmodule SupervisedSlicesWeb.AdminLive.MenuEditorComponent do
 
   defp money_amount(nil), do: "0.00"
   defp money_amount(money), do: Decimal.to_string(money.amount, :normal)
+
+  defp resolve_open_item(nil, _categories), do: nil
+  defp resolve_open_item(:new, _categories), do: :new
+
+  defp resolve_open_item(id, categories) do
+    categories
+    |> Enum.flat_map(& &1.menu_items)
+    |> Enum.find(&(to_string(&1.id) == to_string(id)))
+  end
+
+  # ---------------------------------------------------------------------------
+  # Menu Item Drawer (functional component)
+  # ---------------------------------------------------------------------------
+
+  attr :item, :any, default: nil
+  attr :open_item_id, :any, default: nil
+  attr :category_id, :string, default: nil
+  attr :modifier_groups, :list, default: []
+  attr :show_delete_confirm, :boolean, default: false
+  attr :myself, :any, required: true
+  attr :uploads, :any, required: true
+
+  defp menu_item_drawer(assigns) do
+    ~H"""
+    <div
+      id="item-drawer-wrapper"
+      class={[
+        "fixed inset-0 z-40 transition-all duration-300",
+        if(@open_item_id, do: "visible", else: "invisible pointer-events-none")
+      ]}
+    >
+      <div
+        class={[
+          "absolute inset-0 bg-black/30 transition-opacity duration-300",
+          if(@open_item_id, do: "opacity-100", else: "opacity-0")
+        ]}
+        phx-click="cancel_edit"
+        phx-target={@myself}
+      >
+      </div>
+
+      <div class={[
+        "absolute top-0 right-0 bottom-0 w-full md:w-[640px] bg-background flex flex-col",
+        "shadow-[-24px_0px_64px_rgba(0,0,0,0.10)] transition-transform duration-300 ease-out",
+        if(@open_item_id, do: "translate-x-0", else: "translate-x-full")
+      ]}>
+        <div class="flex items-center justify-between px-8 py-6 shrink-0 bg-background/95 backdrop-blur-sm border-b border-on-surface/5">
+          <h2 class="font-headline text-2xl font-black text-on-surface tracking-tight">
+            {if @item == :new or is_nil(@item), do: "New Item", else: @item.name}
+          </h2>
+          <button
+            phx-click="cancel_edit"
+            phx-target={@myself}
+            class="w-10 h-10 flex items-center justify-center rounded-full bg-surface-container-low hover:bg-surface-container transition-all"
+          >
+            <span class="material-symbols-outlined">close</span>
+          </button>
+        </div>
+
+        <div class="flex-1 overflow-y-auto px-8 py-6 space-y-8">
+          <%= if @item == :new do %>
+            <form id="item-form" phx-submit="create_item" phx-target={@myself} class="space-y-6">
+              <input type="hidden" name="item[category_id]" value={@category_id} />
+              <.drawer_core_fields item={nil} uploads={@uploads} myself={@myself} />
+            </form>
+          <% end %>
+
+          <%= if is_struct(@item) do %>
+            <form id="item-form" phx-submit="save_item" phx-target={@myself} class="space-y-6">
+              <input type="hidden" name="item[id]" value={@item.id} />
+              <.drawer_core_fields item={@item} uploads={@uploads} myself={@myself} />
+            </form>
+
+            <details class="group/sizes">
+              <summary class="list-none flex items-center justify-between cursor-pointer py-2">
+                <span class="text-xs font-black text-on-surface-variant uppercase tracking-wider">
+                  Sizes
+                  <span :if={not Enum.empty?(@item.sizes || [])} class="ml-1 text-primary">
+                    ({length(@item.sizes)})
+                  </span>
+                </span>
+                <span class="material-symbols-outlined text-sm text-on-surface-variant transition-transform group-open/sizes:rotate-180">
+                  expand_more
+                </span>
+              </summary>
+              <div class="pt-4 space-y-3">
+                <div :for={size <- @item.sizes || []} class="flex items-center gap-3 px-3 py-2 bg-surface-container-low rounded-lg">
+                  <span class="flex-1 text-sm text-on-surface">{size.name}</span>
+                  <span class="text-sm font-bold text-primary">{format_money(size.price)}</span>
+                  <button
+                    phx-click="delete_size"
+                    phx-value-id={size.id}
+                    phx-target={@myself}
+                    type="button"
+                    class="text-on-surface-variant hover:text-error transition-colors p-1"
+                  >
+                    <span class="material-symbols-outlined" style="font-size: 14px;">close</span>
+                  </button>
+                </div>
+                <p :if={Enum.empty?(@item.sizes || [])} class="text-xs text-on-surface-variant italic">
+                  No sizes yet. Add a size to let customers choose (e.g. Small, Medium, Large).
+                </p>
+                <form phx-submit="create_size" phx-target={@myself} class="flex flex-wrap items-center gap-2 pt-2">
+                  <input type="hidden" name="size[menu_item_id]" value={@item.id} />
+                  <input
+                    type="text"
+                    name="size[name]"
+                    placeholder="Name (e.g. Large)"
+                    class="flex-[2] min-w-[120px] bg-surface-container-low border-0 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-primary outline-none"
+                  />
+                  <input
+                    type="text"
+                    name="size[price]"
+                    placeholder="Price"
+                    inputmode="decimal"
+                    class="flex-1 min-w-[80px] bg-surface-container-low border-0 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-primary outline-none"
+                  />
+                  <button
+                    type="submit"
+                    class="bg-primary text-white px-4 py-2 rounded-lg text-sm font-bold phx-submit-loading:opacity-70 phx-submit-loading:cursor-wait"
+                  >
+                    <span class="phx-submit-loading:!hidden">Add</span>
+                    <span class="hidden phx-submit-loading:!flex items-center justify-center">
+                      <.icon name="hero-arrow-path" class="size-3 animate-spin" />
+                    </span>
+                  </button>
+                </form>
+              </div>
+            </details>
+
+            <details class="group/mods">
+              <summary class="list-none flex items-center justify-between cursor-pointer py-2">
+                <span class="text-xs font-black text-on-surface-variant uppercase tracking-wider">
+                  Modifier Groups
+                  <span :if={not Enum.empty?(@item.modifier_groups || [])} class="ml-1 text-primary">
+                    ({length(@item.modifier_groups)})
+                  </span>
+                </span>
+                <span class="material-symbols-outlined text-sm text-on-surface-variant transition-transform group-open/mods:rotate-180">
+                  expand_more
+                </span>
+              </summary>
+              <div class="pt-4 space-y-3">
+                <%= for group <- (@item.modifier_groups || []) do %>
+                  <div class="bg-surface-container-low rounded-lg overflow-hidden">
+                    <div class="flex items-center gap-3 px-3 py-2">
+                      <span class="flex-1 text-sm font-semibold text-on-surface">{group.name}</span>
+                      <span :if={group.required} class="text-[10px] font-bold uppercase tracking-wider bg-primary-fixed text-on-primary-fixed-variant px-2 py-0.5 rounded-full">
+                        Required
+                      </span>
+                      <span :if={group.max_selections} class="text-[10px] font-bold uppercase tracking-wider bg-surface-container text-on-surface-variant px-2 py-0.5 rounded-full">
+                        {if group.max_selections == 1, do: "Pick 1", else: "Max #{group.max_selections}"}
+                      </span>
+                      <span class="text-xs text-on-surface-variant">
+                        {length(group.modifiers || [])} options
+                      </span>
+                      <button
+                        phx-click="remove_item_modifier_group"
+                        phx-value-item_id={@item.id}
+                        phx-value-group_id={group.id}
+                        phx-target={@myself}
+                        type="button"
+                        class="text-on-surface-variant hover:text-error transition-colors p-1"
+                        title="Remove from item"
+                      >
+                        <span class="material-symbols-outlined" style="font-size: 16px;">link_off</span>
+                      </button>
+                    </div>
+
+                    <%= if not Enum.empty?(@item.sizes || []) and not Enum.empty?(group.modifiers || []) do %>
+                      <div class="border-t border-surface-container px-3 pb-3 pt-2">
+                        <p class="text-[10px] font-bold text-on-surface-variant uppercase tracking-widest mb-2">
+                          Size pricing overrides
+                        </p>
+                        <div class="overflow-x-auto">
+                          <table class="w-full text-xs">
+                            <thead>
+                              <tr>
+                                <th class="text-left text-[10px] font-bold text-on-surface-variant uppercase tracking-widest pb-1 pr-2">Option</th>
+                                <%= for size <- @item.sizes do %>
+                                  <th class="text-left text-[10px] font-bold text-on-surface-variant uppercase tracking-widest pb-1 px-1">{size.name}</th>
+                                <% end %>
+                              </tr>
+                            </thead>
+                            <tbody>
+                              <%= for modifier <- group.modifiers do %>
+                                <tr>
+                                  <td class="pr-2 py-1 text-on-surface font-medium whitespace-nowrap">
+                                    {modifier.name}
+                                    <span class="text-on-surface-variant font-normal">
+                                      {if modifier.price_delta,
+                                        do: " (default +#{format_money(modifier.price_delta)})",
+                                        else: " (default free)"}
+                                    </span>
+                                  </td>
+                                  <%= for size <- @item.sizes do %>
+                                    <td class="px-1 py-1">
+                                      <input
+                                        type="text"
+                                        inputmode="decimal"
+                                        placeholder={if modifier.price_delta, do: money_amount(modifier.price_delta), else: "0.00"}
+                                        value={
+                                          modifier.size_prices
+                                          |> Enum.find(fn sp -> to_string(sp.size_id) == to_string(size.id) end)
+                                          |> case do
+                                            nil -> nil
+                                            sp -> money_amount(sp.price_delta)
+                                          end
+                                        }
+                                        phx-blur="save_modifier_size_price"
+                                        phx-value-modifier_id={modifier.id}
+                                        phx-value-size_id={size.id}
+                                        phx-target={@myself}
+                                        class="w-20 bg-surface-container-highest border-0 rounded px-2 py-1 text-xs focus:ring-1 focus:ring-primary outline-none"
+                                      />
+                                    </td>
+                                  <% end %>
+                                </tr>
+                              <% end %>
+                            </tbody>
+                          </table>
+                        </div>
+                      </div>
+                    <% end %>
+                  </div>
+                <% end %>
+
+                <%= if not Enum.empty?(
+                  Enum.reject(@modifier_groups, fn mg ->
+                    Enum.any?(@item.modifier_groups || [], &(&1.id == mg.id))
+                  end)
+                ) do %>
+                  <details class="group/assign-mods">
+                    <summary class="list-none cursor-pointer flex items-center gap-1 text-[10px] font-black uppercase tracking-wider text-primary hover:opacity-80">
+                      <span class="material-symbols-outlined text-sm">link</span>
+                      Link modifier group
+                    </summary>
+                    <div class="flex flex-wrap gap-2 mt-3">
+                      <%= for mg <- Enum.reject(@modifier_groups, fn mg ->
+                        Enum.any?(@item.modifier_groups || [], &(&1.id == mg.id))
+                      end) do %>
+                        <button
+                          phx-click="assign_modifier_group"
+                          phx-value-item_id={@item.id}
+                          phx-value-group_id={mg.id}
+                          phx-target={@myself}
+                          type="button"
+                          class="flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-dashed border-on-surface-variant/30 text-xs text-on-surface-variant hover:border-primary hover:text-primary transition-colors"
+                        >
+                          <span class="material-symbols-outlined" style="font-size: 14px;">add</span>
+                          {mg.name}
+                        </button>
+                      <% end %>
+                    </div>
+                  </details>
+                <% end %>
+              </div>
+            </details>
+
+            <details class="group/advanced">
+              <summary class="list-none flex items-center justify-between cursor-pointer py-2">
+                <span class="text-xs font-black text-on-surface-variant uppercase tracking-wider">
+                  Advanced
+                </span>
+                <span class="material-symbols-outlined text-sm text-on-surface-variant transition-transform group-open/advanced:rotate-180">
+                  expand_more
+                </span>
+              </summary>
+              <div class="pt-4 space-y-4">
+                <div>
+                  <label class="block text-xs font-bold text-on-surface-variant uppercase tracking-wider mb-1">
+                    Sort Order
+                  </label>
+                  <input
+                    type="number"
+                    form="item-form"
+                    name="item[sort_order]"
+                    value={@item.sort_order}
+                    class="w-24 bg-surface-container-low border-0 rounded-lg px-4 py-2.5 text-sm focus:ring-2 focus:ring-primary outline-none"
+                  />
+                </div>
+                <label class="flex items-center gap-3 cursor-pointer">
+                  <input
+                    type="checkbox"
+                    phx-click="toggle_upsell"
+                    phx-value-id={@item.id}
+                    phx-target={@myself}
+                    checked={@item.is_upsell}
+                    class="rounded"
+                  />
+                  <div>
+                    <span class="text-sm font-semibold text-on-surface">Show as upsell suggestion</span>
+                    <p class="text-xs text-on-surface-variant">May appear as a suggestion in other customers' baskets.</p>
+                  </div>
+                </label>
+              </div>
+            </details>
+          <% end %>
+        </div>
+
+        <div class="shrink-0 px-8 py-6 bg-surface-container-low">
+          <div :if={not @show_delete_confirm} class="flex items-center justify-between gap-4">
+            <button
+              :if={is_struct(@item)}
+              phx-click="delete_item"
+              phx-target={@myself}
+              type="button"
+              class="text-error font-bold text-sm uppercase tracking-widest hover:opacity-70 transition-opacity"
+            >
+              Delete Item
+            </button>
+            <div class="flex gap-3 ml-auto">
+              <button
+                phx-click="cancel_edit"
+                phx-target={@myself}
+                type="button"
+                class="text-on-surface-variant hover:text-on-surface font-bold text-sm px-5 py-2.5"
+              >
+                Cancel
+              </button>
+              <button
+                type="submit"
+                form="item-form"
+                class="bg-primary text-white px-6 py-2.5 rounded-xl font-bold text-sm hover:opacity-90 transition-opacity phx-submit-loading:opacity-70 phx-submit-loading:cursor-wait"
+              >
+                <span class="phx-submit-loading:!hidden">
+                  {if @item == :new or is_nil(@item), do: "Add Item", else: "Save Changes"}
+                </span>
+                <span class="hidden phx-submit-loading:!flex items-center justify-center gap-2">
+                  Saving... <.icon name="hero-arrow-path" class="size-4 animate-spin" />
+                </span>
+              </button>
+            </div>
+          </div>
+
+          <div :if={@show_delete_confirm} class="bg-error-container rounded-lg p-4 flex items-center justify-between gap-4">
+            <p class="text-sm font-bold text-on-error-container">
+              Delete {if is_struct(@item), do: @item.name, else: "this item"}? This cannot be undone.
+            </p>
+            <div class="flex gap-2 shrink-0">
+              <button
+                phx-click="cancel_delete"
+                phx-target={@myself}
+                type="button"
+                class="text-on-error-container/70 hover:text-on-error-container font-bold text-sm px-3 py-2"
+              >
+                Keep it
+              </button>
+              <button
+                phx-click="confirm_delete_item"
+                phx-target={@myself}
+                type="button"
+                class="bg-error text-on-error px-4 py-2 rounded-lg font-bold text-sm phx-click-loading:opacity-70 phx-click-loading:cursor-wait"
+              >
+                <span class="phx-click-loading:!hidden">Yes, Delete</span>
+                <span class="hidden phx-click-loading:!flex items-center justify-center gap-2">
+                  <.icon name="hero-arrow-path" class="size-3 animate-spin" />
+                </span>
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    """
+  end
+
+  attr :item, :any, default: nil
+  attr :uploads, :any, required: true
+  attr :myself, :any, required: true
+
+  defp drawer_core_fields(assigns) do
+    ~H"""
+    <div class="space-y-5">
+      <div>
+        <label class="block text-xs font-bold text-on-surface-variant uppercase tracking-wider mb-1">
+          Name
+        </label>
+        <input
+          type="text"
+          name="item[name]"
+          value={if @item, do: @item.name, else: ""}
+          required
+          autofocus
+          placeholder="e.g. Classic Margherita"
+          class="w-full bg-surface-container-low border-0 rounded-lg px-4 py-2.5 text-sm focus:ring-2 focus:ring-primary outline-none"
+        />
+      </div>
+
+      <%= if is_nil(@item) or Enum.empty?(@item.sizes || []) do %>
+        <div>
+          <label class="block text-xs font-bold text-on-surface-variant uppercase tracking-wider mb-1">
+            Price (CAD)
+          </label>
+          <input
+            type="text"
+            name="item[price]"
+            value={if @item, do: money_amount(@item.price), else: ""}
+            inputmode="decimal"
+            placeholder="e.g. 14.50"
+            class="w-full bg-surface-container-low border-0 rounded-lg px-4 py-2.5 text-sm focus:ring-2 focus:ring-primary outline-none"
+          />
+        </div>
+      <% else %>
+        <input type="hidden" name="item[price]" value="" />
+        <p class="text-xs text-on-surface-variant italic">
+          Price is set per size — expand Sizes below to manage.
+        </p>
+      <% end %>
+
+      <div>
+        <label class="block text-xs font-bold text-on-surface-variant uppercase tracking-wider mb-1">
+          Description
+        </label>
+        <textarea
+          name="item[description]"
+          rows="3"
+          placeholder="Describe the dish…"
+          class="w-full bg-surface-container-low border-0 rounded-lg px-4 py-2.5 text-sm focus:ring-2 focus:ring-primary outline-none resize-none"
+        >{if @item, do: @item.description, else: ""}</textarea>
+      </div>
+
+      <div class="space-y-2">
+        <label class="block text-xs font-bold text-on-surface-variant uppercase tracking-wider">
+          Images
+        </label>
+        <div :if={@item && @item.images != []} class="flex flex-wrap gap-2">
+          <div :for={img <- Enum.sort_by(@item.images, & &1.position)} class="relative group">
+            <img src={img.url} alt="item image" class="h-16 w-16 rounded-lg object-cover" />
+            <button
+              type="button"
+              phx-click="delete_image"
+              phx-value-id={img.id}
+              phx-target={@myself}
+              class="absolute -top-1.5 -right-1.5 bg-error text-on-error rounded-full w-5 h-5 flex items-center justify-center text-xs font-bold opacity-0 group-hover:opacity-100 transition-opacity"
+            >
+              ×
+            </button>
+          </div>
+        </div>
+        <div :if={@item && @item.images == [] && @item.image_url} class="relative group w-fit">
+          <img src={@item.image_url} alt="item image" class="h-16 w-16 rounded-lg object-cover opacity-50" />
+          <p class="text-[10px] text-on-surface-variant mt-1">Legacy URL</p>
+        </div>
+        <.live_file_input
+          upload={@uploads.item_image}
+          class="text-sm text-on-surface-variant file:mr-3 file:py-1.5 file:px-3 file:rounded-lg file:border-0 file:bg-surface-container file:text-xs file:font-bold file:uppercase file:tracking-wider file:cursor-pointer"
+        />
+        <p class="text-[10px] text-on-surface-variant">Up to 5 images, or paste a URL below.</p>
+        <input
+          type="text"
+          name="item[image_url]"
+          value={if @item, do: @item.image_url || "", else: ""}
+          placeholder="https://…"
+          class="w-full bg-surface-container-low border-0 rounded-lg px-4 py-2.5 text-sm focus:ring-2 focus:ring-primary outline-none"
+        />
+      </div>
+    </div>
+    """
+  end
 end

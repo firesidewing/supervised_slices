@@ -18,6 +18,7 @@ defmodule SupervisedSlices.Menu.MenuItem do
     define :get, action: :read, get_by: :id
     define :create, action: :create
     define :update, action: :update
+    define :destroy, action: :destroy
     define :upsellable, action: :upsellable
   end
 
