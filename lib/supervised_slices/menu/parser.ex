@@ -1,5 +1,5 @@
 defmodule SupervisedSlices.Menu.Parser.ParsedModifier do
-  defstruct [:name, :price_delta, :sort_order]
+  defstruct [:name, :price_delta, :sort_order, size_price_overrides: %{}]
 end
 
 defmodule SupervisedSlices.Menu.Parser.ParsedModifierGroup do
@@ -76,12 +76,18 @@ defmodule SupervisedSlices.Menu.Parser do
             {
               "name": "Ranch",
               "price_delta": 0,
-              "sort_order": 0
+              "sort_order": 0,
+              "size_price_overrides": {}
             },
             {
               "name": "Extra Cheese",
               "price_delta": 150,
-              "sort_order": 1
+              "sort_order": 1,
+              "size_price_overrides": {
+                "10\"": 100,
+                "12\"": 150,
+                "14\"": 200
+              }
             }
           ]
         }
@@ -111,7 +117,7 @@ defmodule SupervisedSlices.Menu.Parser do
     }
 
     Rules:
-    - All prices and price_delta values are integers in cents (e.g. $12.99 = 1299). Use 0 for free modifiers/add-ons.
+    - All prices, price_delta, and size_price_overrides values are integers in cents (e.g. $12.99 = 1299). Use 0 for free modifiers/add-ons.
     - If an item has sizes, set price to null and populate the sizes array. If no sizes, set sizes to [].
     - Collect ALL modifier groups at the top level in the "modifier_groups" array. Do not embed modifier groups inside items.
     - Each item's "modifier_group_names" is a list of modifier group name strings referencing top-level modifier groups that apply to that item.
@@ -121,6 +127,8 @@ defmodule SupervisedSlices.Menu.Parser do
     - Extract every modifier group visible: toppings, sauces, preparation options, add-ons, sides, etc.
     - If a modifier has no extra charge, set price_delta to 0.
     - description should be null if no description is visible.
+    - For size_price_overrides: if a modifier costs different amounts depending on item size (e.g. extra cheese is $1.00 on a 10" but $1.50 on a 12"), populate size_price_overrides with the size name as key and price in cents as value. The size names must exactly match the sizes defined in the item's sizes array. If the price is the same for all sizes, leave size_price_overrides as {}.
+    - Only add size_price_overrides entries for sizes where the price differs from the default price_delta.
     """
 
     content_block =
@@ -248,10 +256,18 @@ defmodule SupervisedSlices.Menu.Parser do
         modifiers =
           (g["modifiers"] || [])
           |> Enum.map(fn m ->
+            size_price_overrides =
+              (m["size_price_overrides"] || %{})
+              |> Map.new(fn {size_name, cents} ->
+                {size_name, cents_to_decimal(cents)}
+              end)
+              |> Map.reject(fn {_k, v} -> is_nil(v) end)
+
             %ParsedModifier{
               name: m["name"],
               price_delta: cents_to_decimal(m["price_delta"]),
-              sort_order: m["sort_order"] || 0
+              sort_order: m["sort_order"] || 0,
+              size_price_overrides: size_price_overrides
             }
           end)
 

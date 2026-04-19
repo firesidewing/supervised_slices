@@ -55,6 +55,8 @@ defmodule SupervisedSlices.Menu.MenuUpload do
               try do
                 tenant = upload.organization_id
 
+                # Phase 1: create modifier groups and their modifiers.
+                # Stores {group, [{modifier_record, parsed_modifier_data}]} per group name.
                 group_map =
                   Map.new(parsed.modifier_groups, fn group_data ->
                     group =
@@ -69,27 +71,35 @@ defmodule SupervisedSlices.Menu.MenuUpload do
                       |> Ash.Changeset.set_tenant(tenant)
                       |> Ash.create!(authorize?: false)
 
-                    Enum.each(group_data.modifiers, fn modifier_data ->
-                      price_delta =
-                        if is_integer(modifier_data.price_delta) &&
-                             modifier_data.price_delta != 0,
-                           do: Money.new!(:CAD, modifier_data.price_delta),
-                           else: nil
+                    modifier_records =
+                      Enum.map(group_data.modifiers, fn modifier_data ->
+                        price_delta =
+                          case modifier_data.price_delta do
+                            nil -> nil
+                            d ->
+                              if Decimal.compare(d, Decimal.new(0)) == :eq,
+                                do: nil,
+                                else: Money.new!(:CAD, d)
+                          end
 
-                      SupervisedSlices.Menu.MenuItemModifier
-                      |> Ash.Changeset.for_create(:create, %{
-                        name: modifier_data.name || "Option",
-                        price_delta: price_delta,
-                        sort_order: modifier_data.sort_order || 0,
-                        modifier_group_id: group.id
-                      })
-                      |> Ash.Changeset.set_tenant(tenant)
-                      |> Ash.create!(authorize?: false)
-                    end)
+                        modifier =
+                          SupervisedSlices.Menu.MenuItemModifier
+                          |> Ash.Changeset.for_create(:create, %{
+                            name: modifier_data.name || "Option",
+                            price_delta: price_delta,
+                            sort_order: modifier_data.sort_order || 0,
+                            modifier_group_id: group.id
+                          })
+                          |> Ash.Changeset.set_tenant(tenant)
+                          |> Ash.create!(authorize?: false)
 
-                    {group_data.name, group}
+                        {modifier, modifier_data}
+                      end)
+
+                    {group_data.name, {group, modifier_records}}
                   end)
 
+                # Phase 2: create categories, items, sizes; link groups; create size price overrides.
                 Enum.each(parsed.categories, fn cat_data ->
                   cat =
                     SupervisedSlices.Menu.Category
@@ -118,29 +128,55 @@ defmodule SupervisedSlices.Menu.MenuUpload do
                       |> Ash.Changeset.set_tenant(tenant)
                       |> Ash.create!(authorize?: false)
 
-                    Enum.each(item_data.sizes, fn size_data ->
-                      size_price = Money.new!(:CAD, size_data.price || 0)
+                    size_map =
+                      Map.new(item_data.sizes, fn size_data ->
+                        size_price = Money.new!(:CAD, size_data.price || 0)
 
-                      SupervisedSlices.Menu.MenuItemSize
-                      |> Ash.Changeset.for_create(:create, %{
-                        name: size_data.name || "Regular",
-                        price: size_price,
-                        sort_order: size_data.sort_order || 0,
-                        menu_item_id: item.id
-                      })
-                      |> Ash.Changeset.set_tenant(tenant)
-                      |> Ash.create!(authorize?: false)
-                    end)
+                        size =
+                          SupervisedSlices.Menu.MenuItemSize
+                          |> Ash.Changeset.for_create(:create, %{
+                            name: size_data.name || "Regular",
+                            price: size_price,
+                            sort_order: size_data.sort_order || 0,
+                            menu_item_id: item.id
+                          })
+                          |> Ash.Changeset.set_tenant(tenant)
+                          |> Ash.create!(authorize?: false)
+
+                        {size_data.name, size}
+                      end)
 
                     Enum.each(item_data.modifier_group_names, fn name ->
-                      if group = Map.get(group_map, name) do
-                        SupervisedSlices.Menu.MenuItemModifierGroupLink
-                        |> Ash.Changeset.for_create(:create, %{
-                          menu_item_id: item.id,
-                          modifier_group_id: group.id
-                        })
-                        |> Ash.Changeset.set_tenant(tenant)
-                        |> Ash.create!(authorize?: false)
+                      case Map.get(group_map, name) do
+                        {group, modifier_records} ->
+                          SupervisedSlices.Menu.MenuItemModifierGroupLink
+                          |> Ash.Changeset.for_create(:create, %{
+                            menu_item_id: item.id,
+                            modifier_group_id: group.id
+                          })
+                          |> Ash.Changeset.set_tenant(tenant)
+                          |> Ash.create!(authorize?: false)
+
+                          Enum.each(modifier_records, fn {modifier, parsed_modifier} ->
+                            Enum.each(
+                              parsed_modifier.size_price_overrides || %{},
+                              fn {size_name, price_decimal} ->
+                                if size = Map.get(size_map, size_name) do
+                                  SupervisedSlices.Menu.MenuItemModifierSizePrice
+                                  |> Ash.Changeset.for_create(:upsert, %{
+                                    modifier_id: modifier.id,
+                                    size_id: size.id,
+                                    price_delta: Money.new!(:CAD, price_decimal)
+                                  })
+                                  |> Ash.Changeset.set_tenant(tenant)
+                                  |> Ash.create!(authorize?: false)
+                                end
+                              end
+                            )
+                          end)
+
+                        nil ->
+                          :ok
                       end
                     end)
                   end)
