@@ -1,5 +1,38 @@
+defmodule SupervisedSlices.Menu.Parser.ParsedModifier do
+  defstruct [:name, :price_delta, :sort_order]
+end
+
+defmodule SupervisedSlices.Menu.Parser.ParsedModifierGroup do
+  defstruct [:name, :required, :min_selections, :max_selections, :sort_order, modifiers: []]
+end
+
+defmodule SupervisedSlices.Menu.Parser.ParsedSize do
+  defstruct [:name, :price, :sort_order]
+end
+
+defmodule SupervisedSlices.Menu.Parser.ParsedItem do
+  defstruct [:name, :description, :price, :sort_order, sizes: [], modifier_group_names: []]
+end
+
+defmodule SupervisedSlices.Menu.Parser.ParsedCategory do
+  defstruct [:name, :sort_order, items: []]
+end
+
+defmodule SupervisedSlices.Menu.Parser.ParsedMenu do
+  defstruct modifier_groups: [], categories: []
+end
+
 defmodule SupervisedSlices.Menu.Parser do
   require Logger
+
+  alias SupervisedSlices.Menu.Parser.{
+    ParsedMenu,
+    ParsedCategory,
+    ParsedItem,
+    ParsedSize,
+    ParsedModifierGroup,
+    ParsedModifier
+  }
 
   @model "claude-sonnet-4-6"
 
@@ -39,6 +72,27 @@ defmodule SupervisedSlices.Menu.Parser do
 
     Return ONLY a JSON object with this exact structure. No markdown, no explanation:
     {
+      "modifier_groups": [
+        {
+          "name": "Choose a sauce",
+          "required": false,
+          "min_selections": 0,
+          "max_selections": 1,
+          "sort_order": 0,
+          "modifiers": [
+            {
+              "name": "Ranch",
+              "price_delta": 0,
+              "sort_order": 0
+            },
+            {
+              "name": "Extra Cheese",
+              "price_delta": 150,
+              "sort_order": 1
+            }
+          ]
+        }
+      ],
       "categories": [
         {
           "name": "Category Name",
@@ -56,27 +110,7 @@ defmodule SupervisedSlices.Menu.Parser do
                   "sort_order": 0
                 }
               ],
-              "modifier_groups": [
-                {
-                  "name": "Choose a sauce",
-                  "required": false,
-                  "min_selections": 0,
-                  "max_selections": 1,
-                  "sort_order": 0,
-                  "modifiers": [
-                    {
-                      "name": "Ranch",
-                      "price_delta": 0,
-                      "sort_order": 0
-                    },
-                    {
-                      "name": "Extra Cheese",
-                      "price_delta": 150,
-                      "sort_order": 1
-                    }
-                  ]
-                }
-              ]
+              "modifier_group_names": ["Choose a sauce"]
             }
           ]
         }
@@ -86,7 +120,9 @@ defmodule SupervisedSlices.Menu.Parser do
     Rules:
     - All prices and price_delta values are integers in cents (e.g. $12.99 = 1299). Use 0 for free modifiers/add-ons.
     - If an item has sizes, set price to null and populate the sizes array. If no sizes, set sizes to [].
-    - If an item has no modifier groups, set modifier_groups to [].
+    - Collect ALL modifier groups at the top level in the "modifier_groups" array. Do not embed modifier groups inside items.
+    - Each item's "modifier_group_names" is a list of modifier group name strings referencing top-level modifier groups that apply to that item.
+    - If an item has no modifier groups, set modifier_group_names to [].
     - Infer required/min_selections/max_selections from context (e.g. "choose one" = required true, max_selections 1).
     - Use sort_order to preserve the visual order items appear on the menu (0-indexed).
     - Extract every modifier group visible: toppings, sauces, preparation options, add-ons, sides, etc.
@@ -138,13 +174,27 @@ defmodule SupervisedSlices.Menu.Parser do
            receive_timeout: 120_000
          ) do
       {:ok, %{status: 200, body: %{"content" => [%{"text" => text} | _]}}} ->
-        clean_json_decode(text)
+        save_debug_output(text)
+
+        case clean_json_decode(text) do
+          {:ok, decoded} -> {:ok, decode_to_structs(decoded)}
+          error -> error
+        end
 
       {:ok, %{status: status, body: body}} ->
         {:error, "Claude API error (#{status}): #{inspect(body)}"}
 
       {:error, reason} ->
         {:error, "Request to Claude failed: #{inspect(reason)}"}
+    end
+  end
+
+  defp save_debug_output(text) do
+    path = "/tmp/menu_parse_#{System.os_time(:second)}.json"
+
+    case File.write(path, text) do
+      :ok -> Logger.info("Menu parse debug output saved to #{path}")
+      {:error, reason} -> Logger.warning("Failed to save menu parse debug output: #{inspect(reason)}")
     end
   end
 
@@ -159,5 +209,65 @@ defmodule SupervisedSlices.Menu.Parser do
           _ -> {:error, "Failed to parse JSON from Claude response"}
         end
     end
+  end
+
+  defp decode_to_structs(raw) do
+    modifier_groups =
+      (raw["modifier_groups"] || [])
+      |> Enum.map(fn g ->
+        modifiers =
+          (g["modifiers"] || [])
+          |> Enum.map(fn m ->
+            %ParsedModifier{
+              name: m["name"],
+              price_delta: m["price_delta"],
+              sort_order: m["sort_order"] || 0
+            }
+          end)
+
+        %ParsedModifierGroup{
+          name: g["name"],
+          required: g["required"] || false,
+          min_selections: g["min_selections"] || 0,
+          max_selections: g["max_selections"],
+          sort_order: g["sort_order"] || 0,
+          modifiers: modifiers
+        }
+      end)
+
+    categories =
+      (raw["categories"] || [])
+      |> Enum.map(fn c ->
+        items =
+          (c["items"] || [])
+          |> Enum.map(fn i ->
+            sizes =
+              (i["sizes"] || [])
+              |> Enum.map(fn s ->
+                %ParsedSize{
+                  name: s["name"],
+                  price: s["price"],
+                  sort_order: s["sort_order"] || 0
+                }
+              end)
+
+            %ParsedItem{
+              name: i["name"],
+              description: i["description"],
+              price: if(is_integer(i["price"]), do: i["price"], else: nil),
+              sort_order: i["sort_order"] || 0,
+              sizes: sizes,
+              modifier_group_names: i["modifier_group_names"] || []
+            }
+          end)
+
+        %ParsedCategory{
+          name: c["name"],
+          sort_order: c["sort_order"] || 0,
+          items: items
+        }
+      end)
+
+    %ParsedMenu{modifier_groups: modifier_groups, categories: categories}
   end
 end
