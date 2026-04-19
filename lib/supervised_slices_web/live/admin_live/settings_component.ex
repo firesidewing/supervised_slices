@@ -807,7 +807,9 @@ defmodule SupervisedSlicesWeb.AdminLive.SettingsComponent do
                   phx-target={@myself}
                   class="p-1.5 text-on-surface-variant/20 hover:text-primary transition-colors phx-click-loading:opacity-50 phx-click-loading:cursor-wait"
                 >
-                  <span class="material-symbols-outlined text-lg phx-click-loading:animate-spin">close</span>
+                  <span class="material-symbols-outlined text-lg phx-click-loading:animate-spin">
+                    close
+                  </span>
                 </button>
               </div>
             </div>

@@ -13,8 +13,7 @@ defmodule SupervisedSlicesWeb.MenuLive.MenuComponent do
           <h2 class="font-headline text-3xl font-bold tracking-tight text-on-surface">
             {category.name}
           </h2>
-          <span class="font-label text-[0.65rem] uppercase tracking-[0.2em] text-outline mb-1">
-          </span>
+          <span class="font-label text-[0.65rem] uppercase tracking-[0.2em] text-outline mb-1"></span>
         </div>
 
         <div class="grid grid-cols-2 gap-x-4 gap-y-6">

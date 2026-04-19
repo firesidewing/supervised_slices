@@ -789,7 +789,9 @@ defmodule SupervisedSlicesWeb.AdminLive.MenuEditorComponent do
                     class="text-on-surface-variant/40 hover:text-primary p-1 phx-click-loading:opacity-50 phx-click-loading:cursor-wait"
                     title="Move up"
                   >
-                    <span class="material-symbols-outlined text-lg phx-click-loading:animate-spin">arrow_upward</span>
+                    <span class="material-symbols-outlined text-lg phx-click-loading:animate-spin">
+                      arrow_upward
+                    </span>
                   </button>
                   <button
                     phx-click="move_category"
@@ -799,7 +801,9 @@ defmodule SupervisedSlicesWeb.AdminLive.MenuEditorComponent do
                     class="text-on-surface-variant/40 hover:text-primary p-1 phx-click-loading:opacity-50 phx-click-loading:cursor-wait"
                     title="Move down"
                   >
-                    <span class="material-symbols-outlined text-lg phx-click-loading:animate-spin">arrow_downward</span>
+                    <span class="material-symbols-outlined text-lg phx-click-loading:animate-spin">
+                      arrow_downward
+                    </span>
                   </button>
                   <button
                     phx-click="edit_category"
@@ -1160,7 +1164,9 @@ defmodule SupervisedSlicesWeb.AdminLive.MenuEditorComponent do
                             )
                           ]}
                         >
-                          <span class="phx-click-loading:!hidden">{if item.available, do: "LIVE", else: "OFF"}</span>
+                          <span class="phx-click-loading:!hidden">
+                            {if item.available, do: "LIVE", else: "OFF"}
+                          </span>
                           <span class="hidden phx-click-loading:!flex items-center justify-center">
                             <.icon name="hero-arrow-path" class="size-3 animate-spin" />
                           </span>
@@ -1218,7 +1224,9 @@ defmodule SupervisedSlicesWeb.AdminLive.MenuEditorComponent do
                             class="text-on-surface-variant/40 hover:text-primary transition-colors p-1 phx-click-loading:opacity-50 phx-click-loading:cursor-wait"
                             title="Move up"
                           >
-                            <span class="material-symbols-outlined text-lg phx-click-loading:animate-spin">arrow_upward</span>
+                            <span class="material-symbols-outlined text-lg phx-click-loading:animate-spin">
+                              arrow_upward
+                            </span>
                           </button>
                           <button
                             phx-click="move_item"
@@ -1228,7 +1236,9 @@ defmodule SupervisedSlicesWeb.AdminLive.MenuEditorComponent do
                             class="text-on-surface-variant/40 hover:text-primary transition-colors p-1 phx-click-loading:opacity-50 phx-click-loading:cursor-wait"
                             title="Move down"
                           >
-                            <span class="material-symbols-outlined text-lg phx-click-loading:animate-spin">arrow_downward</span>
+                            <span class="material-symbols-outlined text-lg phx-click-loading:animate-spin">
+                              arrow_downward
+                            </span>
                           </button>
                           <button
                             phx-click="edit_item"

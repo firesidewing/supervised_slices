@@ -193,7 +193,6 @@ defmodule SupervisedSlices.Menu.Parser do
     end
   end
 
-<<<<<<< HEAD
   defp content_type_from_key(key) do
     cond do
       String.ends_with?(key, ".pdf") -> "application/pdf"
@@ -201,14 +200,6 @@ defmodule SupervisedSlices.Menu.Parser do
       String.ends_with?(key, ".gif") -> "image/gif"
       String.ends_with?(key, ".webp") -> "image/webp"
       true -> "image/jpeg"
-=======
-  defp save_debug_output(text) do
-    path = "/tmp/menu_parse_#{System.os_time(:second)}.json"
-
-    case File.write(path, text) do
-      :ok -> Logger.info("Menu parse debug output saved to #{path}")
-      {:error, reason} -> Logger.warning("Failed to save menu parse debug output: #{inspect(reason)}")
->>>>>>> b00c15a9c0e3b6e210dc8bfda04847d283636bf2
     end
   end
 
