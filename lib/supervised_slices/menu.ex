@@ -13,6 +13,7 @@ defmodule SupervisedSlices.Menu do
     resource SupervisedSlices.Menu.MenuItemSize
     resource SupervisedSlices.Menu.MenuItemModifierGroup
     resource SupervisedSlices.Menu.MenuItemModifier
+    resource SupervisedSlices.Menu.MenuItemModifierSizePrice
     resource SupervisedSlices.Menu.MenuItemModifierGroupLink
     resource SupervisedSlices.Menu.MenuItemImage
     resource SupervisedSlices.Menu.MenuUpload

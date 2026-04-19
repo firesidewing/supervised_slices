@@ -14,6 +14,7 @@ defmodule SupervisedSlices.Menu.MenuItemModifierGroup do
     define :get, action: :read, get_by: :id
     define :list, action: :read
     define :create, action: :create
+    define :update, action: :update
     define :destroy, action: :destroy
   end
 

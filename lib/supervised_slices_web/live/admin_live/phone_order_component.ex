@@ -36,7 +36,7 @@ defmodule SupervisedSlicesWeb.AdminLive.PhoneOrderComponent do
           Category.active!(
             scope: assigns.ash_scope,
             authorize?: false,
-            load: [menu_items: [modifier_groups: [:modifiers], sizes: []]]
+            load: [menu_items: [modifier_groups: [modifiers: [:size_prices]], sizes: []]]
           )
 
         assign(socket, :categories, categories)
@@ -654,15 +654,17 @@ defmodule SupervisedSlicesWeb.AdminLive.PhoneOrderComponent do
     |> assign(:next_line_id, line_id + 1)
   end
 
-  defp item_price(item, nil, modifiers), do: item_price(item, nil, modifiers, item.price)
+  defp item_price(item, nil, modifiers), do: calc_item_price(nil, modifiers, item.price)
 
-  defp item_price(item, size, modifiers),
-    do: item_price(item, size, modifiers, size.price)
+  defp item_price(_item, size, modifiers),
+    do: calc_item_price(to_string(size.id), modifiers, size.price)
 
-  defp item_price(_item, _size, modifiers, base) do
+  defp calc_item_price(size_id, modifiers, base) do
     Enum.reduce(modifiers, base, fn mod, acc ->
-      if mod.price_delta do
-        case Money.add(acc, mod.price_delta) do
+      delta = effective_price_delta(mod, size_id)
+
+      if delta do
+        case Money.add(acc, delta) do
           {:ok, p} -> p
           _ -> acc
         end
@@ -670,6 +672,20 @@ defmodule SupervisedSlicesWeb.AdminLive.PhoneOrderComponent do
         acc
       end
     end)
+  end
+
+  defp effective_price_delta(modifier, nil), do: modifier.price_delta
+
+  defp effective_price_delta(modifier, size_id) do
+    size_price =
+      Enum.find(modifier.size_prices || [], fn sp ->
+        to_string(sp.size_id) == size_id
+      end)
+
+    case size_price do
+      %{price_delta: delta} -> delta
+      _ -> modifier.price_delta
+    end
   end
 
   defp cart_subtotal([]), do: Money.new!(0, :USD)

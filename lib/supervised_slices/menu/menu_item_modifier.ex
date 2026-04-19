@@ -81,5 +81,9 @@ defmodule SupervisedSlices.Menu.MenuItemModifier do
       allow_nil? false
       public? true
     end
+
+    has_many :size_prices, SupervisedSlices.Menu.MenuItemModifierSizePrice do
+      destination_attribute :modifier_id
+    end
   end
 end

@@ -30,13 +30,30 @@ defmodule SupervisedSlicesWeb.MenuLive.ItemComponent do
     {:noreply, assign(socket, :selected_size_id, size_id)}
   end
 
-  def handle_event("toggle_modifier", %{"modifier_id" => modifier_id}, socket) do
+  def handle_event(
+        "toggle_modifier",
+        %{"modifier_id" => modifier_id, "group_id" => group_id, "max_selections" => max_sel_str},
+        socket
+      ) do
+    item = socket.assigns.selected_item
+    group = Enum.find(item.modifier_groups || [], &(to_string(&1.id) == group_id))
+    max_selections = if max_sel_str != "", do: String.to_integer(max_sel_str)
     mods = socket.assigns.selected_modifiers
 
     new_mods =
-      if MapSet.member?(mods, modifier_id),
-        do: MapSet.delete(mods, modifier_id),
-        else: MapSet.put(mods, modifier_id)
+      if MapSet.member?(mods, modifier_id) do
+        MapSet.delete(mods, modifier_id)
+      else
+        base =
+          if max_selections == 1 and group do
+            group_ids = group.modifiers |> Enum.map(&to_string(&1.id)) |> MapSet.new()
+            MapSet.difference(mods, group_ids)
+          else
+            mods
+          end
+
+        MapSet.put(base, modifier_id)
+      end
 
     {:noreply, assign(socket, :selected_modifiers, new_mods)}
   end
@@ -47,10 +64,22 @@ defmodule SupervisedSlicesWeb.MenuLive.ItemComponent do
     selected_modifiers = assigns[:selected_modifiers] || MapSet.new()
     has_customization = not Enum.empty?(item.sizes || []) or not Enum.empty?(item.modifier_groups)
 
+    can_add =
+      Enum.all?(item.modifier_groups || [], fn group ->
+        selected_count =
+          Enum.count(group.modifiers || [], fn m ->
+            MapSet.member?(selected_modifiers, to_string(m.id))
+          end)
+
+        min = group.min_selections || 0
+        not (group.required and selected_count < max(min, 1))
+      end)
+
     assigns =
       assign(assigns,
         has_customization: has_customization,
-        total_price: compute_total(item, selected_size_id, selected_modifiers)
+        total_price: compute_total(item, selected_size_id, selected_modifiers),
+        can_add_to_cart: can_add
       )
 
     ~H"""
@@ -141,18 +170,35 @@ defmodule SupervisedSlicesWeb.MenuLive.ItemComponent do
     <!-- Modifier Groups -->
           <section :for={group <- @selected_item.modifier_groups} class="space-y-6">
             <div class="flex items-baseline justify-between">
-              <h3 class="font-headline text-xl font-bold">{group.name}</h3>
+              <div class="flex items-center gap-3">
+                <h3 class="font-headline text-xl font-bold">{group.name}</h3>
+                <span
+                  :if={group.required}
+                  class="text-[10px] font-bold uppercase tracking-widest text-error opacity-80"
+                >
+                  Required
+                </span>
+              </div>
               <span class="font-label text-xs tracking-widest uppercase opacity-60">
-                {if(group.required, do: "Required", else: "Optional Palette")}
+                {cond do
+                  group.max_selections == 1 -> "Pick one"
+                  group.max_selections -> "Pick up to #{group.max_selections}"
+                  true -> "Optional Palette"
+                end}
               </span>
             </div>
             <div class="grid grid-cols-1 gap-3">
               <.modifier_card
                 :for={modifier <- group.modifiers}
                 modifier={modifier}
-                item={@selected_item}
                 group={group}
                 selected={MapSet.member?(@selected_modifiers, to_string(modifier.id))}
+                selected_size_id={@selected_size_id}
+                group_selected_count={
+                  Enum.count(group.modifiers, fn m ->
+                    MapSet.member?(@selected_modifiers, to_string(m.id))
+                  end)
+                }
                 myself={@myself}
               />
             </div>
@@ -187,12 +233,12 @@ defmodule SupervisedSlicesWeb.MenuLive.ItemComponent do
             phx-value-item_id={@selected_item.id}
             phx-value-size_id={@selected_size_id}
             phx-value-modifier_ids={Enum.join(MapSet.to_list(@selected_modifiers), ",")}
-            disabled={not @store_open}
+            disabled={not @store_open or not @can_add_to_cart}
             class="flex-1 py-4 bg-gradient-to-tr from-primary to-primary-container text-white font-label font-bold tracking-widest uppercase rounded-md shadow-lg scale-100 active:scale-95 transition-all phx-click-loading:opacity-75 phx-click-loading:scale-95 phx-click-loading:cursor-wait phx-click-loading:pointer-events-none disabled:opacity-40 disabled:grayscale disabled:cursor-not-allowed"
             style="view-transition-name: basket;"
           >
             <span class="phx-click-loading:hidden">
-              Add to Basket
+              {if @can_add_to_cart, do: "Add to Basket", else: "Select required options"}
             </span>
             <span class="hidden phx-click-loading:inline">Adding...</span>
           </button>
@@ -243,18 +289,27 @@ defmodule SupervisedSlicesWeb.MenuLive.ItemComponent do
   end
 
   defp modifier_card(assigns) do
+    max = assigns.group.max_selections
+    at_max = is_integer(max) and assigns.group_selected_count >= max and not assigns.selected
+
+    assigns = assign(assigns, at_max: at_max)
+
     ~H"""
     <button
       id={"modifier-#{@modifier.id}"}
       phx-click={JS.push("toggle_modifier")}
       phx-value-modifier_id={@modifier.id}
+      phx-value-group_id={@group.id}
+      phx-value-max_selections={@group.max_selections || ""}
       phx-target={@myself}
+      disabled={@at_max}
       class={[
-        "group flex items-center justify-between p-4 rounded-xl transition-all duration-300 text-left",
+        "group flex items-center justify-between p-4 rounded-xl transition-all duration-300 text-left w-full",
         if(@selected,
           do: "bg-surface-container shadow-sm border-b-2 border-primary-container",
           else: "bg-surface-container-low hover:bg-surface-container opacity-80 hover:opacity-100"
-        )
+        ),
+        if(@at_max, do: "opacity-30 cursor-not-allowed")
       ]}
     >
       <div class="flex items-center gap-4">
@@ -266,8 +321,11 @@ defmodule SupervisedSlicesWeb.MenuLive.ItemComponent do
         </span>
         <div>
           <p class="font-bold text-sm">{@modifier.name}</p>
-          <p :if={@modifier.price_delta} class="text-xs opacity-60">
-            +{format_money(@modifier.price_delta)}
+          <p
+            :if={effective_price_delta(@modifier, @selected_size_id)}
+            class="text-xs opacity-60"
+          >
+            +{format_money(effective_price_delta(@modifier, @selected_size_id))}
           </p>
         </div>
       </div>
@@ -301,6 +359,20 @@ defmodule SupervisedSlicesWeb.MenuLive.ItemComponent do
       </div>
     </button>
     """
+  end
+
+  defp effective_price_delta(modifier, nil), do: modifier.price_delta
+
+  defp effective_price_delta(modifier, size_id) do
+    size_price =
+      Enum.find(modifier.size_prices || [], fn sp ->
+        to_string(sp.size_id) == size_id
+      end)
+
+    case size_price do
+      %{price_delta: delta} -> delta
+      _ -> modifier.price_delta
+    end
   end
 
   defp modifier_icon(modifier) do
@@ -337,8 +409,10 @@ defmodule SupervisedSlicesWeb.MenuLive.ItemComponent do
     else
       Enum.reduce(item.modifier_groups || [], base, fn group, acc ->
         Enum.reduce(group.modifiers || [], acc, fn modifier, inner_acc ->
-          if MapSet.member?(selected_modifiers, to_string(modifier.id)) && modifier.price_delta do
-            case Money.add(inner_acc, modifier.price_delta) do
+          delta = effective_price_delta(modifier, selected_size_id)
+
+          if MapSet.member?(selected_modifiers, to_string(modifier.id)) && delta do
+            case Money.add(inner_acc, delta) do
               {:ok, total} -> total
               _ -> inner_acc
             end

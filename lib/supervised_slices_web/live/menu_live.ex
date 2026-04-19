@@ -38,7 +38,7 @@ defmodule SupervisedSlicesWeb.MenuLive do
                MenuItem
                |> Ash.Query.sort(sort_order: :asc)
                |> Ash.Query.load(
-                 modifier_groups: [:modifiers],
+                 modifier_groups: [modifiers: [:size_prices]],
                  sizes: MenuItemSize |> Ash.Query.sort(sort_order: :asc),
                  images: []
                )
@@ -86,7 +86,7 @@ defmodule SupervisedSlicesWeb.MenuLive do
            scope: scope,
            authorize?: false,
            load: [
-             modifier_groups: [:modifiers],
+             modifier_groups: [modifiers: [:size_prices]],
              sizes: MenuItemSize |> Ash.Query.sort(sort_order: :asc),
              images: []
            ]
@@ -290,49 +290,55 @@ defmodule SupervisedSlicesWeb.MenuLive do
     size_id = params["size_id"]
     modifier_ids = String.split(params["modifier_ids"] || "", ",", trim: true)
 
-    cart = cart || Cart.create!(scope: scope)
+    item = find_item_in_categories(socket.assigns.categories, item_id)
 
-    CartItem.add_to_cart!(
-      %{
-        cart_id: cart.id,
-        menu_item_id: to_string(item_id),
-        quantity: 1,
-        selected_modifier_ids: modifier_ids,
-        selected_size_id: if(size_id != "", do: to_string(size_id))
-      },
-      scope: scope
-    )
+    with :ok <- validate_modifier_selections(item, MapSet.new(modifier_ids)) do
+      cart = cart || Cart.create!(scope: scope)
 
-    loaded_cart =
-      Cart.get!(cart.id,
-        scope: scope,
-        load: [
-          cart_items: [
-            :selected_size,
-            menu_item: [modifier_groups: [:modifiers]]
-          ]
-        ]
+      CartItem.add_to_cart!(
+        %{
+          cart_id: cart.id,
+          menu_item_id: to_string(item_id),
+          quantity: 1,
+          selected_modifier_ids: modifier_ids,
+          selected_size_id: if(size_id != "", do: to_string(size_id))
+        },
+        scope: scope
       )
 
-    PubSubNotifier.broadcast_cart_update(loaded_cart)
-    {cart_items_map, cart_count} = build_cart_state(loaded_cart)
+      loaded_cart =
+        Cart.get!(cart.id,
+          scope: scope,
+          load: [
+            cart_items: [
+              :selected_size,
+              menu_item: [modifier_groups: [modifiers: [:size_prices]]]
+            ]
+          ]
+        )
 
-    item_name =
-      loaded_cart.cart_items
-      |> Enum.find(&(to_string(&1.menu_item_id) == to_string(item_id)))
-      |> case do
-        %{menu_item: %{name: name}} -> name
-        _ -> nil
-      end
+      PubSubNotifier.broadcast_cart_update(loaded_cart)
+      {cart_items_map, cart_count} = build_cart_state(loaded_cart)
 
-    {:noreply,
-     socket
-     |> assign(cart: loaded_cart, cart_items_map: cart_items_map, cart_count: cart_count)
-     |> push_event("ph:capture", %{
-       event: "item_added_to_cart",
-       props: %{item_id: item_id, item_name: item_name, org_id: org.id}
-     })
-     |> push_patch(to: ~p"/menu/#{org.slug}")}
+      item_name =
+        loaded_cart.cart_items
+        |> Enum.find(&(to_string(&1.menu_item_id) == to_string(item_id)))
+        |> case do
+          %{menu_item: %{name: name}} -> name
+          _ -> nil
+        end
+
+      {:noreply,
+       socket
+       |> assign(cart: loaded_cart, cart_items_map: cart_items_map, cart_count: cart_count)
+       |> push_event("ph:capture", %{
+         event: "item_added_to_cart",
+         props: %{item_id: item_id, item_name: item_name, org_id: org.id}
+       })
+       |> push_patch(to: ~p"/menu/#{org.slug}")}
+    else
+      {:error, msg} -> {:noreply, put_flash(socket, :error, msg)}
+    end
   end
 
   def handle_event(
@@ -408,7 +414,7 @@ defmodule SupervisedSlicesWeb.MenuLive do
           load: [
             cart_items: [
               :selected_size,
-              menu_item: [modifier_groups: [:modifiers]]
+              menu_item: [modifier_groups: [modifiers: [:size_prices]]]
             ]
           ]
         )
@@ -459,7 +465,7 @@ defmodule SupervisedSlicesWeb.MenuLive do
         load: [
           cart_items: [
             :selected_size,
-            menu_item: [modifier_groups: [:modifiers]]
+            menu_item: [modifier_groups: [modifiers: [:size_prices]]]
           ]
         ]
       )
@@ -483,7 +489,7 @@ defmodule SupervisedSlicesWeb.MenuLive do
     cart_load = [
       cart_items: [
         :selected_size,
-        menu_item: [modifier_groups: [:modifiers]]
+        menu_item: [modifier_groups: [modifiers: [:size_prices]]]
       ]
     ]
 
@@ -546,6 +552,8 @@ defmodule SupervisedSlicesWeb.MenuLive do
   end
 
   defp order_item_price(cart_item, modifiers) do
+    size_id = cart_item.selected_size && to_string(cart_item.selected_size.id)
+
     base =
       case cart_item.selected_size do
         %{price: size_price} -> size_price
@@ -553,13 +561,48 @@ defmodule SupervisedSlicesWeb.MenuLive do
       end
 
     Enum.reduce(modifiers, base, fn modifier, acc ->
-      if modifier.price_delta do
-        case Money.add(acc, modifier.price_delta) do
+      delta = effective_price_delta(modifier, size_id)
+
+      if delta do
+        case Money.add(acc, delta) do
           {:ok, p} -> p
           _ -> acc
         end
       else
         acc
+      end
+    end)
+  end
+
+  defp effective_price_delta(modifier, nil), do: modifier.price_delta
+
+  defp effective_price_delta(modifier, size_id) do
+    size_price =
+      Enum.find(modifier.size_prices || [], fn sp ->
+        to_string(sp.size_id) == size_id
+      end)
+
+    case size_price do
+      %{price_delta: delta} -> delta
+      _ -> modifier.price_delta
+    end
+  end
+
+  defp validate_modifier_selections(nil, _selected), do: :ok
+
+  defp validate_modifier_selections(item, selected_modifier_ids) do
+    Enum.reduce_while(item.modifier_groups || [], :ok, fn group, _ ->
+      selected_count =
+        Enum.count(group.modifiers || [], fn m ->
+          MapSet.member?(selected_modifier_ids, to_string(m.id))
+        end)
+
+      min = group.min_selections || 0
+
+      if group.required and selected_count < max(min, 1) do
+        {:halt, {:error, "Please select an option for \"#{group.name}\""}}
+      else
+        {:cont, :ok}
       end
     end)
   end

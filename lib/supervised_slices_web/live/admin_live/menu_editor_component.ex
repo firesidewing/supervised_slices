@@ -9,6 +9,7 @@ defmodule SupervisedSlicesWeb.AdminLive.MenuEditorComponent do
     MenuItemModifierGroup,
     MenuItemModifier,
     MenuItemModifierGroupLink,
+    MenuItemModifierSizePrice,
     MenuImageUploader,
     MenuUpload
   }
@@ -26,6 +27,7 @@ defmodule SupervisedSlicesWeb.AdminLive.MenuEditorComponent do
      |> assign(:adding_size_to_item_id, nil)
      |> assign(:creating_modifier_group, false)
      |> assign(:adding_modifier_to_group_id, nil)
+     |> assign(:editing_modifier_group_id, nil)
      |> assign(:expanded_modifier_groups, %{})
      |> assign(:current_upload, nil)
      |> assign(:has_completed_upload, false)
@@ -358,7 +360,9 @@ defmodule SupervisedSlicesWeb.AdminLive.MenuEditorComponent do
       MenuItemModifierGroup.create!(
         %{
           name: params["name"],
-          required: Map.get(params, "required") == "true"
+          required: Map.get(params, "required") == "true",
+          min_selections: parse_int(params["min_selections"]),
+          max_selections: parse_int(params["max_selections"])
         },
         scope: scope
       )
@@ -384,6 +388,64 @@ defmodule SupervisedSlicesWeb.AdminLive.MenuEditorComponent do
     modifier_groups = load_modifier_groups(scope)
     categories = load_categories(scope)
     {:noreply, assign(socket, modifier_groups: modifier_groups, categories: categories)}
+  end
+
+  def handle_event("edit_modifier_group", %{"id" => id}, socket) do
+    {:noreply, assign(socket, editing_modifier_group_id: id)}
+  end
+
+  def handle_event("cancel_edit_modifier_group", _params, socket) do
+    {:noreply, assign(socket, editing_modifier_group_id: nil)}
+  end
+
+  def handle_event("save_modifier_group", %{"group" => params}, socket) do
+    %{ash_scope: scope} = socket.assigns
+
+    group = MenuItemModifierGroup.get!(params["id"], scope: scope)
+
+    MenuItemModifierGroup.update!(group, %{
+      name: params["name"],
+      required: Map.get(params, "required") == "true",
+      min_selections: parse_int(params["min_selections"]),
+      max_selections: parse_int(params["max_selections"])
+    }, scope: scope)
+
+    modifier_groups = load_modifier_groups(scope)
+    categories = load_categories(scope)
+
+    {:noreply,
+     assign(socket,
+       modifier_groups: modifier_groups,
+       categories: categories,
+       editing_modifier_group_id: nil
+     )}
+  end
+
+  def handle_event(
+        "save_modifier_size_price",
+        %{"modifier_id" => mod_id, "size_id" => size_id, "value" => price_str},
+        socket
+      ) do
+    %{ash_scope: scope} = socket.assigns
+
+    case parse_money(price_str) do
+      nil ->
+        existing =
+          MenuItemModifierSizePrice
+          |> Ash.Query.filter(modifier_id == ^mod_id and size_id == ^size_id)
+          |> Ash.read_one!(scope: scope, authorize?: false)
+
+        if existing, do: MenuItemModifierSizePrice.destroy!(existing, scope: scope)
+
+      money ->
+        MenuItemModifierSizePrice.upsert!(
+          %{modifier_id: mod_id, size_id: size_id, price_delta: money},
+          scope: scope
+        )
+    end
+
+    categories = load_categories(scope)
+    {:noreply, assign(socket, categories: categories)}
   end
 
   # ---------------------------------------------------------------------------
@@ -956,31 +1018,104 @@ defmodule SupervisedSlicesWeb.AdminLive.MenuEditorComponent do
                       </p>
 
                       <%= for group <- (item.modifier_groups || []) do %>
-                        <div class="flex items-center gap-3 px-3 py-2 bg-surface-container-low rounded-lg">
-                          <span class="flex-1 text-sm font-semibold text-on-surface">
-                            {group.name}
-                          </span>
-                          <%= if group.required do %>
-                            <span class="text-[10px] font-bold uppercase tracking-wider bg-primary-fixed text-on-primary-fixed-variant px-2 py-0.5 rounded-full">
-                              Required
+                        <div class="bg-surface-container-low rounded-lg overflow-hidden">
+                          <div class="flex items-center gap-3 px-3 py-2">
+                            <span class="flex-1 text-sm font-semibold text-on-surface">
+                              {group.name}
                             </span>
+                            <%= if group.required do %>
+                              <span class="text-[10px] font-bold uppercase tracking-wider bg-primary-fixed text-on-primary-fixed-variant px-2 py-0.5 rounded-full">
+                                Required
+                              </span>
+                            <% end %>
+                            <%= if group.max_selections do %>
+                              <span class="text-[10px] font-bold uppercase tracking-wider bg-surface-container text-on-surface-variant px-2 py-0.5 rounded-full">
+                                {if group.max_selections == 1, do: "Pick 1", else: "Max #{group.max_selections}"}
+                              </span>
+                            <% end %>
+                            <span class="text-xs text-on-surface-variant">
+                              {length(group.modifiers || [])} options
+                            </span>
+                            <button
+                              phx-click="remove_item_modifier_group"
+                              phx-value-item_id={item.id}
+                              phx-value-group_id={group.id}
+                              phx-target={@myself}
+                              type="button"
+                              class="text-on-surface-variant hover:text-error transition-colors p-1"
+                              title="Remove from item"
+                            >
+                              <span class="material-symbols-outlined" style="font-size: 16px;">
+                                link_off
+                              </span>
+                            </button>
+                          </div>
+
+                          <%= if not Enum.empty?(item.sizes || []) and not Enum.empty?(group.modifiers || []) do %>
+                            <div class="border-t border-surface-container px-3 pb-3 pt-2">
+                              <p class="text-[10px] font-bold text-on-surface-variant uppercase tracking-widest mb-2">
+                                Size pricing overrides
+                              </p>
+                              <div class="overflow-x-auto">
+                                <table class="w-full text-xs">
+                                  <thead>
+                                    <tr>
+                                      <th class="text-left text-[10px] font-bold text-on-surface-variant uppercase tracking-widest pb-1 pr-2">
+                                        Option
+                                      </th>
+                                      <%= for size <- item.sizes do %>
+                                        <th class="text-left text-[10px] font-bold text-on-surface-variant uppercase tracking-widest pb-1 px-1">
+                                          {size.name}
+                                        </th>
+                                      <% end %>
+                                    </tr>
+                                  </thead>
+                                  <tbody>
+                                    <%= for modifier <- group.modifiers do %>
+                                      <tr>
+                                        <td class="pr-2 py-1 text-on-surface font-medium whitespace-nowrap">
+                                          {modifier.name}
+                                          <span class="text-on-surface-variant font-normal">
+                                            {if modifier.price_delta,
+                                              do: " (default +#{format_money(modifier.price_delta)})",
+                                              else: " (default free)"}
+                                          </span>
+                                        </td>
+                                        <%= for size <- item.sizes do %>
+                                          <td class="px-1 py-1">
+                                            <input
+                                              type="text"
+                                              inputmode="decimal"
+                                              placeholder={
+                                                if modifier.price_delta,
+                                                  do: money_amount(modifier.price_delta),
+                                                  else: "0.00"
+                                              }
+                                              value={
+                                                modifier.size_prices
+                                                |> Enum.find(fn sp ->
+                                                  to_string(sp.size_id) == to_string(size.id)
+                                                end)
+                                                |> case do
+                                                  nil -> nil
+                                                  sp -> money_amount(sp.price_delta)
+                                                end
+                                              }
+                                              phx-blur="save_modifier_size_price"
+                                              phx-value-modifier_id={modifier.id}
+                                              phx-value-size_id={size.id}
+                                              phx-target={@myself}
+                                              class="w-20 bg-surface-container-highest border-0 rounded px-2 py-1 text-xs focus:ring-1 focus:ring-primary outline-none"
+                                            />
+                                          </td>
+                                        <% end %>
+                                      </tr>
+                                    <% end %>
+                                  </tbody>
+                                </table>
+                              </div>
+                            </div>
                           <% end %>
-                          <span class="text-xs text-on-surface-variant">
-                            {length(group.modifiers || [])} options
-                          </span>
-                          <button
-                            phx-click="remove_item_modifier_group"
-                            phx-value-item_id={item.id}
-                            phx-value-group_id={group.id}
-                            phx-target={@myself}
-                            type="button"
-                            class="text-on-surface-variant hover:text-error transition-colors p-1"
-                            title="Remove from item"
-                          >
-                            <span class="material-symbols-outlined" style="font-size: 16px;">
-                              link_off
-                            </span>
-                          </button>
                         </div>
                       <% end %>
 
@@ -1386,42 +1521,54 @@ defmodule SupervisedSlicesWeb.AdminLive.MenuEditorComponent do
               phx-target={@myself}
               class="bg-surface-container-low rounded-lg p-3 space-y-3 shadow-sm border border-primary/10"
             >
-              <div class="flex items-center gap-3">
+              <input
+                type="text"
+                name="group[name]"
+                required
+                autofocus
+                placeholder="e.g. Extra Toppings"
+                class="w-full bg-white border-0 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-primary outline-none"
+              />
+              <div class="grid grid-cols-2 gap-2">
                 <input
-                  type="text"
-                  name="group[name]"
-                  required
-                  autofocus
-                  placeholder="e.g. Extra Toppings"
-                  class="flex-1 bg-white border-0 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-primary outline-none"
+                  type="number"
+                  name="group[min_selections]"
+                  placeholder="Min (0)"
+                  min="0"
+                  class="bg-white border-0 rounded-lg px-3 py-2 text-xs focus:ring-2 focus:ring-primary outline-none"
                 />
-                <label class="flex items-center gap-2 text-sm text-on-surface-variant whitespace-nowrap cursor-pointer">
-                  <input
-                    type="checkbox"
-                    name="group[required]"
-                    value="true"
-                    class="rounded"
-                  /> Req.
-                </label>
+                <input
+                  type="number"
+                  name="group[max_selections]"
+                  placeholder="Max (none)"
+                  min="1"
+                  class="bg-white border-0 rounded-lg px-3 py-2 text-xs focus:ring-2 focus:ring-primary outline-none"
+                />
               </div>
-              <div class="flex items-center gap-2">
-                <button
-                  type="submit"
-                  class="bg-primary text-white px-4 py-2 rounded-lg text-sm font-bold hover:opacity-90 flex-1 phx-submit-loading:opacity-70 phx-submit-loading:cursor-wait"
-                >
-                  <span class="phx-submit-loading:!hidden">Save</span>
-                  <span class="hidden phx-submit-loading:!flex items-center justify-center gap-2">
-                    <.icon name="hero-arrow-path" class="size-4 animate-spin" />
-                  </span>
-                </button>
-                <button
-                  type="button"
-                  phx-click="cancel_add_modifier_group"
-                  phx-target={@myself}
-                  class="text-on-surface-variant hover:text-on-surface text-sm px-3 py-2"
-                >
-                  Cancel
-                </button>
+              <div class="flex items-center justify-between">
+                <label class="flex items-center gap-2 text-sm text-on-surface-variant cursor-pointer">
+                  <input type="checkbox" name="group[required]" value="true" class="rounded" />
+                  Required
+                </label>
+                <div class="flex items-center gap-2">
+                  <button
+                    type="submit"
+                    class="bg-primary text-white px-4 py-2 rounded-lg text-sm font-bold hover:opacity-90 phx-submit-loading:opacity-70 phx-submit-loading:cursor-wait"
+                  >
+                    <span class="phx-submit-loading:!hidden">Save</span>
+                    <span class="hidden phx-submit-loading:!flex items-center justify-center gap-2">
+                      <.icon name="hero-arrow-path" class="size-4 animate-spin" />
+                    </span>
+                  </button>
+                  <button
+                    type="button"
+                    phx-click="cancel_add_modifier_group"
+                    phx-target={@myself}
+                    class="text-on-surface-variant hover:text-on-surface text-sm px-3 py-2"
+                  >
+                    Cancel
+                  </button>
+                </div>
               </div>
             </form>
           <% end %>
@@ -1434,6 +1581,81 @@ defmodule SupervisedSlicesWeb.AdminLive.MenuEditorComponent do
             <div class="space-y-4">
               <%= for group <- @modifier_groups do %>
                 <div class="space-y-2">
+                  <%= if @editing_modifier_group_id == group.id do %>
+                    <form
+                      phx-submit="save_modifier_group"
+                      phx-target={@myself}
+                      class="bg-surface-container rounded-lg p-3 space-y-3 border border-primary/10"
+                    >
+                      <input type="hidden" name="group[id]" value={group.id} />
+                      <input
+                        type="text"
+                        name="group[name]"
+                        value={group.name}
+                        required
+                        autofocus
+                        class="w-full bg-white border-0 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-primary outline-none"
+                      />
+                      <div class="grid grid-cols-2 gap-2">
+                        <div>
+                          <label class="block text-[10px] font-bold text-on-surface-variant uppercase tracking-widest mb-1">
+                            Min
+                          </label>
+                          <input
+                            type="number"
+                            name="group[min_selections]"
+                            value={group.min_selections}
+                            min="0"
+                            class="w-full bg-white border-0 rounded-lg px-3 py-2 text-xs focus:ring-2 focus:ring-primary outline-none"
+                          />
+                        </div>
+                        <div>
+                          <label class="block text-[10px] font-bold text-on-surface-variant uppercase tracking-widest mb-1">
+                            Max
+                          </label>
+                          <input
+                            type="number"
+                            name="group[max_selections]"
+                            value={group.max_selections}
+                            min="1"
+                            placeholder="No limit"
+                            class="w-full bg-white border-0 rounded-lg px-3 py-2 text-xs focus:ring-2 focus:ring-primary outline-none"
+                          />
+                        </div>
+                      </div>
+                      <div class="flex items-center justify-between">
+                        <label class="flex items-center gap-2 text-sm text-on-surface-variant cursor-pointer">
+                          <input
+                            type="checkbox"
+                            name="group[required]"
+                            value="true"
+                            checked={group.required}
+                            class="rounded"
+                          />
+                          Required
+                        </label>
+                        <div class="flex items-center gap-2">
+                          <button
+                            type="submit"
+                            class="bg-primary text-white px-3 py-1.5 rounded text-xs font-bold phx-submit-loading:opacity-70 phx-submit-loading:cursor-wait"
+                          >
+                            <span class="phx-submit-loading:!hidden">Save</span>
+                            <span class="hidden phx-submit-loading:!flex items-center justify-center">
+                              <.icon name="hero-arrow-path" class="size-3 animate-spin" />
+                            </span>
+                          </button>
+                          <button
+                            type="button"
+                            phx-click="cancel_edit_modifier_group"
+                            phx-target={@myself}
+                            class="text-on-surface-variant hover:text-on-surface text-xs px-2 py-1.5"
+                          >
+                            Cancel
+                          </button>
+                        </div>
+                      </div>
+                    </form>
+                  <% else %>
                   <div class="flex items-center gap-2">
                     <button
                       type="button"
@@ -1457,6 +1679,21 @@ defmodule SupervisedSlicesWeb.AdminLive.MenuEditorComponent do
                         Req.
                       </span>
                     <% end %>
+                    <%= if group.max_selections do %>
+                      <span class="text-[10px] font-bold uppercase tracking-wider bg-surface-container text-on-surface-variant px-2 py-0.5 rounded-full">
+                        {if group.max_selections == 1, do: "1 only", else: "max #{group.max_selections}"}
+                      </span>
+                    <% end %>
+                    <button
+                      phx-click="edit_modifier_group"
+                      phx-value-id={group.id}
+                      phx-target={@myself}
+                      type="button"
+                      class="text-on-surface-variant hover:text-primary transition-colors p-1"
+                      title="Edit group"
+                    >
+                      <span class="material-symbols-outlined" style="font-size: 16px;">edit</span>
+                    </button>
                     <button
                       phx-click="delete_modifier_group"
                       phx-value-id={group.id}
@@ -1468,6 +1705,7 @@ defmodule SupervisedSlicesWeb.AdminLive.MenuEditorComponent do
                       <span class="material-symbols-outlined" style="font-size: 16px;">delete</span>
                     </button>
                   </div>
+                  <% end %>
 
                   <div
                     :if={Map.has_key?(@expanded_modifier_groups, group.id)}
@@ -1581,7 +1819,7 @@ defmodule SupervisedSlicesWeb.AdminLive.MenuEditorComponent do
           MenuItem
           |> Ash.Query.sort(sort_order: :asc)
           |> Ash.Query.load(
-            modifier_groups: [:modifiers],
+            modifier_groups: [modifiers: [:size_prices]],
             sizes: MenuItemSize |> Ash.Query.sort(sort_order: :asc),
             images: []
           )
@@ -1591,6 +1829,16 @@ defmodule SupervisedSlicesWeb.AdminLive.MenuEditorComponent do
 
   defp load_modifier_groups(scope) do
     MenuItemModifierGroup.list!(scope: scope, load: [:modifiers], authorize?: false)
+  end
+
+  defp parse_int(nil), do: nil
+  defp parse_int(""), do: nil
+
+  defp parse_int(str) do
+    case Integer.parse(str) do
+      {n, _} -> n
+      :error -> nil
+    end
   end
 
   defp parse_money(nil), do: nil
