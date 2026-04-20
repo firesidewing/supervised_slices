@@ -29,6 +29,6 @@
 00:00:09     (ash 3.22.1) lib/ash.ex:3827: Ash.destroy/2
 )
 - [x] better editor for modifier groups, maybe their own section?
-- [ ] hide non live items from menu
+- [x] hide non live items from menu
 - [ ] Actual radio control type for exclusive options.
 - [ ] better phone order UI for options/custamization long lists
