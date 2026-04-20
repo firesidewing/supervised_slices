@@ -122,7 +122,7 @@ defmodule SupervisedSlices.Menu.Parser do
     - Collect ALL modifier groups at the top level in the "modifier_groups" array. Do not embed modifier groups inside items.
     - Each item's "modifier_group_names" is a list of modifier group name strings referencing top-level modifier groups that apply to that item.
     - If an item has no modifier groups, set modifier_group_names to [].
-    - Infer required/min_selections/max_selections from context (e.g. "choose one" = required true, max_selections 1).
+    - Infer required/min_selections/max_selections from context (e.g. "choose one" = required true, max_selections 1). If there is no maximum (customers can select any number of options), set max_selections to null.
     - Use sort_order to preserve the visual order items appear on the menu (0-indexed).
     - Extract every modifier group visible: toppings, sauces, preparation options, add-ons, sides, etc.
     - If a modifier has no extra charge, set price_delta to 0.
@@ -248,6 +248,12 @@ defmodule SupervisedSlices.Menu.Parser do
     end
   end
 
+  defp normalize_max_selections(nil), do: nil
+  defp normalize_max_selections(0), do: nil
+  defp normalize_max_selections(n) when is_integer(n) and n >= 99, do: nil
+  defp normalize_max_selections(n) when is_integer(n), do: n
+  defp normalize_max_selections(_), do: nil
+
   defp cents_to_decimal(nil), do: nil
   defp cents_to_decimal(cents) when is_integer(cents), do: Decimal.div(Decimal.new(cents), 100)
   defp cents_to_decimal(_), do: nil
@@ -278,7 +284,7 @@ defmodule SupervisedSlices.Menu.Parser do
           name: g["name"],
           required: g["required"] || false,
           min_selections: g["min_selections"] || 0,
-          max_selections: g["max_selections"],
+          max_selections: normalize_max_selections(g["max_selections"]),
           sort_order: g["sort_order"] || 0,
           modifiers: modifiers
         }

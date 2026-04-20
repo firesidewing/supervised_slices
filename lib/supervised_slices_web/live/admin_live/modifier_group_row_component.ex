@@ -40,7 +40,7 @@ defmodule SupervisedSlicesWeb.AdminLive.ModifierGroupRowComponent do
           Req.
         </span>
         <span
-          :if={@group.max_selections}
+          :if={@group.max_selections && @group.max_selections < 99}
           class="text-[10px] font-bold uppercase tracking-wider bg-surface-container text-on-surface-variant px-2 py-0.5 rounded-full shrink-0"
         >
           {if @group.max_selections == 1, do: "1 only", else: "max #{@group.max_selections}"}

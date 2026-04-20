@@ -5,7 +5,7 @@
 - [x] set up menu uploader using the service
 - [x] adjust wording (Atelier)
 - [x] scope analytics to open periods
-- [ ] group editing is expanding out of container
+- [x] group editing is expanding out of container
 - [ ] no url for images
 - [ ] can't delete menu item ( 00:00:09   > Error returned from: SupervisedSlices.Menu.MenuItem.destroy
 00:00:09 Unknown Error
@@ -28,6 +28,7 @@
 00:00:09     (ash 3.22.1) lib/ash/actions/destroy/destroy.ex:82: Ash.Actions.Destroy.run/4
 00:00:09     (ash 3.22.1) lib/ash.ex:3827: Ash.destroy/2
 )
-- [ ] better editor for modifier groups, maybe their own section?
+- [x] better editor for modifier groups, maybe their own section?
 - [ ] hide non live items from menu
 - [ ] Actual radio control type for exclusive options.
+- [ ] better phone order UI for options/custamization long lists

@@ -1387,7 +1387,7 @@ defmodule SupervisedSlicesWeb.AdminLive.MenuEditorComponent do
                         Required
                       </span>
                       <span
-                        :if={group.max_selections}
+                        :if={group.max_selections && group.max_selections < 99}
                         class="text-[10px] font-bold uppercase tracking-wider bg-surface-container text-on-surface-variant px-2 py-0.5 rounded-full"
                       >
                         {if group.max_selections == 1,
@@ -1813,7 +1813,7 @@ defmodule SupervisedSlicesWeb.AdminLive.MenuEditorComponent do
                     expand_more
                   </span>
                 </summary>
-                <div class="pt-3 grid grid-cols-2 gap-4">
+                <div class="pt-3 space-y-4">
                   <div>
                     <label class="block text-xs font-bold text-on-surface-variant uppercase tracking-wider mb-1">
                       Min Selections
@@ -1830,17 +1830,20 @@ defmodule SupervisedSlicesWeb.AdminLive.MenuEditorComponent do
                     <label class="block text-xs font-bold text-on-surface-variant uppercase tracking-wider mb-1">
                       Max Selections
                     </label>
-                    <input
-                      type="number"
-                      name="group[max_selections]"
-                      placeholder="No limit"
-                      min="1"
-                      class="w-full bg-surface-container-low border-0 rounded-lg px-4 py-2.5 text-sm focus:ring-2 focus:ring-primary outline-none"
-                    />
+                    <div class="flex items-center gap-3">
+                      <input
+                        type="number"
+                        name="group[max_selections]"
+                        placeholder=""
+                        min="1"
+                        class="w-28 bg-surface-container-low border-0 rounded-lg px-4 py-2.5 text-sm focus:ring-2 focus:ring-primary outline-none"
+                      />
+                      <span class="text-[10px] font-bold uppercase tracking-wider bg-primary/10 text-primary px-2 py-1 rounded-full">
+                        Unlimited
+                      </span>
+                    </div>
+                    <p class="text-xs text-on-surface-variant mt-1.5">Leave blank for unlimited</p>
                   </div>
-                  <p class="col-span-2 text-xs text-on-surface-variant">
-                    Leave blank for no limit on selections.
-                  </p>
                 </div>
               </details>
             </form>
@@ -1882,20 +1885,28 @@ defmodule SupervisedSlicesWeb.AdminLive.MenuEditorComponent do
 
               <details class="group/limits">
                 <summary class="list-none flex items-center justify-between cursor-pointer py-2">
-                  <span class="text-xs font-black text-on-surface-variant uppercase tracking-wider">
-                    Selection Limits
-                    <span
-                      :if={@group.min_selections > 0 or @group.max_selections}
-                      class="ml-1 text-primary"
-                    >
-                      (set)
+                  <div class="flex items-center gap-2">
+                    <span class="text-xs font-black text-on-surface-variant uppercase tracking-wider">
+                      Selection Limits
                     </span>
-                  </span>
+                    <span class="text-[10px] text-on-surface-variant/60 font-medium normal-case tracking-normal">
+                      {cond do
+                        @group.min_selections > 0 and @group.max_selections && @group.max_selections < 99 ->
+                          "min #{@group.min_selections} · max #{@group.max_selections}"
+                        @group.min_selections > 0 ->
+                          "min #{@group.min_selections} · unlimited max"
+                        @group.max_selections && @group.max_selections < 99 ->
+                          "max #{@group.max_selections}"
+                        true ->
+                          "unlimited"
+                      end}
+                    </span>
+                  </div>
                   <span class="material-symbols-outlined text-sm text-on-surface-variant transition-transform group-open/limits:rotate-180">
                     expand_more
                   </span>
                 </summary>
-                <div class="pt-3 grid grid-cols-2 gap-4">
+                <div class="pt-3 space-y-4">
                   <div>
                     <label class="block text-xs font-bold text-on-surface-variant uppercase tracking-wider mb-1">
                       Min Selections
@@ -1913,18 +1924,24 @@ defmodule SupervisedSlicesWeb.AdminLive.MenuEditorComponent do
                     <label class="block text-xs font-bold text-on-surface-variant uppercase tracking-wider mb-1">
                       Max Selections
                     </label>
-                    <input
-                      type="number"
-                      name="group[max_selections]"
-                      value={@group.max_selections}
-                      placeholder="No limit"
-                      min="1"
-                      class="w-full bg-surface-container-low border-0 rounded-lg px-4 py-2.5 text-sm focus:ring-2 focus:ring-primary outline-none"
-                    />
+                    <div class="flex items-center gap-3">
+                      <input
+                        type="number"
+                        name="group[max_selections]"
+                        value={if @group.max_selections && @group.max_selections < 99, do: @group.max_selections, else: ""}
+                        placeholder=""
+                        min="1"
+                        class="w-28 bg-surface-container-low border-0 rounded-lg px-4 py-2.5 text-sm focus:ring-2 focus:ring-primary outline-none"
+                      />
+                      <span
+                        :if={is_nil(@group.max_selections) or @group.max_selections >= 99}
+                        class="text-[10px] font-bold uppercase tracking-wider bg-primary/10 text-primary px-2 py-1 rounded-full"
+                      >
+                        Unlimited
+                      </span>
+                    </div>
+                    <p class="text-xs text-on-surface-variant mt-1.5">Leave blank for unlimited</p>
                   </div>
-                  <p class="col-span-2 text-xs text-on-surface-variant">
-                    Leave blank for no limit on selections.
-                  </p>
                 </div>
               </details>
 
