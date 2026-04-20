@@ -133,4 +133,14 @@ defmodule SupervisedSlices.PubSubNotifier do
   def subscribe_to_org_carts(org_id) do
     Phoenix.PubSub.subscribe(@pubsub, "carts:#{org_id}")
   end
+
+  @doc "Broadcast a menu availability change to all customers viewing the org's menu."
+  def broadcast_menu_updated(org_id) do
+    Phoenix.PubSub.broadcast(@pubsub, "menu:#{org_id}", :menu_updated)
+  end
+
+  @doc "Subscribe to menu availability changes for an org (customer menu view)."
+  def subscribe_to_menu(org_id) do
+    Phoenix.PubSub.subscribe(@pubsub, "menu:#{org_id}")
+  end
 end

@@ -12,6 +12,8 @@ defmodule SupervisedSlicesWeb.MenuLive do
   alias SupervisedSlices.OrgPresence
   alias SupervisedSlices.PubSubNotifier
 
+  require Ash.Query
+
   # ---------------------------------------------------------------------------
   # Mount
   # ---------------------------------------------------------------------------
@@ -24,6 +26,7 @@ defmodule SupervisedSlicesWeb.MenuLive do
 
     if connected?(socket) do
       OrgPresence.track_visitor(self(), org.id, scope.guest_session_id || "anon", %{})
+      PubSubNotifier.subscribe_to_menu(org.id)
     end
 
     {:ok,
@@ -36,6 +39,7 @@ defmodule SupervisedSlicesWeb.MenuLive do
            load: [
              menu_items:
                MenuItem
+               |> Ash.Query.filter(available == true)
                |> Ash.Query.sort(sort_order: :asc)
                |> Ash.Query.load(
                  modifier_groups: [modifiers: [:size_prices]],
@@ -114,6 +118,32 @@ defmodule SupervisedSlicesWeb.MenuLive do
   end
 
   defp find_item_in_categories(_, _), do: nil
+
+  def handle_info(:menu_updated, socket) do
+    %{ash_scope: scope} = socket.assigns
+
+    {:noreply,
+     assign_async(socket, :categories, fn ->
+       categories =
+         Category.active!(
+           scope: scope,
+           authorize?: false,
+           load: [
+             menu_items:
+               MenuItem
+               |> Ash.Query.filter(available == true)
+               |> Ash.Query.sort(sort_order: :asc)
+               |> Ash.Query.load(
+                 modifier_groups: [modifiers: [:size_prices]],
+                 sizes: MenuItemSize |> Ash.Query.sort(sort_order: :asc),
+                 images: []
+               )
+           ]
+         )
+
+       {:ok, %{categories: categories}}
+     end)}
+  end
 
   def handle_info({:cart_refreshed, loaded_cart}, socket) do
     {cart_items_map, cart_count} = build_cart_state(loaded_cart)

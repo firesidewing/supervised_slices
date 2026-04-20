@@ -15,6 +15,7 @@ defmodule SupervisedSlicesWeb.AdminLive.MenuEditorComponent do
   }
 
   alias SupervisedSlices.Billing
+  alias SupervisedSlices.PubSubNotifier
 
   require Ash.Query
 
@@ -190,9 +191,10 @@ defmodule SupervisedSlicesWeb.AdminLive.MenuEditorComponent do
   end
 
   def handle_event("toggle_available", %{"id" => id}, socket) do
-    %{ash_scope: scope} = socket.assigns
+    %{ash_scope: scope, org: org} = socket.assigns
     item = MenuItem.get!(id, scope: scope)
     MenuItem.update!(item, %{available: !item.available}, scope: scope)
+    PubSubNotifier.broadcast_menu_updated(org.id)
     categories = load_categories(scope)
     {:noreply, assign(socket, :categories, categories)}
   end
