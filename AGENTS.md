@@ -15,6 +15,7 @@ Refer to DESIGN.md for UI/front end design
 
 ## Phoenix
 Use new phoenix syntax :if={}/:for={} over older syntax <%= if ... do %>/<%= for ... do %>
+Use functional components and live components when reasonable to do so
 
 # CLAUDE.md
 

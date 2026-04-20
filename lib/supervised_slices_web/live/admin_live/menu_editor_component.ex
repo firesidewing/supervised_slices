@@ -23,10 +23,13 @@ defmodule SupervisedSlicesWeb.AdminLive.MenuEditorComponent do
      socket
      |> assign(:editing_item_id, nil)
      |> assign(:creating_category, false)
-     |> assign(:creating_modifier_group, false)
      |> assign(:open_item_id, nil)
      |> assign(:open_item_category_id, nil)
      |> assign(:show_delete_confirm, false)
+     |> assign(:open_group_id, nil)
+     |> assign(:show_group_delete_confirm, false)
+     |> assign(:editing_modifier_id, nil)
+     |> assign(:adding_modifier, false)
      |> assign(:current_upload, nil)
      |> assign(:has_completed_upload, false)
      |> assign(:purchasing_upload, false)
@@ -40,6 +43,10 @@ defmodule SupervisedSlicesWeb.AdminLive.MenuEditorComponent do
        max_entries: 1,
        max_file_size: 20_000_000
      )}
+  end
+
+  def update(%{open_group_id: id} = _assigns, socket) when not is_nil(id) do
+    {:ok, assign(socket, open_group_id: id, show_group_delete_confirm: false)}
   end
 
   def update(%{reload_modifier_groups: _, reload_categories: _} = _assigns, socket) do
@@ -377,11 +384,17 @@ defmodule SupervisedSlicesWeb.AdminLive.MenuEditorComponent do
   # ---------------------------------------------------------------------------
 
   def handle_event("add_modifier_group", _params, socket) do
-    {:noreply, assign(socket, :creating_modifier_group, true)}
+    {:noreply, assign(socket, open_group_id: :new, show_group_delete_confirm: false)}
   end
 
-  def handle_event("cancel_add_modifier_group", _params, socket) do
-    {:noreply, assign(socket, creating_modifier_group: false)}
+  def handle_event("cancel_group_edit", _params, socket) do
+    {:noreply,
+     assign(socket,
+       open_group_id: nil,
+       show_group_delete_confirm: false,
+       editing_modifier_id: nil,
+       adding_modifier: false
+     )}
   end
 
   def handle_event("create_modifier_group", %{"group" => params}, socket) do
@@ -393,14 +406,135 @@ defmodule SupervisedSlicesWeb.AdminLive.MenuEditorComponent do
           name: params["name"],
           required: Map.get(params, "required") == "true",
           min_selections: parse_int(params["min_selections"]),
-          max_selections: parse_int(params["max_selections"])
+          max_selections: parse_int(params["max_selections"]),
+          sort_order: parse_int(params["sort_order"]) || 0
         },
         scope: scope
       )
 
     modifier_groups = load_modifier_groups(scope)
 
-    {:noreply, assign(socket, modifier_groups: modifier_groups, creating_modifier_group: false)}
+    {:noreply,
+     assign(socket, modifier_groups: modifier_groups, open_group_id: group.id, adding_modifier: false)}
+  end
+
+  def handle_event("save_group", %{"group" => params}, socket) do
+    %{ash_scope: scope, open_group_id: group_id} = socket.assigns
+
+    group = MenuItemModifierGroup.get!(group_id, scope: scope)
+
+    MenuItemModifierGroup.update!(
+      group,
+      %{
+        name: params["name"],
+        required: Map.get(params, "required") == "true",
+        min_selections: parse_int(params["min_selections"]),
+        max_selections: parse_int(params["max_selections"]),
+        sort_order: parse_int(params["sort_order"]) || group.sort_order
+      },
+      scope: scope
+    )
+
+    modifier_groups = load_modifier_groups(scope)
+    categories = load_categories(scope)
+
+    {:noreply, assign(socket, modifier_groups: modifier_groups, categories: categories)}
+  end
+
+  def handle_event("delete_group", _params, socket) do
+    {:noreply, assign(socket, show_group_delete_confirm: true)}
+  end
+
+  def handle_event("cancel_delete_group", _params, socket) do
+    {:noreply, assign(socket, show_group_delete_confirm: false)}
+  end
+
+  def handle_event("confirm_delete_group", _params, socket) do
+    %{ash_scope: scope, open_group_id: group_id} = socket.assigns
+
+    group = MenuItemModifierGroup.get!(group_id, scope: scope, load: :modifiers)
+    Enum.each(group.modifiers, &MenuItemModifier.destroy!(&1, scope: scope))
+    MenuItemModifierGroup.destroy!(group, scope: scope)
+
+    modifier_groups = load_modifier_groups(scope)
+    categories = load_categories(scope)
+
+    {:noreply,
+     assign(socket,
+       modifier_groups: modifier_groups,
+       categories: categories,
+       open_group_id: nil,
+       show_group_delete_confirm: false
+     )}
+  end
+
+  def handle_event("add_modifier", _params, socket) do
+    {:noreply, assign(socket, adding_modifier: true, editing_modifier_id: nil)}
+  end
+
+  def handle_event("cancel_add_modifier", _params, socket) do
+    {:noreply, assign(socket, adding_modifier: false)}
+  end
+
+  def handle_event("create_modifier", %{"modifier" => params}, socket) do
+    %{ash_scope: scope, open_group_id: group_id} = socket.assigns
+
+    MenuItemModifier.create!(
+      %{
+        name: params["name"],
+        price_delta: parse_money(params["price_delta"]),
+        modifier_group_id: group_id
+      },
+      scope: scope
+    )
+
+    modifier_groups = load_modifier_groups(scope)
+
+    {:noreply, assign(socket, modifier_groups: modifier_groups, adding_modifier: false)}
+  end
+
+  def handle_event("edit_modifier", %{"id" => id}, socket) do
+    {:noreply, assign(socket, editing_modifier_id: id, adding_modifier: false)}
+  end
+
+  def handle_event("cancel_edit_modifier", _params, socket) do
+    {:noreply, assign(socket, editing_modifier_id: nil)}
+  end
+
+  def handle_event("save_modifier", %{"modifier" => params}, socket) do
+    %{ash_scope: scope} = socket.assigns
+
+    modifier = MenuItemModifier.get!(params["id"], scope: scope)
+
+    MenuItemModifier.update!(
+      modifier,
+      %{
+        name: params["name"],
+        price_delta: parse_money(params["price_delta"]),
+        sort_order: parse_int(params["sort_order"]) || modifier.sort_order,
+        available: Map.get(params, "available") == "true"
+      },
+      scope: scope
+    )
+
+    modifier_groups = load_modifier_groups(scope)
+
+    {:noreply, assign(socket, modifier_groups: modifier_groups, editing_modifier_id: nil)}
+  end
+
+  def handle_event("delete_modifier", %{"id" => id}, socket) do
+    %{ash_scope: scope} = socket.assigns
+    MenuItemModifier.get!(id, scope: scope) |> MenuItemModifier.destroy!(scope: scope)
+    modifier_groups = load_modifier_groups(scope)
+    {:noreply, assign(socket, modifier_groups: modifier_groups)}
+  end
+
+  def handle_event("toggle_modifier_available", %{"id" => id}, socket) do
+    %{ash_scope: scope} = socket.assigns
+    modifier = MenuItemModifier.get!(id, scope: scope)
+    MenuItemModifier.update!(modifier, %{available: !modifier.available}, scope: scope)
+    modifier_groups = load_modifier_groups(scope)
+    {:noreply, assign(socket, modifier_groups: modifier_groups)}
   end
 
   def handle_event(
@@ -555,7 +689,9 @@ defmodule SupervisedSlicesWeb.AdminLive.MenuEditorComponent do
 
   def render(assigns) do
     assigns =
-      assign(assigns, :open_item, resolve_open_item(assigns.open_item_id, assigns.categories))
+      assigns
+      |> assign(:open_item, resolve_open_item(assigns.open_item_id, assigns.categories))
+      |> assign(:open_group, resolve_open_group(assigns.open_group_id, assigns.modifier_groups))
 
     ~H"""
     <div>
@@ -962,7 +1098,7 @@ defmodule SupervisedSlicesWeb.AdminLive.MenuEditorComponent do
         </div>
 
         <aside class="w-full lg:w-80 shrink-0 space-y-6">
-          <div class="bg-surface-container-low rounded-md p-6 space-y-6">
+          <div class="bg-surface-container-low rounded-md p-6 space-y-4">
             <div class="flex items-center justify-between">
               <p class="text-[0.65rem] font-black text-on-surface-variant uppercase tracking-[0.2em]">
                 Modifier Groups
@@ -977,78 +1113,11 @@ defmodule SupervisedSlicesWeb.AdminLive.MenuEditorComponent do
               </button>
             </div>
 
-            <form
-              :if={@creating_modifier_group}
-              phx-submit="create_modifier_group"
-              phx-target={@myself}
-              class="bg-surface-container rounded-lg p-3 space-y-3 border border-primary/10"
-            >
-              <input
-                type="text"
-                name="group[name]"
-                required
-                autofocus
-                placeholder="e.g. Extra Toppings"
-                class="w-full bg-surface-container-highest border-0 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-primary outline-none"
-              />
-              <div class="grid grid-cols-2 gap-2">
-                <div>
-                  <label class="block text-[10px] font-bold text-on-surface-variant uppercase tracking-widest mb-1">
-                    Min
-                  </label>
-                  <input
-                    type="number"
-                    name="group[min_selections]"
-                    placeholder="0"
-                    min="0"
-                    class="w-full bg-surface-container-highest border-0 rounded-lg px-3 py-2 text-xs focus:ring-2 focus:ring-primary outline-none"
-                  />
-                </div>
-                <div>
-                  <label class="block text-[10px] font-bold text-on-surface-variant uppercase tracking-widest mb-1">
-                    Max
-                  </label>
-                  <input
-                    type="number"
-                    name="group[max_selections]"
-                    placeholder="No limit"
-                    min="1"
-                    class="w-full bg-surface-container-highest border-0 rounded-lg px-3 py-2 text-xs focus:ring-2 focus:ring-primary outline-none"
-                  />
-                </div>
-              </div>
-              <div class="flex items-center justify-between">
-                <label class="flex items-center gap-2 text-sm text-on-surface-variant cursor-pointer">
-                  <input type="checkbox" name="group[required]" value="true" class="rounded" />
-                  Required
-                </label>
-                <div class="flex items-center gap-2">
-                  <button
-                    type="submit"
-                    class="bg-primary text-white px-4 py-2 rounded-lg text-sm font-bold phx-submit-loading:opacity-70 phx-submit-loading:cursor-wait"
-                  >
-                    <span class="phx-submit-loading:!hidden">Save</span>
-                    <span class="hidden phx-submit-loading:!flex items-center justify-center gap-2">
-                      <.icon name="hero-arrow-path" class="size-4 animate-spin" />
-                    </span>
-                  </button>
-                  <button
-                    type="button"
-                    phx-click="cancel_add_modifier_group"
-                    phx-target={@myself}
-                    class="text-on-surface-variant hover:text-on-surface text-sm px-3 py-2"
-                  >
-                    Cancel
-                  </button>
-                </div>
-              </div>
-            </form>
-
             <p :if={Enum.empty?(@modifier_groups)} class="text-xs text-on-surface-variant italic">
               No modifier groups yet.
             </p>
 
-            <div :if={not Enum.empty?(@modifier_groups)} class="space-y-4">
+            <div :if={not Enum.empty?(@modifier_groups)} class="space-y-1">
               <.live_component
                 :for={group <- @modifier_groups}
                 module={SupervisedSlicesWeb.AdminLive.ModifierGroupRowComponent}
@@ -1069,6 +1138,15 @@ defmodule SupervisedSlicesWeb.AdminLive.MenuEditorComponent do
         show_delete_confirm={@show_delete_confirm}
         myself={@myself}
         uploads={@uploads}
+      />
+
+      <.modifier_group_drawer
+        group={@open_group}
+        open_group_id={@open_group_id}
+        show_group_delete_confirm={@show_group_delete_confirm}
+        editing_modifier_id={@editing_modifier_id}
+        adding_modifier={@adding_modifier}
+        myself={@myself}
       />
     </div>
     """
@@ -1149,6 +1227,13 @@ defmodule SupervisedSlicesWeb.AdminLive.MenuEditorComponent do
     categories
     |> Enum.flat_map(& &1.menu_items)
     |> Enum.find(&(to_string(&1.id) == to_string(id)))
+  end
+
+  defp resolve_open_group(nil, _groups), do: nil
+  defp resolve_open_group(:new, _groups), do: :new
+
+  defp resolve_open_group(id, groups) do
+    Enum.find(groups, &(to_string(&1.id) == to_string(id)))
   end
 
   # ---------------------------------------------------------------------------
@@ -1634,6 +1719,500 @@ defmodule SupervisedSlicesWeb.AdminLive.MenuEditorComponent do
           placeholder="https://…"
           class="w-full bg-surface-container-low border-0 rounded-lg px-4 py-2.5 text-sm focus:ring-2 focus:ring-primary outline-none"
         />
+      </div>
+    </div>
+    """
+  end
+
+  # ---------------------------------------------------------------------------
+  # Modifier Group Drawer (functional component)
+  # ---------------------------------------------------------------------------
+
+  attr :group, :any, default: nil
+  attr :open_group_id, :any, default: nil
+  attr :show_group_delete_confirm, :boolean, default: false
+  attr :editing_modifier_id, :any, default: nil
+  attr :adding_modifier, :boolean, default: false
+  attr :myself, :any, required: true
+
+  defp modifier_group_drawer(assigns) do
+    ~H"""
+    <div
+      id="group-drawer-wrapper"
+      class={[
+        "fixed inset-0 z-40 transition-all duration-300",
+        if(@open_group_id, do: "visible", else: "invisible pointer-events-none")
+      ]}
+    >
+      <div
+        class={[
+          "absolute inset-0 bg-black/30 transition-opacity duration-300",
+          if(@open_group_id, do: "opacity-100", else: "opacity-0")
+        ]}
+        phx-click="cancel_group_edit"
+        phx-target={@myself}
+      >
+      </div>
+
+      <div class={[
+        "absolute top-0 right-0 bottom-0 w-full md:w-[560px] bg-background flex flex-col",
+        "shadow-[-24px_0px_64px_rgba(0,0,0,0.10)] transition-transform duration-300 ease-out",
+        if(@open_group_id, do: "translate-x-0", else: "translate-x-full")
+      ]}>
+        <div class="flex items-center justify-between px-8 py-6 shrink-0 bg-background/95 backdrop-blur-sm border-b border-on-surface/5">
+          <h2 class="font-headline text-2xl font-black text-on-surface tracking-tight">
+            {if @group == :new or is_nil(@group), do: "New Group", else: @group.name}
+          </h2>
+          <button
+            phx-click="cancel_group_edit"
+            phx-target={@myself}
+            class="w-10 h-10 flex items-center justify-center rounded-full bg-surface-container-low hover:bg-surface-container transition-all"
+          >
+            <span class="material-symbols-outlined">close</span>
+          </button>
+        </div>
+
+        <div class="flex-1 overflow-y-auto px-8 py-6 space-y-8">
+          <%= if @group == :new do %>
+            <form id="group-form" phx-submit="create_modifier_group" phx-target={@myself} class="space-y-5">
+              <div>
+                <label class="block text-xs font-bold text-on-surface-variant uppercase tracking-wider mb-1">
+                  Name
+                </label>
+                <input
+                  type="text"
+                  name="group[name]"
+                  required
+                  autofocus
+                  placeholder="e.g. Extra Toppings, Protein Choice"
+                  class="w-full bg-surface-container-low border-0 rounded-lg px-4 py-2.5 text-sm focus:ring-2 focus:ring-primary outline-none"
+                />
+              </div>
+
+              <label class="flex items-start gap-3 cursor-pointer">
+                <input
+                  type="checkbox"
+                  name="group[required]"
+                  value="true"
+                  class="rounded mt-0.5"
+                />
+                <div>
+                  <span class="text-sm font-semibold text-on-surface">Required</span>
+                  <p class="text-xs text-on-surface-variant">
+                    Customers must choose at least one option before adding to cart.
+                  </p>
+                </div>
+              </label>
+
+              <details class="group/limits">
+                <summary class="list-none flex items-center justify-between cursor-pointer py-2">
+                  <span class="text-xs font-black text-on-surface-variant uppercase tracking-wider">
+                    Selection Limits
+                  </span>
+                  <span class="material-symbols-outlined text-sm text-on-surface-variant transition-transform group-open/limits:rotate-180">
+                    expand_more
+                  </span>
+                </summary>
+                <div class="pt-3 grid grid-cols-2 gap-4">
+                  <div>
+                    <label class="block text-xs font-bold text-on-surface-variant uppercase tracking-wider mb-1">
+                      Min Selections
+                    </label>
+                    <input
+                      type="number"
+                      name="group[min_selections]"
+                      placeholder="0"
+                      min="0"
+                      class="w-full bg-surface-container-low border-0 rounded-lg px-4 py-2.5 text-sm focus:ring-2 focus:ring-primary outline-none"
+                    />
+                  </div>
+                  <div>
+                    <label class="block text-xs font-bold text-on-surface-variant uppercase tracking-wider mb-1">
+                      Max Selections
+                    </label>
+                    <input
+                      type="number"
+                      name="group[max_selections]"
+                      placeholder="No limit"
+                      min="1"
+                      class="w-full bg-surface-container-low border-0 rounded-lg px-4 py-2.5 text-sm focus:ring-2 focus:ring-primary outline-none"
+                    />
+                  </div>
+                  <p class="col-span-2 text-xs text-on-surface-variant">
+                    Leave blank for no limit on selections.
+                  </p>
+                </div>
+              </details>
+            </form>
+          <% end %>
+
+          <%= if is_struct(@group) do %>
+            <form id="group-form" phx-submit="save_group" phx-target={@myself} class="space-y-5">
+              <input type="hidden" name="group[id]" value={@group.id} />
+              <div>
+                <label class="block text-xs font-bold text-on-surface-variant uppercase tracking-wider mb-1">
+                  Name
+                </label>
+                <input
+                  type="text"
+                  name="group[name]"
+                  value={@group.name}
+                  required
+                  autofocus
+                  placeholder="e.g. Extra Toppings, Protein Choice"
+                  class="w-full bg-surface-container-low border-0 rounded-lg px-4 py-2.5 text-sm focus:ring-2 focus:ring-primary outline-none"
+                />
+              </div>
+
+              <label class="flex items-start gap-3 cursor-pointer">
+                <input
+                  type="checkbox"
+                  name="group[required]"
+                  value="true"
+                  checked={@group.required}
+                  class="rounded mt-0.5"
+                />
+                <div>
+                  <span class="text-sm font-semibold text-on-surface">Required</span>
+                  <p class="text-xs text-on-surface-variant">
+                    Customers must choose at least one option before adding to cart.
+                  </p>
+                </div>
+              </label>
+
+              <details class="group/limits">
+                <summary class="list-none flex items-center justify-between cursor-pointer py-2">
+                  <span class="text-xs font-black text-on-surface-variant uppercase tracking-wider">
+                    Selection Limits
+                    <span
+                      :if={@group.min_selections > 0 or @group.max_selections}
+                      class="ml-1 text-primary"
+                    >
+                      (set)
+                    </span>
+                  </span>
+                  <span class="material-symbols-outlined text-sm text-on-surface-variant transition-transform group-open/limits:rotate-180">
+                    expand_more
+                  </span>
+                </summary>
+                <div class="pt-3 grid grid-cols-2 gap-4">
+                  <div>
+                    <label class="block text-xs font-bold text-on-surface-variant uppercase tracking-wider mb-1">
+                      Min Selections
+                    </label>
+                    <input
+                      type="number"
+                      name="group[min_selections]"
+                      value={@group.min_selections}
+                      placeholder="0"
+                      min="0"
+                      class="w-full bg-surface-container-low border-0 rounded-lg px-4 py-2.5 text-sm focus:ring-2 focus:ring-primary outline-none"
+                    />
+                  </div>
+                  <div>
+                    <label class="block text-xs font-bold text-on-surface-variant uppercase tracking-wider mb-1">
+                      Max Selections
+                    </label>
+                    <input
+                      type="number"
+                      name="group[max_selections]"
+                      value={@group.max_selections}
+                      placeholder="No limit"
+                      min="1"
+                      class="w-full bg-surface-container-low border-0 rounded-lg px-4 py-2.5 text-sm focus:ring-2 focus:ring-primary outline-none"
+                    />
+                  </div>
+                  <p class="col-span-2 text-xs text-on-surface-variant">
+                    Leave blank for no limit on selections.
+                  </p>
+                </div>
+              </details>
+
+              <details class="group/adv">
+                <summary class="list-none flex items-center justify-between cursor-pointer py-2">
+                  <span class="text-xs font-black text-on-surface-variant uppercase tracking-wider">
+                    Advanced
+                  </span>
+                  <span class="material-symbols-outlined text-sm text-on-surface-variant transition-transform group-open/adv:rotate-180">
+                    expand_more
+                  </span>
+                </summary>
+                <div class="pt-3">
+                  <label class="block text-xs font-bold text-on-surface-variant uppercase tracking-wider mb-1">
+                    Sort Order
+                  </label>
+                  <input
+                    type="number"
+                    name="group[sort_order]"
+                    value={@group.sort_order}
+                    class="w-24 bg-surface-container-low border-0 rounded-lg px-4 py-2.5 text-sm focus:ring-2 focus:ring-primary outline-none"
+                  />
+                </div>
+              </details>
+            </form>
+
+            <div class="space-y-3">
+              <div class="flex items-center justify-between">
+                <span class="text-xs font-black text-on-surface-variant uppercase tracking-wider">
+                  Options
+                  <span :if={not Enum.empty?(@group.modifiers || [])} class="ml-1 text-primary">
+                    ({length(@group.modifiers)})
+                  </span>
+                </span>
+                <button
+                  :if={not @adding_modifier}
+                  phx-click="add_modifier"
+                  phx-target={@myself}
+                  type="button"
+                  class="flex items-center gap-1 text-[0.65rem] font-black uppercase tracking-widest text-primary hover:opacity-70 transition-colors"
+                >
+                  <span class="material-symbols-outlined text-sm">add_circle</span> Add option
+                </button>
+              </div>
+
+              <p :if={Enum.empty?(@group.modifiers || []) and not @adding_modifier} class="text-sm text-on-surface-variant italic">
+                No options yet. Add options for customers to choose from.
+              </p>
+
+              <div class="space-y-1">
+                <%= for modifier <- (@group.modifiers || []) do %>
+                  <%= if to_string(@editing_modifier_id) == to_string(modifier.id) do %>
+                    <form
+                      phx-submit="save_modifier"
+                      phx-target={@myself}
+                      class="bg-surface-container rounded-lg p-3 space-y-3 border border-primary/20"
+                    >
+                      <input type="hidden" name="modifier[id]" value={modifier.id} />
+                      <div class="grid grid-cols-2 gap-3">
+                        <div>
+                          <label class="block text-[10px] font-bold text-on-surface-variant uppercase tracking-widest mb-1">
+                            Name
+                          </label>
+                          <input
+                            type="text"
+                            name="modifier[name]"
+                            value={modifier.name}
+                            required
+                            autofocus
+                            class="w-full bg-surface-container-highest border-0 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-primary outline-none"
+                          />
+                        </div>
+                        <div>
+                          <label class="block text-[10px] font-bold text-on-surface-variant uppercase tracking-widest mb-1">
+                            Price Add-on
+                          </label>
+                          <input
+                            type="text"
+                            name="modifier[price_delta]"
+                            value={if modifier.price_delta, do: money_amount(modifier.price_delta), else: ""}
+                            placeholder="0.00"
+                            inputmode="decimal"
+                            class="w-full bg-surface-container-highest border-0 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-primary outline-none"
+                          />
+                        </div>
+                      </div>
+                      <div class="flex items-center justify-between gap-3">
+                        <label class="flex items-center gap-2 text-sm text-on-surface-variant cursor-pointer">
+                          <input
+                            type="checkbox"
+                            name="modifier[available]"
+                            value="true"
+                            checked={modifier.available}
+                            class="rounded"
+                          /> Available
+                        </label>
+                        <div class="flex items-center gap-2">
+                          <label class="text-xs text-on-surface-variant">Sort</label>
+                          <input
+                            type="number"
+                            name="modifier[sort_order]"
+                            value={modifier.sort_order}
+                            class="w-16 bg-surface-container-highest border-0 rounded px-2 py-1.5 text-xs focus:ring-1 focus:ring-primary outline-none"
+                          />
+                          <button
+                            type="submit"
+                            class="bg-primary text-white px-3 py-1.5 rounded-lg text-xs font-bold phx-submit-loading:opacity-70 phx-submit-loading:cursor-wait"
+                          >
+                            <span class="phx-submit-loading:!hidden">Save</span>
+                            <span class="hidden phx-submit-loading:!flex items-center justify-center">
+                              <.icon name="hero-arrow-path" class="size-3 animate-spin" />
+                            </span>
+                          </button>
+                          <button
+                            type="button"
+                            phx-click="cancel_edit_modifier"
+                            phx-target={@myself}
+                            class="text-on-surface-variant hover:text-on-surface text-xs px-2 py-1.5"
+                          >
+                            Cancel
+                          </button>
+                        </div>
+                      </div>
+                    </form>
+                  <% else %>
+                    <div class="flex items-center gap-2 px-2 py-2 rounded-lg hover:bg-surface-container-low group/mod">
+                      <button
+                        phx-click="toggle_modifier_available"
+                        phx-value-id={modifier.id}
+                        phx-target={@myself}
+                        type="button"
+                        title={if modifier.available, do: "Available — click to 86", else: "Unavailable — click to restore"}
+                        class="shrink-0"
+                      >
+                        <span class={[
+                          "material-symbols-outlined transition-colors",
+                          if(modifier.available,
+                            do: "text-primary",
+                            else: "text-on-surface-variant/40"
+                          )
+                        ]} style="font-size: 18px;">
+                          {if modifier.available, do: "toggle_on", else: "toggle_off"}
+                        </span>
+                      </button>
+                      <span class={[
+                        "flex-1 text-sm",
+                        if(modifier.available, do: "text-on-surface", else: "text-on-surface-variant line-through")
+                      ]}>
+                        {modifier.name}
+                      </span>
+                      <span class="text-xs text-on-surface-variant whitespace-nowrap">
+                        {if modifier.price_delta, do: "+#{format_money(modifier.price_delta)}", else: "Free"}
+                      </span>
+                      <div class="flex items-center gap-0.5 opacity-0 group-hover/mod:opacity-100 transition-opacity">
+                        <button
+                          phx-click="edit_modifier"
+                          phx-value-id={modifier.id}
+                          phx-target={@myself}
+                          type="button"
+                          class="text-on-surface-variant hover:text-primary transition-colors p-1"
+                          title="Edit option"
+                        >
+                          <span class="material-symbols-outlined" style="font-size: 16px;">edit</span>
+                        </button>
+                        <button
+                          phx-click="delete_modifier"
+                          phx-value-id={modifier.id}
+                          phx-target={@myself}
+                          type="button"
+                          class="text-on-surface-variant hover:text-error transition-colors p-1"
+                          title="Delete option"
+                        >
+                          <span class="material-symbols-outlined" style="font-size: 16px;">delete</span>
+                        </button>
+                      </div>
+                    </div>
+                  <% end %>
+                <% end %>
+              </div>
+
+              <form
+                :if={@adding_modifier}
+                phx-submit="create_modifier"
+                phx-target={@myself}
+                class="flex flex-wrap items-center gap-2 pt-2"
+              >
+                <input
+                  type="text"
+                  name="modifier[name]"
+                  required
+                  autofocus
+                  placeholder="Option name"
+                  class="flex-[2] min-w-[140px] bg-surface-container-low border-0 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-primary outline-none"
+                />
+                <input
+                  type="text"
+                  name="modifier[price_delta]"
+                  placeholder="+0.00"
+                  inputmode="decimal"
+                  class="flex-1 min-w-[80px] bg-surface-container-low border-0 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-primary outline-none"
+                />
+                <button
+                  type="submit"
+                  class="bg-primary text-white px-4 py-2 rounded-lg text-sm font-bold phx-submit-loading:opacity-70 phx-submit-loading:cursor-wait"
+                >
+                  <span class="phx-submit-loading:!hidden">Add</span>
+                  <span class="hidden phx-submit-loading:!flex items-center justify-center">
+                    <.icon name="hero-arrow-path" class="size-3 animate-spin" />
+                  </span>
+                </button>
+                <button
+                  type="button"
+                  phx-click="cancel_add_modifier"
+                  phx-target={@myself}
+                  class="text-on-surface-variant hover:text-on-surface p-2"
+                >
+                  <span class="material-symbols-outlined" style="font-size: 18px;">close</span>
+                </button>
+              </form>
+            </div>
+          <% end %>
+        </div>
+
+        <div class="shrink-0 px-8 py-6 bg-surface-container-low">
+          <div :if={not @show_group_delete_confirm} class="flex items-center justify-between gap-4">
+            <button
+              :if={is_struct(@group)}
+              phx-click="delete_group"
+              phx-target={@myself}
+              type="button"
+              class="text-error font-bold text-sm uppercase tracking-widest hover:opacity-70 transition-opacity"
+            >
+              Delete Group
+            </button>
+            <div class="flex gap-3 ml-auto">
+              <button
+                phx-click="cancel_group_edit"
+                phx-target={@myself}
+                type="button"
+                class="text-on-surface-variant hover:text-on-surface font-bold text-sm px-5 py-2.5"
+              >
+                Cancel
+              </button>
+              <button
+                type="submit"
+                form="group-form"
+                class="bg-primary text-white px-6 py-2.5 rounded-xl font-bold text-sm hover:opacity-90 transition-opacity phx-submit-loading:opacity-70 phx-submit-loading:cursor-wait"
+              >
+                <span class="phx-submit-loading:!hidden">
+                  {if @group == :new or is_nil(@group), do: "Create Group", else: "Save Changes"}
+                </span>
+                <span class="hidden phx-submit-loading:!flex items-center justify-center gap-2">
+                  Saving... <.icon name="hero-arrow-path" class="size-4 animate-spin" />
+                </span>
+              </button>
+            </div>
+          </div>
+
+          <div
+            :if={@show_group_delete_confirm}
+            class="bg-error-container rounded-lg p-4 flex items-center justify-between gap-4"
+          >
+            <p class="text-sm font-bold text-on-error-container">
+              Delete {if is_struct(@group), do: @group.name, else: "this group"}? This cannot be undone.
+            </p>
+            <div class="flex gap-2 shrink-0">
+              <button
+                phx-click="cancel_delete_group"
+                phx-target={@myself}
+                type="button"
+                class="text-on-error-container/70 hover:text-on-error-container font-bold text-sm px-3 py-2"
+              >
+                Keep it
+              </button>
+              <button
+                phx-click="confirm_delete_group"
+                phx-target={@myself}
+                type="button"
+                class="bg-error text-on-error px-4 py-2 rounded-lg font-bold text-sm phx-click-loading:opacity-70 phx-click-loading:cursor-wait"
+              >
+                <span class="phx-click-loading:!hidden">Yes, Delete</span>
+                <span class="hidden phx-click-loading:!flex items-center justify-center gap-2">
+                  <.icon name="hero-arrow-path" class="size-3 animate-spin" />
+                </span>
+              </button>
+            </div>
+          </div>
+        </div>
       </div>
     </div>
     """
