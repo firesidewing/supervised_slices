@@ -305,7 +305,7 @@ defmodule SupervisedSlicesWeb.AdminLive.PhoneOrderComponent do
         <%!-- Body --%>
         <div class="flex flex-col md:flex-row flex-1 min-h-0">
           <%!-- Left: Menu Picker --%>
-          <div class="flex-1 overflow-y-auto p-6 space-y-8 border-r border-on-surface/5">
+          <div class="flex-1 min-h-0 overflow-y-auto p-6 space-y-8 border-r border-on-surface/5">
             <p
               :if={@categories == []}
               class="text-on-surface-variant/40 text-sm font-bold uppercase tracking-widest"
@@ -341,7 +341,7 @@ defmodule SupervisedSlicesWeb.AdminLive.PhoneOrderComponent do
           </div>
 
           <%!-- Right: Summary + Customer Form --%>
-          <div class="w-full md:w-96 shrink-0 flex flex-col overflow-y-auto bg-surface-container-low/30">
+          <div class="w-full md:w-96 md:shrink-0 max-h-[45%] md:max-h-none flex flex-col overflow-y-auto bg-surface-container-low/30">
             <%!-- Cart summary --%>
             <div class="p-6 border-b border-on-surface/5 flex-shrink-0">
               <h3 class="font-headline text-sm font-black uppercase tracking-widest text-on-surface-variant/50 mb-4">
@@ -362,7 +362,7 @@ defmodule SupervisedSlicesWeb.AdminLive.PhoneOrderComponent do
                       phx-click="decrement_line"
                       phx-value-line_id={line.line_id}
                       phx-target={@myself}
-                      class="w-6 h-6 flex items-center justify-center rounded text-on-surface-variant/60 hover:bg-surface-container hover:text-on-surface transition-colors text-xs font-black"
+                      class="w-8 h-8 flex items-center justify-center rounded text-on-surface-variant/60 hover:bg-surface-container hover:text-on-surface transition-colors text-xs font-black"
                     >
                       −
                     </button>
@@ -373,7 +373,7 @@ defmodule SupervisedSlicesWeb.AdminLive.PhoneOrderComponent do
                       phx-click="increment_line"
                       phx-value-line_id={line.line_id}
                       phx-target={@myself}
-                      class="w-6 h-6 flex items-center justify-center rounded text-on-surface-variant/60 hover:bg-surface-container hover:text-on-surface transition-colors text-xs font-black"
+                      class="w-8 h-8 flex items-center justify-center rounded text-on-surface-variant/60 hover:bg-surface-container hover:text-on-surface transition-colors text-xs font-black"
                     >
                       +
                     </button>
@@ -531,8 +531,9 @@ defmodule SupervisedSlicesWeb.AdminLive.PhoneOrderComponent do
           class="absolute inset-0 bg-on-surface/20"
         >
         </div>
-        <div class="relative bg-background rounded-md shadow-[0_40px_60px_-10px_rgba(28,28,24,0.2)] w-full max-w-md p-6 space-y-6">
-          <div class="flex items-start justify-between">
+        <div class="relative bg-background rounded-md shadow-[0_40px_60px_-10px_rgba(28,28,24,0.2)] w-full max-w-md flex flex-col max-h-[90svh]">
+          <%!-- Sticky header --%>
+          <div class="shrink-0 flex items-start justify-between p-6 pb-4">
             <div>
               <h3 class="font-headline text-lg font-black text-on-surface">
                 {@configuring.item.name}
@@ -550,65 +551,71 @@ defmodule SupervisedSlicesWeb.AdminLive.PhoneOrderComponent do
             </button>
           </div>
 
-          <%!-- Size picker --%>
-          <div :if={@configuring.item.sizes != []} class="space-y-3">
-            <h4 class="text-[10px] font-bold uppercase tracking-[0.15em] text-on-surface-variant/60">
-              Size <span class="text-primary">*</span>
-            </h4>
-            <div class="grid grid-cols-2 gap-2">
-              <button
-                :for={size <- @configuring.item.sizes}
-                phx-click="select_size"
-                phx-value-id={size.id}
-                phx-target={@myself}
-                class={[
-                  "py-3 px-4 rounded-md text-left transition-all",
-                  if(to_string(@configuring.selected_size_id) == to_string(size.id),
-                    do: "bg-primary text-on-primary",
-                    else: "bg-surface-container hover:bg-surface-container-high text-on-surface"
-                  )
-                ]}
-              >
-                <p class="text-xs font-black uppercase tracking-wide">{size.name}</p>
-                <p class="text-[11px] font-bold opacity-70">{Money.to_string!(size.price)}</p>
-              </button>
+          <%!-- Scrollable options --%>
+          <div class="overflow-y-auto flex-1 px-6 pb-2 space-y-6">
+            <%!-- Size picker --%>
+            <div :if={@configuring.item.sizes != []} class="space-y-3">
+              <h4 class="text-[10px] font-bold uppercase tracking-[0.15em] text-on-surface-variant/60">
+                Size <span class="text-primary">*</span>
+              </h4>
+              <div class="grid grid-cols-2 gap-2">
+                <button
+                  :for={size <- @configuring.item.sizes}
+                  phx-click="select_size"
+                  phx-value-id={size.id}
+                  phx-target={@myself}
+                  class={[
+                    "py-3 px-4 rounded-md text-left transition-all",
+                    if(to_string(@configuring.selected_size_id) == to_string(size.id),
+                      do: "bg-primary text-on-primary",
+                      else: "bg-surface-container hover:bg-surface-container-high text-on-surface"
+                    )
+                  ]}
+                >
+                  <p class="text-xs font-black uppercase tracking-wide">{size.name}</p>
+                  <p class="text-[11px] font-bold opacity-70">{Money.to_string!(size.price)}</p>
+                </button>
+              </div>
+            </div>
+
+            <%!-- Modifier groups --%>
+            <div :for={group <- @configuring.item.modifier_groups} class="space-y-3">
+              <h4 class="text-[10px] font-bold uppercase tracking-[0.15em] text-on-surface-variant/60">
+                {group.name}
+              </h4>
+              <div class="grid grid-cols-2 gap-1.5">
+                <button
+                  :for={mod <- group.modifiers}
+                  phx-click="toggle_modifier"
+                  phx-value-id={mod.id}
+                  phx-target={@myself}
+                  class={[
+                    "flex flex-col items-start py-2 px-3 rounded-md text-left transition-all",
+                    if(MapSet.member?(@configuring.selected_modifier_ids, to_string(mod.id)),
+                      do: "bg-secondary-container text-on-secondary-container",
+                      else: "bg-surface-container hover:bg-surface-container-high text-on-surface"
+                    )
+                  ]}
+                >
+                  <span class="text-sm font-bold leading-snug truncate w-full">{mod.name}</span>
+                  <span :if={mod.price_delta} class="text-[11px] font-bold opacity-60">
+                    +{Money.to_string!(mod.price_delta)}
+                  </span>
+                </button>
+              </div>
             </div>
           </div>
 
-          <%!-- Modifier groups --%>
-          <div :for={group <- @configuring.item.modifier_groups} class="space-y-3">
-            <h4 class="text-[10px] font-bold uppercase tracking-[0.15em] text-on-surface-variant/60">
-              {group.name}
-            </h4>
-            <div class="space-y-1">
-              <button
-                :for={mod <- group.modifiers}
-                phx-click="toggle_modifier"
-                phx-value-id={mod.id}
-                phx-target={@myself}
-                class={[
-                  "w-full flex items-center justify-between py-2.5 px-4 rounded-md text-left transition-all",
-                  if(MapSet.member?(@configuring.selected_modifier_ids, to_string(mod.id)),
-                    do: "bg-secondary-container text-on-secondary-container",
-                    else: "bg-surface-container hover:bg-surface-container-high text-on-surface"
-                  )
-                ]}
-              >
-                <span class="text-sm font-bold">{mod.name}</span>
-                <span :if={mod.price_delta} class="text-xs font-bold opacity-70">
-                  +{Money.to_string!(mod.price_delta)}
-                </span>
-              </button>
-            </div>
+          <%!-- Sticky footer --%>
+          <div class="shrink-0 p-4 pt-3 border-t border-on-surface/5">
+            <button
+              phx-click="add_configured"
+              phx-target={@myself}
+              class="w-full py-3 rounded-md font-bold text-sm uppercase tracking-[0.1em] bg-gradient-to-br from-primary to-primary-container text-on-primary hover:opacity-95 active:scale-[0.98] transition-all"
+            >
+              Add to Order
+            </button>
           </div>
-
-          <button
-            phx-click="add_configured"
-            phx-target={@myself}
-            class="w-full py-3 rounded-md font-bold text-sm uppercase tracking-[0.1em] bg-gradient-to-br from-primary to-primary-container text-on-primary hover:opacity-95 active:scale-[0.98] transition-all"
-          >
-            Add to Order
-          </button>
         </div>
       </div>
     </div>
