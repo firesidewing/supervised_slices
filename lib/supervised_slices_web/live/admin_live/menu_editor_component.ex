@@ -162,18 +162,10 @@ defmodule SupervisedSlicesWeb.AdminLive.MenuEditorComponent do
       MenuItemImage.create!(%{url: url, position: pos, menu_item_id: item.id}, scope: scope)
     end)
 
-    image_url =
-      cond do
-        item.images != [] or uploaded_urls != [] -> item.image_url
-        params["image_url"] != "" -> params["image_url"]
-        true -> item.image_url
-      end
-
     attrs = %{
       name: params["name"],
       description: params["description"],
       price: parse_money(params["price"]),
-      image_url: image_url,
       sort_order: String.to_integer(params["sort_order"] || "0")
     }
 
@@ -219,7 +211,6 @@ defmodule SupervisedSlicesWeb.AdminLive.MenuEditorComponent do
           name: params["name"],
           description: params["description"],
           price: parse_money(params["price"]),
-          image_url: if(uploaded_urls == [], do: params["image_url"], else: nil),
           sort_order: String.to_integer(params["sort_order"] || "0"),
           category_id: params["category_id"]
         },
@@ -965,9 +956,9 @@ defmodule SupervisedSlicesWeb.AdminLive.MenuEditorComponent do
                   ]}
                 >
                   <div class="aspect-square relative overflow-hidden bg-surface-container-high">
-                    <%= if item.image_url do %>
+                    <%= if item.images != [] do %>
                       <img
-                        src={item.image_url}
+                        src={List.first(item.images).url}
                         alt={item.name}
                         class="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
                       />
@@ -1699,26 +1690,11 @@ defmodule SupervisedSlicesWeb.AdminLive.MenuEditorComponent do
             </button>
           </div>
         </div>
-        <div :if={@item && @item.images == [] && @item.image_url} class="relative group w-fit">
-          <img
-            src={@item.image_url}
-            alt="item image"
-            class="h-16 w-16 rounded-lg object-cover opacity-50"
-          />
-          <p class="text-[10px] text-on-surface-variant mt-1">Legacy URL</p>
-        </div>
         <.live_file_input
           upload={@uploads.item_image}
           class="text-sm text-on-surface-variant file:mr-3 file:py-1.5 file:px-3 file:rounded-lg file:border-0 file:bg-surface-container file:text-xs file:font-bold file:uppercase file:tracking-wider file:cursor-pointer"
         />
-        <p class="text-[10px] text-on-surface-variant">Up to 5 images, or paste a URL below.</p>
-        <input
-          type="text"
-          name="item[image_url]"
-          value={if @item, do: @item.image_url || "", else: ""}
-          placeholder="https://…"
-          class="w-full bg-surface-container-low border-0 rounded-lg px-4 py-2.5 text-sm focus:ring-2 focus:ring-primary outline-none"
-        />
+        <p class="text-[10px] text-on-surface-variant">Up to 5 images, max 8MB each.</p>
       </div>
     </div>
     """

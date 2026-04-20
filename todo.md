@@ -6,7 +6,7 @@
 - [x] adjust wording (Atelier)
 - [x] scope analytics to open periods
 - [x] group editing is expanding out of container
-- [ ] no url for images
+- [x] no url for images
 - [ ] can't delete menu item ( 00:00:09   > Error returned from: SupervisedSlices.Menu.MenuItem.destroy
 00:00:09 Unknown Error
 00:00:09 * ** (Ecto.ConstraintError) constraint error when attempting to insert struct:

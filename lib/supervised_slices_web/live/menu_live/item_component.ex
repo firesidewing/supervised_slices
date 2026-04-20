@@ -146,8 +146,8 @@ defmodule SupervisedSlicesWeb.MenuLive.ItemComponent do
 
         <div class={[
           "px-8 space-y-12 max-w-3xl mx-auto relative z-10",
-          @selected_item.image_url && "-mt-4",
-          !@selected_item.image_url && "mt-8"
+          @selected_item.images != [] && "-mt-4",
+          @selected_item.images == [] && "mt-8"
         ]}>
           <!-- Size Selector Section -->
           <section :if={not Enum.empty?(@selected_item.sizes || [])}>
@@ -437,6 +437,6 @@ defmodule SupervisedSlicesWeb.MenuLive.ItemComponent do
         images -> images |> Enum.sort_by(& &1.position) |> Enum.map(& &1.url)
       end
 
-    if imgs == [] and item.image_url, do: [item.image_url], else: imgs
+    imgs
   end
 end

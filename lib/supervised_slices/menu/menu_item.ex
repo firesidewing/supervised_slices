@@ -26,7 +26,7 @@ defmodule SupervisedSlices.Menu.MenuItem do
     defaults [:read, :destroy]
 
     create :create do
-      accept [:name, :description, :price, :sort_order, :image_url, :category_id]
+      accept [:name, :description, :price, :sort_order, :category_id]
     end
 
     update :update do
@@ -37,7 +37,6 @@ defmodule SupervisedSlices.Menu.MenuItem do
         :available,
         :is_upsell,
         :sort_order,
-        :image_url,
         :category_id
       ]
     end
@@ -105,10 +104,6 @@ defmodule SupervisedSlices.Menu.MenuItem do
     attribute :sort_order, :integer do
       default 0
       allow_nil? false
-      public? true
-    end
-
-    attribute :image_url, :string do
       public? true
     end
 

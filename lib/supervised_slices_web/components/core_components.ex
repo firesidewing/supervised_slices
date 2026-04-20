@@ -676,9 +676,9 @@ defmodule SupervisedSlicesWeb.CoreComponents do
                   <div class="flex gap-3 overflow-x-auto pb-1 no-scrollbar">
                     <%= for item <- @upsell_suggestions do %>
                       <div class="flex flex-col w-28 shrink-0 bg-surface-container-lowest rounded-xl overflow-hidden">
-                        <%= if item.image_url do %>
+                        <%= if item.images != [] do %>
                           <img
-                            src={item.image_url}
+                            src={List.first(item.images).url}
                             alt={item.name}
                             class="w-full aspect-square object-cover"
                           />

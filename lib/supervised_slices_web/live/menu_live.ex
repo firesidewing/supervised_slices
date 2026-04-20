@@ -74,7 +74,7 @@ defmodule SupervisedSlicesWeb.MenuLive do
      socket
      |> cancel_async(:selected_item)
      |> assign(:selected_item_id, id)
-     |> assign(:selected_item_has_image, quick_item != nil && !is_nil(quick_item.image_url))
+     |> assign(:selected_item_has_image, quick_item != nil && quick_item.images != [])
      |> assign(:quick_item, quick_item)
      |> push_event("ph:capture", %{
        event: "item_viewed",
@@ -92,7 +92,7 @@ defmodule SupervisedSlicesWeb.MenuLive do
            ]
          )
 
-       has_image = !is_nil(item.image_url) or item.images != []
+       has_image = item.images != []
        {:ok, %{selected_item: item, selected_item_has_image: has_image}}
      end)}
   end

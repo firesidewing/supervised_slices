@@ -53,9 +53,9 @@ defmodule SupervisedSlicesWeb.MenuLive.MenuComponent do
       phx-view-transition
       class="group flex flex-col bg-surface-container-lowest rounded-xl overflow-hidden transition-all duration-300 active:scale-[0.98] shadow-soft hover:translate-y-[-4px]"
     >
-      <div :if={@item.image_url} class="aspect-square overflow-hidden relative">
+      <div :if={@item.images != []} class="aspect-square overflow-hidden relative">
         <img
-          src={@item.image_url}
+          src={List.first(@item.images).url}
           alt={@item.name}
           class="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
           style={"view-transition-name: item-img-#{@item.id};"}
@@ -69,7 +69,7 @@ defmodule SupervisedSlicesWeb.MenuLive.MenuComponent do
       </div>
 
       <%!-- Intentional fallback for no image --%>
-      <div :if={!@item.image_url} class="pt-8 px-6 pb-2 relative">
+      <div :if={@item.images == []} class="pt-8 px-6 pb-2 relative">
         <div class="w-10 h-1 bg-primary/20 rounded-full mb-4" />
         <div
           :if={@qty > 0}
@@ -82,8 +82,8 @@ defmodule SupervisedSlicesWeb.MenuLive.MenuComponent do
       <div class="p-4 flex flex-col grow">
         <h3 class={[
           "font-headline font-bold leading-tight mb-1 text-on-surface group-hover:text-primary transition-colors",
-          @item.image_url && "text-lg",
-          !@item.image_url && "text-xl"
+          @item.images != [] && "text-lg",
+          @item.images == [] && "text-xl"
         ]}>
           {@item.name}
         </h3>
@@ -112,9 +112,9 @@ defmodule SupervisedSlicesWeb.MenuLive.MenuComponent do
 
     ~H"""
     <div class="col-span-2 flex items-center gap-4 bg-surface-container-low p-3 rounded-xl transition-all duration-300 hover:bg-surface-container group">
-      <div :if={@item.image_url} class="w-20 h-20 rounded-lg overflow-hidden shrink-0 relative">
+      <div :if={@item.images != []} class="w-20 h-20 rounded-lg overflow-hidden shrink-0 relative">
         <img
-          src={@item.image_url}
+          src={List.first(@item.images).url}
           alt={@item.name}
           class="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
           style={"view-transition-name: item-img-#{@item.id};"}
@@ -124,8 +124,8 @@ defmodule SupervisedSlicesWeb.MenuLive.MenuComponent do
       <div class="flex-1 min-w-0 py-1">
         <h3 class={[
           "font-headline font-bold truncate text-on-surface group-hover:text-primary transition-colors",
-          @item.image_url && "text-base",
-          !@item.image_url && "text-lg"
+          @item.images != [] && "text-base",
+          @item.images == [] && "text-lg"
         ]}>
           {@item.name}
         </h3>
