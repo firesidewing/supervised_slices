@@ -8,6 +8,10 @@ defmodule SupervisedSlices.Menu.MenuItemModifierGroupLink do
   postgres do
     table "menu_items_modifier_groups"
     repo SupervisedSlices.Repo
+
+    references do
+      reference :modifier_group, on_delete: :delete
+    end
   end
 
   code_interface do

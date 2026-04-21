@@ -22,8 +22,17 @@ defmodule SupervisedSlices.Menu.MenuItem do
     define :upsellable, action: :upsellable
   end
 
+  resource do
+    base_filter expr(is_nil(deleted_at))
+  end
+
   actions do
-    defaults [:read, :destroy]
+    defaults [:read]
+
+    destroy :destroy do
+      soft? true
+      change set_attribute(:deleted_at, &DateTime.utc_now/0)
+    end
 
     create :create do
       accept [:name, :description, :price, :sort_order, :category_id]
@@ -104,6 +113,10 @@ defmodule SupervisedSlices.Menu.MenuItem do
     attribute :sort_order, :integer do
       default 0
       allow_nil? false
+      public? true
+    end
+
+    attribute :deleted_at, :utc_datetime_usec do
       public? true
     end
 

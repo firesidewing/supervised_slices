@@ -8,6 +8,10 @@ defmodule SupervisedSlices.Menu.MenuItemModifierSizePrice do
   postgres do
     table "menu_item_modifier_size_prices"
     repo SupervisedSlices.Repo
+
+    references do
+      reference :modifier, on_delete: :delete
+    end
   end
 
   code_interface do
