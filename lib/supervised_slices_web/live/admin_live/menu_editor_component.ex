@@ -155,7 +155,8 @@ defmodule SupervisedSlicesWeb.AdminLive.MenuEditorComponent do
 
     uploaded_urls =
       consume_uploaded_entries(socket, :item_image, fn %{path: path}, entry ->
-        {:ok, MenuImageUploader.upload(scope.current_tenant, path, entry.client_type)}
+        key = MenuImageUploader.upload(scope.current_tenant, path, entry.client_type)
+        {:ok, MenuImageUploader.public_url(key)}
       end)
 
     item = MenuItem.get!(params["id"], scope: scope, load: [:images])
@@ -209,7 +210,8 @@ defmodule SupervisedSlicesWeb.AdminLive.MenuEditorComponent do
 
     uploaded_urls =
       consume_uploaded_entries(socket, :item_image, fn %{path: path}, entry ->
-        {:ok, MenuImageUploader.upload(scope.current_tenant, path, entry.client_type)}
+        key = MenuImageUploader.upload(scope.current_tenant, path, entry.client_type)
+        {:ok, MenuImageUploader.public_url(key)}
       end)
 
     item =
@@ -1223,10 +1225,8 @@ defmodule SupervisedSlicesWeb.AdminLive.MenuEditorComponent do
     resource.update!(b, %{sort_order: a_sort}, scope: scope)
   end
 
-  defp tigris_image_url(key) do
-    bucket = Application.get_env(:supervised_slices, :tigris_bucket, "supervised-slices")
-    "https://#{bucket}.fly.storage.tigris.dev/#{key}"
-  end
+  defp tigris_image_url("https://" <> _ = url), do: url
+  defp tigris_image_url(key), do: MenuImageUploader.public_url(key)
 
   defp money_amount(nil), do: "0.00"
   defp money_amount(money), do: Decimal.to_string(money.amount, :normal)

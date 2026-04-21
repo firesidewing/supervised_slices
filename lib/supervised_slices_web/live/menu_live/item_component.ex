@@ -431,12 +431,12 @@ defmodule SupervisedSlicesWeb.MenuLive.ItemComponent do
   end
 
   defp all_images(item) do
-    imgs =
-      case item.images do
-        %Ash.NotLoaded{} -> []
-        images -> images |> Enum.sort_by(& &1.position) |> Enum.map(& &1.url)
-      end
-
-    imgs
+    case item.images do
+      %Ash.NotLoaded{} -> []
+      images -> images |> Enum.sort_by(& &1.position) |> Enum.map(&to_image_url(&1.url))
+    end
   end
+
+  defp to_image_url("https://" <> _ = url), do: url
+  defp to_image_url(key), do: SupervisedSlices.Menu.MenuImageUploader.public_url(key)
 end

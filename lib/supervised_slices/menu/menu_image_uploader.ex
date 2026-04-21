@@ -1,4 +1,9 @@
 defmodule SupervisedSlices.Menu.MenuImageUploader do
+  def public_url(key) do
+    bucket = Application.fetch_env!(:supervised_slices, :tigris_bucket)
+    "https://#{bucket}.fly.storage.tigris.dev/#{key}"
+  end
+
   def upload(org_id, tmp_path, "application/pdf") do
     bucket = Application.fetch_env!(:supervised_slices, :tigris_bucket)
     suffix = :crypto.strong_rand_bytes(6) |> Base.url_encode64(padding: false)
