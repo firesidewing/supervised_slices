@@ -648,6 +648,10 @@ defmodule SupervisedSlicesWeb.AdminLive.MenuEditorComponent do
     {:noreply, socket}
   end
 
+  def handle_event("validate_item", _params, socket) do
+    {:noreply, socket}
+  end
+
   def handle_event("upload_menu", _params, socket) do
     %{org: org} = socket.assigns
 
@@ -1280,14 +1284,14 @@ defmodule SupervisedSlicesWeb.AdminLive.MenuEditorComponent do
 
         <div class="flex-1 overflow-y-auto px-8 py-6 space-y-8">
           <%= if @item == :new do %>
-            <form id="item-form" phx-submit="create_item" phx-target={@myself} class="space-y-6">
+            <form id="item-form" phx-submit="create_item" phx-change="validate_item" phx-target={@myself} class="space-y-6">
               <input type="hidden" name="item[category_id]" value={@category_id} />
               <.drawer_core_fields item={nil} uploads={@uploads} myself={@myself} />
             </form>
           <% end %>
 
           <%= if is_struct(@item) do %>
-            <form id="item-form" phx-submit="save_item" phx-target={@myself} class="space-y-6">
+            <form id="item-form" phx-submit="save_item" phx-change="validate_item" phx-target={@myself} class="space-y-6">
               <input type="hidden" name="item[id]" value={@item.id} />
               <.drawer_core_fields item={@item} uploads={@uploads} myself={@myself} />
             </form>
