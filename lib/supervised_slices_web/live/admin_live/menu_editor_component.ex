@@ -113,6 +113,11 @@ defmodule SupervisedSlicesWeb.AdminLive.MenuEditorComponent do
   end
 
   def handle_event("cancel_edit", _params, socket) do
+    socket =
+      Enum.reduce(socket.assigns.uploads.item_image.entries, socket, fn entry, acc ->
+        cancel_upload(acc, :item_image, entry.ref)
+      end)
+
     {:noreply,
      assign(socket,
        editing_item_id: nil,
@@ -650,6 +655,10 @@ defmodule SupervisedSlicesWeb.AdminLive.MenuEditorComponent do
 
   def handle_event("validate_item", _params, socket) do
     {:noreply, socket}
+  end
+
+  def handle_event("cancel_upload", %{"ref" => ref}, socket) do
+    {:noreply, cancel_upload(socket, :item_image, ref)}
   end
 
   def handle_event("upload_menu", _params, socket) do
@@ -1214,6 +1223,11 @@ defmodule SupervisedSlicesWeb.AdminLive.MenuEditorComponent do
     resource.update!(b, %{sort_order: a_sort}, scope: scope)
   end
 
+  defp tigris_image_url(key) do
+    bucket = Application.get_env(:supervised_slices, :tigris_bucket, "supervised-slices")
+    "https://#{bucket}.fly.storage.tigris.dev/#{key}"
+  end
+
   defp money_amount(nil), do: "0.00"
   defp money_amount(money), do: Decimal.to_string(money.amount, :normal)
 
@@ -1684,7 +1698,7 @@ defmodule SupervisedSlicesWeb.AdminLive.MenuEditorComponent do
         </label>
         <div :if={@item && @item.images != []} class="flex flex-wrap gap-2">
           <div :for={img <- Enum.sort_by(@item.images, & &1.position)} class="relative group">
-            <img src={img.url} alt="item image" class="h-16 w-16 rounded-lg object-cover" />
+            <img src={tigris_image_url(img.url)} alt="item image" class="h-16 w-16 rounded-lg object-cover" />
             <button
               type="button"
               phx-click="delete_image"
@@ -1700,6 +1714,22 @@ defmodule SupervisedSlicesWeb.AdminLive.MenuEditorComponent do
           upload={@uploads.item_image}
           class="text-sm text-on-surface-variant file:mr-3 file:py-1.5 file:px-3 file:rounded-lg file:border-0 file:bg-surface-container file:text-xs file:font-bold file:uppercase file:tracking-wider file:cursor-pointer"
         />
+        <div :if={@uploads.item_image.entries != []} class="flex flex-wrap gap-2 mt-1">
+          <span
+            :for={entry <- @uploads.item_image.entries}
+            class="inline-flex items-center gap-1.5 text-xs bg-surface-container px-2 py-1 rounded-lg text-on-surface-variant"
+          >
+            <span class="material-symbols-outlined text-sm text-primary">image</span>
+            {entry.client_name}
+            <button
+              type="button"
+              phx-click="cancel_upload"
+              phx-value-ref={entry.ref}
+              phx-target={@myself}
+              class="text-error hover:opacity-70"
+            >×</button>
+          </span>
+        </div>
         <p class="text-[10px] text-on-surface-variant">Up to 5 images, max 8MB each.</p>
       </div>
     </div>
