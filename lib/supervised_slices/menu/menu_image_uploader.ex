@@ -20,7 +20,7 @@ defmodule SupervisedSlices.Menu.MenuImageUploader do
     resized_path = tmp_path <> ".webp"
 
     tmp_path
-    |> Image.thumbnail!(1200, fit: :inside)
+    |> Image.thumbnail!(1200, fit: :contain)
     |> Image.write!(resized_path, quality: 85)
 
     resized_path
