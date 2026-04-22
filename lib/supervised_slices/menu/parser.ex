@@ -161,16 +161,17 @@ defmodule SupervisedSlices.Menu.Parser do
     body = %{
       model: @model,
       max_tokens: 32768,
+      system: [
+        %{
+          type: "text",
+          text: prompt,
+          cache_control: %{type: "ephemeral"}
+        }
+      ],
       messages: [
         %{
           role: "user",
-          content: [
-            content_block,
-            %{
-              type: "text",
-              text: prompt
-            }
-          ]
+          content: [content_block]
         }
       ]
     }

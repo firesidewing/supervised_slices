@@ -30,5 +30,5 @@
 )
 - [x] better editor for modifier groups, maybe their own section?
 - [x] hide non live items from menu
-- [ ] Actual radio control type for exclusive options.
+- [x] Actual radio control type for exclusive options.
 - [x] better phone order UI for options/custamization long lists

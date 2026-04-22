@@ -39,6 +39,13 @@ defmodule SupervisedSlices.Menu.MenuUpload do
       validate {SupervisedSlices.Menu.MenuUpload.Validations.SingleUse, []}
 
       change set_attribute(:status, :pending)
+
+      change fn changeset, _ ->
+        Ash.Changeset.after_action(changeset, fn _changeset, upload ->
+          SupervisedSlices.PubSubNotifier.broadcast_menu_upload(upload)
+          {:ok, upload}
+        end)
+      end
     end
 
     update :process do
@@ -50,6 +57,8 @@ defmodule SupervisedSlices.Menu.MenuUpload do
 
       change fn changeset, _ ->
         Ash.Changeset.after_action(changeset, fn _changeset, upload ->
+          SupervisedSlices.PubSubNotifier.broadcast_menu_upload(upload)
+
           case SupervisedSlices.Menu.Parser.parse(upload.file_url) do
             {:ok, %SupervisedSlices.Menu.Parser.ParsedMenu{} = parsed} ->
               try do
@@ -207,12 +216,29 @@ defmodule SupervisedSlices.Menu.MenuUpload do
 
     update :complete do
       accept []
+      require_atomic? false
       change set_attribute(:status, :completed)
+
+      change fn changeset, _ ->
+        Ash.Changeset.after_action(changeset, fn _changeset, upload ->
+          SupervisedSlices.PubSubNotifier.broadcast_menu_upload(upload)
+          SupervisedSlices.PubSubNotifier.broadcast_menu_updated(upload.organization_id)
+          {:ok, upload}
+        end)
+      end
     end
 
     update :fail do
       accept [:error_message]
+      require_atomic? false
       change set_attribute(:status, :failed)
+
+      change fn changeset, _ ->
+        Ash.Changeset.after_action(changeset, fn _changeset, upload ->
+          SupervisedSlices.PubSubNotifier.broadcast_menu_upload(upload)
+          {:ok, upload}
+        end)
+      end
     end
   end
 

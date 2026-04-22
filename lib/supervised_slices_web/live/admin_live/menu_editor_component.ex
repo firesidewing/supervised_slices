@@ -50,23 +50,43 @@ defmodule SupervisedSlicesWeb.AdminLive.MenuEditorComponent do
     {:ok, assign(socket, open_group_id: id, show_group_delete_confirm: false)}
   end
 
-  def update(%{reload_modifier_groups: _, reload_categories: _} = _assigns, socket) do
+  def update(%{reload_modifier_groups: _, reload_categories: _} = assigns, socket) do
     scope = socket.assigns.ash_scope
+
+    socket =
+      socket
+      |> assign(:modifier_groups, load_modifier_groups(scope))
+      |> assign(:categories, load_categories(scope))
+
+    socket =
+      if upload = assigns[:current_upload] do
+        has_completed = upload.status == :completed or socket.assigns.has_completed_upload
+        socket |> assign(:current_upload, upload) |> assign(:has_completed_upload, has_completed)
+      else
+        socket
+      end
+
+    {:ok, assign(socket, Map.drop(assigns, [:reload_modifier_groups, :reload_categories, :current_upload]))}
+  end
+
+  def update(%{current_upload: upload} = assigns, socket) do
+    has_completed = upload.status == :completed or socket.assigns.has_completed_upload
 
     {:ok,
      socket
-     |> assign(:modifier_groups, load_modifier_groups(scope))
-     |> assign(:categories, load_categories(scope))}
+     |> assign(:current_upload, upload)
+     |> assign(:has_completed_upload, has_completed)
+     |> assign(Map.drop(assigns, [:current_upload]))}
   end
 
-  def update(%{reload_modifier_groups: true} = _assigns, socket) do
+  def update(%{reload_modifier_groups: true} = assigns, socket) do
     scope = socket.assigns.ash_scope
-    {:ok, assign(socket, :modifier_groups, load_modifier_groups(scope))}
+    {:ok, socket |> assign(:modifier_groups, load_modifier_groups(scope)) |> assign(Map.drop(assigns, [:reload_modifier_groups]))}
   end
 
-  def update(%{reload_categories: true} = _assigns, socket) do
+  def update(%{reload_categories: true} = assigns, socket) do
     scope = socket.assigns.ash_scope
-    {:ok, assign(socket, :categories, load_categories(scope))}
+    {:ok, socket |> assign(:categories, load_categories(scope)) |> assign(Map.drop(assigns, [:reload_categories]))}
   end
 
   def update(%{ash_scope: scope, org: org} = assigns, socket) do

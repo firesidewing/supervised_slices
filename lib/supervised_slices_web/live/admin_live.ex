@@ -33,6 +33,8 @@ defmodule SupervisedSlicesWeb.AdminLive do
       if connected?(socket) do
         PubSubNotifier.subscribe_to_org_orders(org.id)
         PubSubNotifier.subscribe_to_org_carts(org.id)
+        PubSubNotifier.subscribe_to_menu_uploads(org.id)
+        PubSubNotifier.subscribe_to_menu(org.id)
         OrgPresence.subscribe(org.id)
         :timer.send_interval(10000, self(), :tick)
       end
@@ -140,6 +142,43 @@ defmodule SupervisedSlicesWeb.AdminLive do
      socket
      |> assign(:show_phone_order, false)
      |> put_flash(:info, "Phone order placed successfully.")}
+  end
+
+  def handle_info({:menu_upload_updated, upload}, socket) do
+    if upload.status == :completed do
+      send_update(SupervisedSlicesWeb.AdminLive.MenuEditorComponent,
+        id: "menu-editor",
+        current_upload: upload,
+        reload_categories: true,
+        reload_modifier_groups: true
+      )
+
+      {:noreply, put_flash(socket, :info, "Menu import completed successfully!")}
+    else
+      send_update(SupervisedSlicesWeb.AdminLive.MenuEditorComponent,
+        id: "menu-editor",
+        current_upload: upload
+      )
+
+      socket =
+        if upload.status == :failed do
+          put_flash(socket, :error, "Menu import failed: #{upload.error_message}")
+        else
+          socket
+        end
+
+      {:noreply, socket}
+    end
+  end
+
+  def handle_info(:menu_updated, socket) do
+    send_update(SupervisedSlicesWeb.AdminLive.MenuEditorComponent,
+      id: "menu-editor",
+      reload_categories: true,
+      reload_modifier_groups: true
+    )
+
+    {:noreply, socket}
   end
 
   def handle_info({:close_phone_order}, socket) do

@@ -47,6 +47,11 @@ defmodule SupervisedSlices.PubSubNotifier do
     Phoenix.PubSub.broadcast(@pubsub, "carts:#{org_id}", {:cart_updated, cart})
   end
 
+  @doc "Broadcast a menu upload status change."
+  def broadcast_menu_upload(%{organization_id: org_id} = upload) do
+    Phoenix.PubSub.broadcast(@pubsub, "menu_uploads:#{org_id}", {:menu_upload_updated, upload})
+  end
+
   @doc "Broadcast a kitchen update message for a specific order (customer tracking)."
   def broadcast_order_update(%{organization_id: org_id, order_id: order_id} = update) do
     Phoenix.PubSub.broadcast(@pubsub, "orders:#{org_id}:#{order_id}", {:order_update, update})
@@ -132,6 +137,11 @@ defmodule SupervisedSlices.PubSubNotifier do
   @doc "Subscribe to cart updates for an org (admin sees live cart contents)."
   def subscribe_to_org_carts(org_id) do
     Phoenix.PubSub.subscribe(@pubsub, "carts:#{org_id}")
+  end
+
+  @doc "Subscribe to menu upload status changes for an org."
+  def subscribe_to_menu_uploads(org_id) do
+    Phoenix.PubSub.subscribe(@pubsub, "menu_uploads:#{org_id}")
   end
 
   @doc "Broadcast a menu availability change to all customers viewing the org's menu."
