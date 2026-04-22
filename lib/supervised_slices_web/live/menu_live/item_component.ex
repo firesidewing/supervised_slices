@@ -256,7 +256,7 @@ defmodule SupervisedSlicesWeb.MenuLive.ItemComponent do
       phx-value-size_id={@size.id}
       phx-target={@myself}
       class={[
-        "flex-shrink-0 w-28 h-36 flex flex-col items-center justify-center rounded-xl transition-all duration-300",
+        "flex-shrink-0 w-28 h-36 flex flex-col items-center justify-center rounded-xl transition-[background-color,box-shadow,opacity,border-color] duration-150 ease-out active:scale-[0.98] phx-click-loading:opacity-60 phx-click-loading:scale-[0.98] phx-click-loading:cursor-wait",
         if(@selected,
           do: "bg-surface-container border-b-2 border-primary-container shadow-md",
           else: "bg-surface-container-low opacity-80 hover:opacity-100 hover:bg-surface-container"
@@ -304,7 +304,7 @@ defmodule SupervisedSlicesWeb.MenuLive.ItemComponent do
       phx-target={@myself}
       disabled={@at_max}
       class={[
-        "group flex items-center justify-between p-4 rounded-xl transition-all duration-300 text-left w-full",
+        "group flex items-center justify-between p-4 rounded-xl transition-[background-color,box-shadow,opacity,border-color] duration-150 ease-out active:scale-[0.98] phx-click-loading:opacity-60 phx-click-loading:scale-[0.98] phx-click-loading:cursor-wait text-left w-full",
         if(@selected,
           do: "bg-surface-container shadow-sm border-b-2 border-primary-container",
           else: "bg-surface-container-low hover:bg-surface-container opacity-80 hover:opacity-100"
@@ -334,17 +334,17 @@ defmodule SupervisedSlicesWeb.MenuLive.ItemComponent do
         <div
           :if={@group.max_selections == 1}
           class={[
-            "w-5 h-5 rounded-full border border-outline-variant flex items-center justify-center transition-all",
+            "w-5 h-5 rounded-full border border-outline-variant flex items-center justify-center transition-[background-color,border-color] duration-150 ease-out",
             if(@selected, do: "bg-primary border-primary", else: "")
           ]}
         >
-          <div :if={@selected} class="w-1.5 h-1.5 rounded-full bg-white" />
+          <div :if={@selected} class="w-1.5 h-1.5 rounded-full bg-white animate-in zoom-in duration-100" />
         </div>
 
         <div
           :if={@group.max_selections != 1}
           class={[
-            "w-8 h-8 flex items-center justify-center rounded transition-all",
+            "w-8 h-8 flex items-center justify-center rounded transition-[background-color,border-color] duration-150 ease-out",
             if(@selected,
               do: "bg-primary text-white border-b-2 border-primary-container scale-95",
               else:
