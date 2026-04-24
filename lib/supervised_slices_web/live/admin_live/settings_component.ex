@@ -363,7 +363,7 @@ defmodule SupervisedSlicesWeb.AdminLive.SettingsComponent do
   def render(assigns) do
     ~H"""
     <div class="max-w-2xl mx-auto space-y-12 pb-24">
-      <div class="bg-surface-container-low rounded-md shadow-sm p-10 space-y-10">
+      <div class="bg-surface-container-low rounded-md shadow-sm p-6 md:p-10 space-y-6 md:space-y-10">
         <div>
           <h2 class="font-headline text-2xl font-black text-on-surface">
             System Settings
@@ -445,7 +445,7 @@ defmodule SupervisedSlicesWeb.AdminLive.SettingsComponent do
               </label>
             </div>
 
-            <div class="grid grid-cols-2 gap-8">
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-8">
               <div>
                 <label class="font-body block text-[10px] font-black uppercase tracking-[0.2em] text-on-surface-variant/40 mb-2">
                   Delivery Fee
@@ -524,7 +524,7 @@ defmodule SupervisedSlicesWeb.AdminLive.SettingsComponent do
               >
               </div>
 
-              <div class="grid grid-cols-3 gap-4">
+              <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
                 <div class="space-y-1">
                   <label class="text-[9px] font-black uppercase tracking-widest text-on-surface-variant/40 ml-1">
                     Latitude
@@ -608,13 +608,13 @@ defmodule SupervisedSlicesWeb.AdminLive.SettingsComponent do
                 <% open_time = schedule_day_value(@schedule, :"#{key}_open_time", "11:00") %>
                 <% close_time = schedule_day_value(@schedule, :"#{key}_close_time", "22:00") %>
 
-                <div class="flex items-center gap-4 py-2 border-b border-on-surface/5 last:border-0">
-                  <span class="font-body text-[10px] font-black text-on-surface-variant w-24 uppercase tracking-widest">
+                <div class="flex flex-wrap items-center gap-x-4 gap-y-2 py-2 border-b border-on-surface/5 last:border-0">
+                  <span class="font-body text-[10px] font-black text-on-surface-variant w-20 shrink-0 uppercase tracking-widest">
                     {label}
                   </span>
 
                   <input type="hidden" name={"#{key}_open"} value="false" />
-                  <label class="flex items-center gap-2 cursor-pointer group">
+                  <label class="flex items-center gap-2 cursor-pointer group shrink-0">
                     <input
                       type="checkbox"
                       name={"#{key}_open"}
@@ -627,7 +627,7 @@ defmodule SupervisedSlicesWeb.AdminLive.SettingsComponent do
                     </span>
                   </label>
 
-                  <div class="flex-1 flex items-center justify-end gap-3">
+                  <div class="flex items-center gap-2 ml-auto">
                     <input
                       type="time"
                       name={"#{key}_open_time"}
@@ -674,7 +674,7 @@ defmodule SupervisedSlicesWeb.AdminLive.SettingsComponent do
         </form>
       </div>
 
-      <div class="bg-surface-container-low rounded-md shadow-sm p-10 space-y-10">
+      <div class="bg-surface-container-low rounded-md shadow-sm p-6 md:p-10 space-y-6 md:space-y-10">
         <div>
           <h2 class="font-headline text-2xl font-black text-on-surface">
             Branding
@@ -707,7 +707,7 @@ defmodule SupervisedSlicesWeb.AdminLive.SettingsComponent do
             </div>
           </div>
 
-          <div class="grid grid-cols-2 gap-8 pt-4">
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-8 pt-4">
             <div>
               <label class="font-body block text-[10px] font-black uppercase tracking-[0.2em] text-on-surface-variant/40 mb-3">
                 Primary Brand Hue
@@ -768,7 +768,7 @@ defmodule SupervisedSlicesWeb.AdminLive.SettingsComponent do
         </form>
       </div>
 
-      <div class="bg-surface-container-low rounded-md shadow-sm p-10 space-y-10">
+      <div class="bg-surface-container-low rounded-md shadow-sm p-6 md:p-10 space-y-6 md:space-y-10">
         <div>
           <h2 class="font-headline text-2xl font-black text-on-surface">
             Your Team
