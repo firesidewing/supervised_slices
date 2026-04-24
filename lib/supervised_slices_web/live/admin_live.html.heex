@@ -123,7 +123,7 @@
         if(@live_action == :orders, do: "text-primary", else: "text-on-surface-variant/60")
       ]}
     >
-      <span class="material-symbols-outlined !text-[22px]">receipt_long</span>
+      <.icon name="hero-clipboard-document-list" class="size-6" />
       <span class="text-[10px] font-bold uppercase tracking-wider font-body">Orders</span>
     </.link>
 
@@ -134,7 +134,7 @@
         if(@live_action == :baskets, do: "text-primary", else: "text-on-surface-variant/60")
       ]}
     >
-      <span class="material-symbols-outlined !text-[22px]">shopping_cart</span>
+      <.icon name="hero-shopping-cart" class="size-6" />
       <span class="text-[10px] font-bold uppercase tracking-wider font-body">Baskets</span>
     </.link>
 
@@ -146,7 +146,7 @@
         if(@live_action == :insights, do: "text-primary", else: "text-on-surface-variant/60")
       ]}
     >
-      <span class="material-symbols-outlined !text-[22px]">insights</span>
+      <.icon name="hero-chart-bar" class="size-6" />
       <span class="text-[10px] font-bold uppercase tracking-wider font-body">Insights</span>
     </.link>
 
@@ -158,7 +158,7 @@
           if(@live_action == :menu, do: "text-primary", else: "text-on-surface-variant/60")
         ]}
       >
-        <span class="material-symbols-outlined !text-[22px]">menu_book</span>
+        <.icon name="hero-book-open" class="size-6" />
         <span class="text-[10px] font-bold uppercase tracking-wider font-body">Menu</span>
       </.link>
 
@@ -169,7 +169,7 @@
           if(@live_action == :settings, do: "text-primary", else: "text-on-surface-variant/60")
         ]}
       >
-        <span class="material-symbols-outlined !text-[22px]">settings</span>
+        <.icon name="hero-cog-6-tooth" class="size-6" />
         <span class="text-[10px] font-bold uppercase tracking-wider font-body">Settings</span>
       </.link>
     <% end %>
