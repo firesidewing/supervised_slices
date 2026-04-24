@@ -99,7 +99,8 @@ defmodule SupervisedSlices.Orgs.Organization do
         :stripe_subscription_id,
         :subscription_status,
         :plan,
-        :menu_upload_purchased
+        :menu_upload_purchased,
+        :menu_upload_banner_dismissed
       ]
     end
 
@@ -272,6 +273,12 @@ defmodule SupervisedSlices.Orgs.Organization do
     end
 
     attribute :menu_upload_purchased, :boolean do
+      default false
+      allow_nil? false
+      public? true
+    end
+
+    attribute :menu_upload_banner_dismissed, :boolean do
       default false
       allow_nil? false
       public? true
