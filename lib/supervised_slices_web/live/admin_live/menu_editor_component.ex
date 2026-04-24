@@ -727,6 +727,21 @@ defmodule SupervisedSlicesWeb.AdminLive.MenuEditorComponent do
     {:noreply, socket}
   end
 
+  def handle_event("dismiss_upload_banner", _params, socket) do
+    org = socket.assigns.org
+
+    updated_org =
+      org
+      |> Ash.Changeset.for_update(:update_billing, %{menu_upload_banner_dismissed: true})
+      |> Ash.update(authorize?: false)
+      |> case do
+        {:ok, o} -> o
+        _ -> org
+      end
+
+    {:noreply, assign(socket, :org, updated_org)}
+  end
+
   def handle_event("validate_item", _params, socket) do
     {:noreply, socket}
   end
@@ -778,7 +793,7 @@ defmodule SupervisedSlicesWeb.AdminLive.MenuEditorComponent do
       <div class="flex flex-col lg:flex-row gap-12 items-start">
         <div class="flex-1 space-y-12 w-full">
           <div
-            :if={not @org.menu_upload_purchased}
+            :if={not @org.menu_upload_purchased and not @org.menu_upload_banner_dismissed}
             class="bg-surface-container-low p-6 rounded-xl border-2 border-dashed border-outline-variant/50"
           >
             <div class="flex flex-col sm:flex-row sm:items-center gap-4">
@@ -809,12 +824,20 @@ defmodule SupervisedSlicesWeb.AdminLive.MenuEditorComponent do
                   </span>
                   {if @purchasing_upload, do: "Processing...", else: "Purchase"}
                 </button>
+                <button
+                  phx-click="dismiss_upload_banner"
+                  phx-target={@myself}
+                  class="text-on-surface-variant hover:text-on-surface transition-colors"
+                  aria-label="Dismiss"
+                >
+                  <span class="material-symbols-outlined text-lg">close</span>
+                </button>
               </div>
             </div>
           </div>
 
           <div
-            :if={@org.menu_upload_purchased and not @has_completed_upload}
+            :if={@org.menu_upload_purchased and not @has_completed_upload and not @org.menu_upload_banner_dismissed}
             class="bg-surface-container-low p-6 rounded-xl border-2 border-dashed border-primary/30 mb-8"
           >
             <div class="flex flex-col sm:flex-row sm:items-center gap-4 mb-4">
@@ -843,6 +866,14 @@ defmodule SupervisedSlicesWeb.AdminLive.MenuEditorComponent do
                     Start Import
                   </button>
                 </form>
+                <button
+                  phx-click="dismiss_upload_banner"
+                  phx-target={@myself}
+                  class="text-on-surface-variant hover:text-on-surface transition-colors"
+                  aria-label="Dismiss"
+                >
+                  <span class="material-symbols-outlined text-lg">close</span>
+                </button>
               </div>
             </div>
 
