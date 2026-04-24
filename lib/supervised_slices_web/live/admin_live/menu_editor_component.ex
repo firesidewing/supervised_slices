@@ -31,6 +31,8 @@ defmodule SupervisedSlicesWeb.AdminLive.MenuEditorComponent do
      |> assign(:show_group_delete_confirm, false)
      |> assign(:editing_modifier_id, nil)
      |> assign(:adding_modifier, false)
+     |> assign(:pending_sizes, [])
+     |> assign(:pending_modifiers, [])
      |> assign(:current_upload, nil)
      |> assign(:has_completed_upload, false)
      |> assign(:purchasing_upload, false)
@@ -143,7 +145,8 @@ defmodule SupervisedSlicesWeb.AdminLive.MenuEditorComponent do
        editing_item_id: nil,
        open_item_id: nil,
        open_item_category_id: nil,
-       show_delete_confirm: false
+       show_delete_confirm: false,
+       pending_sizes: []
      )}
   end
 
@@ -226,7 +229,7 @@ defmodule SupervisedSlicesWeb.AdminLive.MenuEditorComponent do
   end
 
   def handle_event("create_item", %{"item" => params}, socket) do
-    %{ash_scope: scope} = socket.assigns
+    %{ash_scope: scope, pending_sizes: pending_sizes} = socket.assigns
 
     uploaded_urls =
       consume_uploaded_entries(socket, :item_image, fn %{path: path}, entry ->
@@ -234,12 +237,14 @@ defmodule SupervisedSlicesWeb.AdminLive.MenuEditorComponent do
         {:ok, MenuImageUploader.public_url(key)}
       end)
 
+    base_price = if pending_sizes == [], do: parse_money(params["price"]), else: nil
+
     item =
       MenuItem.create!(
         %{
           name: params["name"],
           description: params["description"],
-          price: parse_money(params["price"]),
+          price: base_price,
           sort_order: String.to_integer(params["sort_order"] || "0"),
           category_id: params["category_id"]
         },
@@ -252,6 +257,18 @@ defmodule SupervisedSlicesWeb.AdminLive.MenuEditorComponent do
       MenuItemImage.create!(%{url: url, position: pos, menu_item_id: item.id}, scope: scope)
     end)
 
+    pending_sizes
+    |> Enum.each(fn %{name: name, price: price_str} ->
+      MenuItemSize.create!(
+        %{
+          name: name,
+          price: Money.new!(:CAD, Decimal.new(price_str || "0")),
+          menu_item_id: item.id
+        },
+        scope: scope
+      )
+    end)
+
     categories = load_categories(scope)
 
     {:noreply,
@@ -259,7 +276,8 @@ defmodule SupervisedSlicesWeb.AdminLive.MenuEditorComponent do
        categories: categories,
        open_item_id: item.id,
        open_item_category_id: nil,
-       show_delete_confirm: false
+       show_delete_confirm: false,
+       pending_sizes: []
      )}
   end
 
@@ -399,6 +417,16 @@ defmodule SupervisedSlicesWeb.AdminLive.MenuEditorComponent do
     {:noreply, assign(socket, :categories, categories)}
   end
 
+  def handle_event("add_pending_size", %{"size" => params}, socket) do
+    size = %{name: params["name"], price: params["price"]}
+    {:noreply, assign(socket, :pending_sizes, socket.assigns.pending_sizes ++ [size])}
+  end
+
+  def handle_event("remove_pending_size", %{"index" => idx_str}, socket) do
+    idx = String.to_integer(idx_str)
+    {:noreply, assign(socket, :pending_sizes, List.delete_at(socket.assigns.pending_sizes, idx))}
+  end
+
   # ---------------------------------------------------------------------------
   # Modifier group events
   # ---------------------------------------------------------------------------
@@ -413,12 +441,13 @@ defmodule SupervisedSlicesWeb.AdminLive.MenuEditorComponent do
        open_group_id: nil,
        show_group_delete_confirm: false,
        editing_modifier_id: nil,
-       adding_modifier: false
+       adding_modifier: false,
+       pending_modifiers: []
      )}
   end
 
   def handle_event("create_modifier_group", %{"group" => params}, socket) do
-    %{ash_scope: scope} = socket.assigns
+    %{ash_scope: scope, pending_modifiers: pending_modifiers} = socket.assigns
 
     group =
       MenuItemModifierGroup.create!(
@@ -432,10 +461,23 @@ defmodule SupervisedSlicesWeb.AdminLive.MenuEditorComponent do
         scope: scope
       )
 
+    pending_modifiers
+    |> Enum.each(fn %{name: name, price_delta: price_str} ->
+      MenuItemModifier.create!(
+        %{name: name, price_delta: parse_money(price_str), modifier_group_id: group.id},
+        scope: scope
+      )
+    end)
+
     modifier_groups = load_modifier_groups(scope)
 
     {:noreply,
-     assign(socket, modifier_groups: modifier_groups, open_group_id: group.id, adding_modifier: false)}
+     assign(socket,
+       modifier_groups: modifier_groups,
+       open_group_id: group.id,
+       adding_modifier: pending_modifiers == [],
+       pending_modifiers: []
+     )}
   end
 
   def handle_event("save_group", %{"group" => params}, socket) do
@@ -494,6 +536,16 @@ defmodule SupervisedSlicesWeb.AdminLive.MenuEditorComponent do
 
   def handle_event("cancel_add_modifier", _params, socket) do
     {:noreply, assign(socket, adding_modifier: false)}
+  end
+
+  def handle_event("add_pending_modifier", %{"modifier" => params}, socket) do
+    mod = %{name: params["name"], price_delta: params["price_delta"]}
+    {:noreply, assign(socket, :pending_modifiers, socket.assigns.pending_modifiers ++ [mod])}
+  end
+
+  def handle_event("remove_pending_modifier", %{"index" => idx_str}, socket) do
+    idx = String.to_integer(idx_str)
+    {:noreply, assign(socket, :pending_modifiers, List.delete_at(socket.assigns.pending_modifiers, idx))}
   end
 
   def handle_event("create_modifier", %{"modifier" => params}, socket) do
@@ -729,8 +781,8 @@ defmodule SupervisedSlicesWeb.AdminLive.MenuEditorComponent do
             :if={not @org.menu_upload_purchased}
             class="bg-surface-container-low p-6 rounded-xl border-2 border-dashed border-outline-variant/50"
           >
-            <div class="flex items-center justify-between">
-              <div>
+            <div class="flex flex-col sm:flex-row sm:items-center gap-4">
+              <div class="flex-1">
                 <h3 class="text-lg font-black text-on-surface font-headline uppercase tracking-tight">
                   AI Menu Importer
                 </h3>
@@ -738,7 +790,7 @@ defmodule SupervisedSlicesWeb.AdminLive.MenuEditorComponent do
                   Upload a photo of your menu and let our AI build your entire digital catalog — categories, items, sizes, and modifiers.
                 </p>
               </div>
-              <div class="flex items-center gap-4 ml-8 shrink-0">
+              <div class="flex items-center gap-4 shrink-0">
                 <span class="text-sm font-black text-on-surface-variant">$150 one-time</span>
                 <button
                   phx-click="purchase_menu_upload"
@@ -765,8 +817,8 @@ defmodule SupervisedSlicesWeb.AdminLive.MenuEditorComponent do
             :if={@org.menu_upload_purchased and not @has_completed_upload}
             class="bg-surface-container-low p-6 rounded-xl border-2 border-dashed border-primary/30 mb-8"
           >
-            <div class="flex items-center justify-between mb-4">
-              <div>
+            <div class="flex flex-col sm:flex-row sm:items-center gap-4 mb-4">
+              <div class="flex-1">
                 <h3 class="text-lg font-black text-on-surface font-headline uppercase tracking-tight">
                   AI Menu Importer
                 </h3>
@@ -774,7 +826,7 @@ defmodule SupervisedSlicesWeb.AdminLive.MenuEditorComponent do
                   Upload your menu (JPG, PNG, WebP, or PDF) and we'll build your menu automatically.
                 </p>
               </div>
-              <div class="flex items-center gap-4">
+              <div class="flex items-center gap-4 shrink-0">
                 <form phx-submit="upload_menu" phx-change="validate_menu_upload" phx-target={@myself}>
                   <.live_file_input upload={@uploads.menu_file} class="hidden" />
                   <label
@@ -1166,6 +1218,7 @@ defmodule SupervisedSlicesWeb.AdminLive.MenuEditorComponent do
         show_delete_confirm={@show_delete_confirm}
         myself={@myself}
         uploads={@uploads}
+        pending_sizes={@pending_sizes}
       />
 
       <.modifier_group_drawer
@@ -1175,6 +1228,7 @@ defmodule SupervisedSlicesWeb.AdminLive.MenuEditorComponent do
         editing_modifier_id={@editing_modifier_id}
         adding_modifier={@adding_modifier}
         myself={@myself}
+        pending_modifiers={@pending_modifiers}
       />
     </div>
     """
@@ -1278,6 +1332,7 @@ defmodule SupervisedSlicesWeb.AdminLive.MenuEditorComponent do
   attr :show_delete_confirm, :boolean, default: false
   attr :myself, :any, required: true
   attr :uploads, :any, required: true
+  attr :pending_sizes, :list, default: []
 
   defp menu_item_drawer(assigns) do
     ~H"""
@@ -1320,7 +1375,7 @@ defmodule SupervisedSlicesWeb.AdminLive.MenuEditorComponent do
           <%= if @item == :new do %>
             <form id="item-form" phx-submit="create_item" phx-change="validate_item" phx-target={@myself} class="space-y-6">
               <input type="hidden" name="item[category_id]" value={@category_id} />
-              <.drawer_core_fields item={nil} uploads={@uploads} myself={@myself} />
+              <.drawer_core_fields item={nil} uploads={@uploads} myself={@myself} pending_sizes={@pending_sizes} />
             </form>
           <% end %>
 
@@ -1330,7 +1385,7 @@ defmodule SupervisedSlicesWeb.AdminLive.MenuEditorComponent do
               <.drawer_core_fields item={@item} uploads={@uploads} myself={@myself} />
             </form>
 
-            <details class="group/sizes">
+            <details class="group/sizes" open={Enum.empty?(@item.sizes || [])}>
               <summary class="list-none flex items-center justify-between cursor-pointer py-2">
                 <span class="text-xs font-black text-on-surface-variant uppercase tracking-wider">
                   Sizes
@@ -1394,7 +1449,7 @@ defmodule SupervisedSlicesWeb.AdminLive.MenuEditorComponent do
               </div>
             </details>
 
-            <details class="group/mods">
+            <details class="group/mods" open={Enum.empty?(@item.modifier_groups || [])}>
               <summary class="list-none flex items-center justify-between cursor-pointer py-2">
                 <span class="text-xs font-black text-on-surface-variant uppercase tracking-wider">
                   Modifier Groups
@@ -1660,6 +1715,7 @@ defmodule SupervisedSlicesWeb.AdminLive.MenuEditorComponent do
   attr :item, :any, default: nil
   attr :uploads, :any, required: true
   attr :myself, :any, required: true
+  attr :pending_sizes, :list, default: []
 
   defp drawer_core_fields(assigns) do
     ~H"""
@@ -1679,25 +1735,30 @@ defmodule SupervisedSlicesWeb.AdminLive.MenuEditorComponent do
         />
       </div>
 
-      <%= if is_nil(@item) or Enum.empty?(@item.sizes || []) do %>
-        <div>
-          <label class="block text-xs font-bold text-on-surface-variant uppercase tracking-wider mb-1">
-            Price (CAD)
-          </label>
-          <input
-            type="text"
-            name="item[price]"
-            value={if @item, do: money_amount(@item.price), else: ""}
-            inputmode="decimal"
-            placeholder="e.g. 14.50"
-            class="w-full bg-surface-container-low border-0 rounded-lg px-4 py-2.5 text-sm focus:ring-2 focus:ring-primary outline-none"
-          />
-        </div>
-      <% else %>
-        <input type="hidden" name="item[price]" value="" />
-        <p class="text-xs text-on-surface-variant italic">
-          Price is set per size — expand Sizes below to manage.
-        </p>
+      <%= cond do %>
+        <% not is_nil(@item) and not Enum.empty?(@item.sizes || []) -> %>
+          <input type="hidden" name="item[price]" value="" />
+          <p class="text-xs text-on-surface-variant italic">
+            Price is set per size — expand Sizes below to manage.
+          </p>
+        <% is_nil(@item) and not Enum.empty?(@pending_sizes) -> %>
+          <p class="text-xs text-on-surface-variant italic">
+            Price is set per size below.
+          </p>
+        <% true -> %>
+          <div>
+            <label class="block text-xs font-bold text-on-surface-variant uppercase tracking-wider mb-1">
+              Price (CAD)
+            </label>
+            <input
+              type="text"
+              name="item[price]"
+              value={if @item, do: money_amount(@item.price), else: ""}
+              inputmode="decimal"
+              placeholder="e.g. 14.50"
+              class="w-full bg-surface-container-low border-0 rounded-lg px-4 py-2.5 text-sm focus:ring-2 focus:ring-primary outline-none"
+            />
+          </div>
       <% end %>
 
       <div>
@@ -1752,6 +1813,59 @@ defmodule SupervisedSlicesWeb.AdminLive.MenuEditorComponent do
         </div>
         <p class="text-[10px] text-on-surface-variant">Up to 5 images, max 8MB each.</p>
       </div>
+
+      <%= if is_nil(@item) do %>
+        <div class="space-y-3 pt-2 border-t border-on-surface/5">
+          <span class="text-xs font-black text-on-surface-variant uppercase tracking-wider">
+            Sizes
+            <span :if={not Enum.empty?(@pending_sizes)} class="ml-1 text-primary">
+              ({length(@pending_sizes)})
+            </span>
+          </span>
+          <div
+            :for={{size, idx} <- Enum.with_index(@pending_sizes)}
+            class="flex items-center gap-3 px-3 py-2 bg-surface-container-low rounded-lg"
+          >
+            <span class="flex-1 text-sm text-on-surface">{size.name}</span>
+            <span class="text-sm font-bold text-primary">
+              {if size.price == "" or is_nil(size.price), do: "Free", else: "$#{size.price}"}
+            </span>
+            <button
+              phx-click="remove_pending_size"
+              phx-value-index={idx}
+              phx-target={@myself}
+              type="button"
+              class="text-on-surface-variant hover:text-error transition-colors p-1"
+            >
+              <span class="material-symbols-outlined" style="font-size: 14px;">close</span>
+            </button>
+          </div>
+          <p :if={Enum.empty?(@pending_sizes)} class="text-xs text-on-surface-variant italic">
+            Add sizes to let customers choose (e.g. Small, Medium, Large). Price will be set per size.
+          </p>
+          <form phx-submit="add_pending_size" phx-target={@myself} class="flex flex-wrap items-center gap-2">
+            <input
+              type="text"
+              name="size[name]"
+              placeholder="Name (e.g. Large)"
+              class="flex-[2] min-w-[120px] bg-surface-container-low border-0 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-primary outline-none"
+            />
+            <input
+              type="text"
+              name="size[price]"
+              placeholder="Price"
+              inputmode="decimal"
+              class="flex-1 min-w-[80px] bg-surface-container-low border-0 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-primary outline-none"
+            />
+            <button
+              type="submit"
+              class="bg-surface-container text-on-surface-variant px-4 py-2 rounded-lg text-sm font-bold hover:bg-surface-container-highest transition-colors"
+            >
+              Add
+            </button>
+          </form>
+        </div>
+      <% end %>
     </div>
     """
   end
@@ -1766,6 +1880,7 @@ defmodule SupervisedSlicesWeb.AdminLive.MenuEditorComponent do
   attr :editing_modifier_id, :any, default: nil
   attr :adding_modifier, :boolean, default: false
   attr :myself, :any, required: true
+  attr :pending_modifiers, :list, default: []
 
   defp modifier_group_drawer(assigns) do
     ~H"""
@@ -1879,6 +1994,62 @@ defmodule SupervisedSlicesWeb.AdminLive.MenuEditorComponent do
                 </div>
               </details>
             </form>
+
+            <div class="space-y-3 pt-2 border-t border-on-surface/5">
+              <span class="text-xs font-black text-on-surface-variant uppercase tracking-wider">
+                Options
+                <span :if={not Enum.empty?(@pending_modifiers)} class="ml-1 text-primary">
+                  ({length(@pending_modifiers)})
+                </span>
+              </span>
+              <div
+                :for={{mod, idx} <- Enum.with_index(@pending_modifiers)}
+                class="flex items-center gap-2 px-2 py-2 rounded-lg bg-surface-container-low"
+              >
+                <span class="flex-1 text-sm text-on-surface">{mod.name}</span>
+                <span class="text-xs text-on-surface-variant whitespace-nowrap">
+                  {if mod.price_delta == "" or is_nil(mod.price_delta), do: "Free", else: "+$#{mod.price_delta}"}
+                </span>
+                <button
+                  phx-click="remove_pending_modifier"
+                  phx-value-index={idx}
+                  phx-target={@myself}
+                  type="button"
+                  class="text-on-surface-variant hover:text-error transition-colors p-1"
+                >
+                  <span class="material-symbols-outlined" style="font-size: 14px;">close</span>
+                </button>
+              </div>
+              <p :if={Enum.empty?(@pending_modifiers)} class="text-xs text-on-surface-variant italic">
+                Add options customers can choose from.
+              </p>
+              <form
+                phx-submit="add_pending_modifier"
+                phx-target={@myself}
+                class="flex flex-wrap items-center gap-2"
+              >
+                <input
+                  type="text"
+                  name="modifier[name]"
+                  required
+                  placeholder="Option name"
+                  class="flex-[2] min-w-[140px] bg-surface-container-low border-0 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-primary outline-none"
+                />
+                <input
+                  type="text"
+                  name="modifier[price_delta]"
+                  placeholder="+0.00"
+                  inputmode="decimal"
+                  class="flex-1 min-w-[80px] bg-surface-container-low border-0 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-primary outline-none"
+                />
+                <button
+                  type="submit"
+                  class="bg-surface-container text-on-surface-variant px-4 py-2 rounded-lg text-sm font-bold hover:bg-surface-container-highest transition-colors"
+                >
+                  Add
+                </button>
+              </form>
+            </div>
           <% end %>
 
           <%= if is_struct(@group) do %>
@@ -2127,7 +2298,7 @@ defmodule SupervisedSlicesWeb.AdminLive.MenuEditorComponent do
                       <span class="text-xs text-on-surface-variant whitespace-nowrap">
                         {if modifier.price_delta, do: "+#{format_money(modifier.price_delta)}", else: "Free"}
                       </span>
-                      <div class="flex items-center gap-0.5 opacity-0 group-hover/mod:opacity-100 transition-opacity">
+                      <div class="flex items-center gap-0.5 transition-opacity md:opacity-0 md:group-hover/mod:opacity-100">
                         <button
                           phx-click="edit_modifier"
                           phx-value-id={modifier.id}
