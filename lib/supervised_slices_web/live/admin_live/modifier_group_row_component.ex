@@ -35,15 +35,21 @@ defmodule SupervisedSlicesWeb.AdminLive.ModifierGroupRowComponent do
         </span>
         <span
           :if={@group.required}
-          class="text-[10px] font-bold uppercase tracking-wider bg-primary-fixed text-on-primary-fixed-variant px-2 py-0.5 rounded-full shrink-0"
+          class="tooltip tooltip-top shrink-0"
+          data-tip="Customers must make a selection from this group before they can add the item to their cart"
         >
-          Req.
+          <span class="text-[10px] font-bold uppercase tracking-wider bg-primary-fixed text-on-primary-fixed-variant px-2 py-0.5 rounded-full">
+            Req.
+          </span>
         </span>
         <span
           :if={@group.max_selections && @group.max_selections < 99}
-          class="text-[10px] font-bold uppercase tracking-wider bg-surface-container text-on-surface-variant px-2 py-0.5 rounded-full shrink-0"
+          class="tooltip tooltip-top shrink-0"
+          data-tip="Customers can pick up to this many options from this group"
         >
-          {if @group.max_selections == 1, do: "1 only", else: "max #{@group.max_selections}"}
+          <span class="text-[10px] font-bold uppercase tracking-wider bg-surface-container text-on-surface-variant px-2 py-0.5 rounded-full">
+            {if @group.max_selections == 1, do: "1 only", else: "max #{@group.max_selections}"}
+          </span>
         </span>
         <span class="text-[10px] text-on-surface-variant shrink-0">
           {length(@group.modifiers || [])} options

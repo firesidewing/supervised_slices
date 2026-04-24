@@ -774,9 +774,9 @@ defmodule SupervisedSlicesWeb.AdminLive.MenuEditorComponent do
       |> assign(:open_group, resolve_open_group(assigns.open_group_id, assigns.modifier_groups))
 
     ~H"""
-    <div>
+    <div id="menu-editor-tour-host" phx-hook="MenuTour">
       <div class="flex flex-col lg:flex-row gap-12 items-start">
-        <div class="flex-1 space-y-12 w-full">
+        <div class="flex-1 space-y-12 w-full" data-menu-tour="categories-panel">
           <div
             :if={not @org.menu_upload_purchased}
             class="bg-surface-container-low p-6 rounded-xl border-2 border-dashed border-outline-variant/50"
@@ -1177,11 +1177,17 @@ defmodule SupervisedSlicesWeb.AdminLive.MenuEditorComponent do
           <% end %>
         </div>
 
-        <aside class="w-full lg:w-80 shrink-0 space-y-6">
+        <aside class="w-full lg:w-80 shrink-0 space-y-6" data-menu-tour="modifier-groups-sidebar">
           <div class="bg-surface-container-low rounded-md p-6 space-y-4">
             <div class="flex items-center justify-between">
               <p class="text-[0.65rem] font-black text-on-surface-variant uppercase tracking-[0.2em]">
                 Modifier Groups
+                <span
+                  class="tooltip tooltip-bottom"
+                  data-tip="A shared library of choices (e.g. Sauce, Toppings). Create a group here, then link it to individual items from within each item's drawer."
+                >
+                  <span class="material-symbols-outlined text-[14px] text-on-surface-variant/40 align-middle ml-1">info</span>
+                </span>
               </p>
               <button
                 phx-click="add_modifier_group"
@@ -1387,10 +1393,16 @@ defmodule SupervisedSlicesWeb.AdminLive.MenuEditorComponent do
 
             <details class="group/sizes" open={Enum.empty?(@item.sizes || [])}>
               <summary class="list-none flex items-center justify-between cursor-pointer py-2">
-                <span class="text-xs font-black text-on-surface-variant uppercase tracking-wider">
+                <span class="text-xs font-black text-on-surface-variant uppercase tracking-wider flex items-center gap-1">
                   Sizes
-                  <span :if={not Enum.empty?(@item.sizes || [])} class="ml-1 text-primary">
+                  <span :if={not Enum.empty?(@item.sizes || [])} class="text-primary">
                     ({length(@item.sizes)})
+                  </span>
+                  <span
+                    class="tooltip tooltip-right"
+                    data-tip="Offer this item at different price points, e.g. Small / Medium / Large. When sizes are set, customers must pick one — the size price replaces the item's base price."
+                  >
+                    <span class="material-symbols-outlined text-[14px] text-on-surface-variant/50 align-middle normal-case">info</span>
                   </span>
                 </span>
                 <span class="material-symbols-outlined text-sm text-on-surface-variant transition-transform group-open/sizes:rotate-180">
@@ -1451,10 +1463,16 @@ defmodule SupervisedSlicesWeb.AdminLive.MenuEditorComponent do
 
             <details class="group/mods" open={Enum.empty?(@item.modifier_groups || [])}>
               <summary class="list-none flex items-center justify-between cursor-pointer py-2">
-                <span class="text-xs font-black text-on-surface-variant uppercase tracking-wider">
+                <span class="text-xs font-black text-on-surface-variant uppercase tracking-wider flex items-center gap-1">
                   Modifier Groups
-                  <span :if={not Enum.empty?(@item.modifier_groups || [])} class="ml-1 text-primary">
+                  <span :if={not Enum.empty?(@item.modifier_groups || [])} class="text-primary">
                     ({length(@item.modifier_groups)})
+                  </span>
+                  <span
+                    class="tooltip tooltip-right"
+                    data-tip="Attach reusable choice groups to this item, e.g. Sauce, Toppings, Crust. Create and manage groups in the right-hand panel."
+                  >
+                    <span class="material-symbols-outlined text-[14px] text-on-surface-variant/50 align-middle normal-case">info</span>
                   </span>
                 </span>
                 <span class="material-symbols-outlined text-sm text-on-surface-variant transition-transform group-open/mods:rotate-180">
@@ -1500,8 +1518,14 @@ defmodule SupervisedSlicesWeb.AdminLive.MenuEditorComponent do
 
                     <%= if not Enum.empty?(@item.sizes || []) and not Enum.empty?(group.modifiers || []) do %>
                       <div class="border-t border-surface-container px-3 pb-3 pt-2">
-                        <p class="text-[10px] font-bold text-on-surface-variant uppercase tracking-widest mb-2">
+                        <p class="text-[10px] font-bold text-on-surface-variant uppercase tracking-widest mb-2 flex items-center gap-1">
                           Size pricing overrides
+                          <span
+                            class="tooltip tooltip-top"
+                            data-tip="Override a modifier option's price for a specific size. Leave a cell blank to use the modifier's default price delta."
+                          >
+                            <span class="material-symbols-outlined text-[12px] text-on-surface-variant/40 align-middle normal-case">info</span>
+                          </span>
                         </p>
                         <div class="overflow-x-auto">
                           <table class="w-full text-xs">

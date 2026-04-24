@@ -59,7 +59,7 @@ export const TourGuide = {
           element: "[data-tour='menu-link']",
           popover: {
             title: "Menu Atelier",
-            description: "Build and edit your menu — add categories, items, and descriptions. Changes go live instantly.",
+            description: "Build and edit your menu: add categories, items, photos, and prices. Use <strong>Sizes</strong> to offer the same item at different price points (e.g. Small / Medium / Large). Use <strong>Modifier Groups</strong> to add customer choices like sauce, toppings, or crust — create them once and reuse them across any number of items. Every change goes live instantly.",
             side: "bottom",
             align: "start"
           }
@@ -111,6 +111,76 @@ export const TourGuide = {
 
   destroyed() {
     window.removeEventListener("start-tour", this._onStartTour)
+  }
+}
+
+/**
+ * MenuTour — spotlight tour for the Menu Atelier page.
+ *
+ * Auto-starts once per browser (guarded by localStorage) and walks through
+ * the two-panel layout, explaining sizes and modifier groups.
+ * Can be re-triggered by dispatching a "start-menu-tour" event on window.
+ */
+export const MenuTour = {
+  mounted() {
+    this._tour = driver({
+      showProgress: true,
+      showButtons: ["next", "previous", "close"],
+      nextBtnText: "Next →",
+      prevBtnText: "← Back",
+      doneBtnText: "Got it",
+      progressText: "{{current}} of {{total}}",
+      popoverClass: "kitchen-tour-popover",
+      onDestroyed: () => {
+        localStorage.setItem("menu-tour-done", "true")
+      },
+      steps: [
+        {
+          element: "[data-menu-tour='categories-panel']",
+          popover: {
+            title: "Your Menu Catalog",
+            description: "Your menu is organised into <strong>categories</strong> (e.g. Starters, Mains, Drinks). Each category contains items. Click any item card to open its editor drawer where you can set the price, add a photo, and configure sizes and choices.",
+            side: "right"
+          }
+        },
+        {
+          element: "[data-menu-tour='modifier-groups-sidebar']",
+          popover: {
+            title: "Modifier Groups Library",
+            description: "This panel is your <strong>global library</strong> of choice groups — things like \"Sauce\", \"Toppings\", or \"Crust style\". Create a group here once, then link it to as many menu items as you like from inside each item's drawer.",
+            side: "left"
+          }
+        },
+        {
+          popover: {
+            title: "How Sizes Work",
+            description: "Add <strong>Sizes</strong> to an item when you want to offer it at different price points — e.g. Small ($8), Medium ($10), Large ($12). When an item has sizes, customers must pick one before adding it to their cart. The size's price replaces the item's base price."
+          }
+        },
+        {
+          popover: {
+            title: "How Modifier Groups Work",
+            description: "A modifier group is a named list of options customers choose from. Mark a group as <strong>Required</strong> to force a selection before checkout. Set <strong>Max Selections</strong> to 1 for a \"pick one\" choice (e.g. sauce), or higher to let customers pick several options (e.g. toppings). Each option can carry its own price delta."
+          }
+        },
+        {
+          popover: {
+            title: "Linking Groups to Items",
+            description: "Open any item's drawer (click an item card), then scroll to the <strong>Modifier Groups</strong> section. From there you can attach groups from your library. One group can be linked to many items — update the group once and all linked items reflect the change instantly."
+          }
+        }
+      ]
+    })
+
+    window.addEventListener("start-menu-tour", this._onStartMenuTour = () => this._tour.drive())
+
+    if (!localStorage.getItem("menu-tour-done")) {
+      setTimeout(() => this._tour.drive(), 500)
+    }
+  },
+
+  destroyed() {
+    window.removeEventListener("start-menu-tour", this._onStartMenuTour)
   }
 }
 
