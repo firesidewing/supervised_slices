@@ -5,11 +5,11 @@
   class="fixed top-0 w-full z-50 bg-background/80 backdrop-blur-md shadow-[0_40px_40px_-10px_rgba(28,28,24,0.06)]"
 >
   <nav data-tour="nav" class="flex justify-between items-center px-8 py-4 max-w-[1440px] mx-auto">
-    <div class="text-2xl font-headline font-black tracking-tighter text-on-surface flex items-center gap-3">
+    <div class="text-2xl font-headline font-black tracking-tighter text-on-surface flex items-center gap-3 min-w-0">
       <%= if @org.logo_url do %>
         <img src={@org.logo_url} alt={@org.name} class="h-8 w-auto object-contain" />
       <% end %>
-      <span style="view-transition-name: org-name;">{@org.name}</span>
+      <span style="view-transition-name: org-name;" class="truncate max-w-[160px] sm:max-w-none">{@org.name}</span>
     </div>
 
     <div class="hidden md:flex items-center space-x-8 font-headline font-bold tracking-tight">
@@ -114,10 +114,72 @@
   </nav>
 </header>
 
+<nav class="fixed bottom-0 left-0 right-0 z-40 md:hidden bg-background/80 backdrop-blur-md shadow-[0_-20px_40px_-10px_rgba(28,28,24,0.06)]">
+  <div class="flex justify-around items-stretch w-full px-2 h-16">
+    <.link
+      navigate={~p"/kitchen/#{@org.slug}"}
+      class={[
+        "flex flex-col items-center justify-center gap-0.5 flex-1 py-2 transition-colors",
+        if(@live_action == :orders, do: "text-primary", else: "text-on-surface-variant/60")
+      ]}
+    >
+      <span class="material-symbols-outlined !text-[22px]">receipt_long</span>
+      <span class="text-[10px] font-bold uppercase tracking-wider font-body">Orders</span>
+    </.link>
+
+    <.link
+      navigate={~p"/kitchen/#{@org.slug}/baskets"}
+      class={[
+        "flex flex-col items-center justify-center gap-0.5 flex-1 py-2 transition-colors",
+        if(@live_action == :baskets, do: "text-primary", else: "text-on-surface-variant/60")
+      ]}
+    >
+      <span class="material-symbols-outlined !text-[22px]">shopping_cart</span>
+      <span class="text-[10px] font-bold uppercase tracking-wider font-body">Baskets</span>
+    </.link>
+
+    <.link
+      :if={@org.plan != :basic}
+      navigate={~p"/kitchen/#{@org.slug}/insights"}
+      class={[
+        "flex flex-col items-center justify-center gap-0.5 flex-1 py-2 transition-colors",
+        if(@live_action == :insights, do: "text-primary", else: "text-on-surface-variant/60")
+      ]}
+    >
+      <span class="material-symbols-outlined !text-[22px]">insights</span>
+      <span class="text-[10px] font-bold uppercase tracking-wider font-body">Insights</span>
+    </.link>
+
+    <%= if @current_membership.role == :admin do %>
+      <.link
+        navigate={~p"/kitchen/#{@org.slug}/menu"}
+        class={[
+          "flex flex-col items-center justify-center gap-0.5 flex-1 py-2 transition-colors",
+          if(@live_action == :menu, do: "text-primary", else: "text-on-surface-variant/60")
+        ]}
+      >
+        <span class="material-symbols-outlined !text-[22px]">menu_book</span>
+        <span class="text-[10px] font-bold uppercase tracking-wider font-body">Menu</span>
+      </.link>
+
+      <.link
+        navigate={~p"/kitchen/#{@org.slug}/settings"}
+        class={[
+          "flex flex-col items-center justify-center gap-0.5 flex-1 py-2 transition-colors",
+          if(@live_action == :settings, do: "text-primary", else: "text-on-surface-variant/60")
+        ]}
+      >
+        <span class="material-symbols-outlined !text-[22px]">settings</span>
+        <span class="text-[10px] font-bold uppercase tracking-wider font-body">Settings</span>
+      </.link>
+    <% end %>
+  </div>
+</nav>
+
 <div id="kitchen-alert" phx-hook="KitchenAlert" class="hidden"></div>
 
-<main class="pt-24 pb-12 px-8 max-w-[1440px] mx-auto min-h-screen">
-  <div class="flex flex-col md:flex-row justify-between items-end mb-10 gap-6">
+<main class="pt-24 pb-24 md:pb-12 px-4 md:px-8 max-w-[1440px] mx-auto min-h-screen">
+  <div class="flex flex-col md:flex-row justify-between items-end mb-10 gap-3 md:gap-6">
     <div>
       <span class="text-xs font-bold uppercase tracking-[0.2em] text-secondary mb-2 block">
         Live Kitchen Workspace
