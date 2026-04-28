@@ -22,62 +22,45 @@
     Sign In
   </a>
 </nav>
-<section class="relative max-w-[1440px] mx-auto px-8 py-24 md:py-32 grid grid-cols-1 md:grid-cols-12 gap-16 items-center overflow-hidden">
-  <div class="absolute inset-0 pointer-events-none overflow-hidden" aria-hidden="true">
-    <div class="absolute -top-32 -right-32 w-[600px] h-[600px] rounded-full bg-[radial-gradient(circle,rgba(140,22,26,0.07),transparent_70%)]"></div>
+<section class="relative max-w-[1440px] mx-auto px-8 pt-40 pb-24 overflow-hidden">
+  <div class="absolute inset-0 pointer-events-none" aria-hidden="true">
+    <div class="absolute -top-32 -right-32 w-[700px] h-[700px] rounded-full bg-[radial-gradient(circle,rgba(140,22,26,0.06),transparent_60%)]"></div>
   </div>
-  <div class="md:col-span-6 z-10">
-    <p class="font-label text-primary uppercase tracking-[0.2em] text-xs mb-6 font-bold">
-      The Digital Platform for Pizza Shops
-    </p>
-    <h1 class="text-6xl md:text-8xl font-headline font-black text-on-surface leading-[0.95] mb-8 -tracking-[0.04em] text-balance">
-      Crafting <span class="text-primary italic">Slices</span> <br />Into Business.
-    </h1>
-    <p class="text-lg md:text-xl text-on-surface-variant font-body max-w-md mb-10 leading-relaxed opacity-90">
-      The digital platform for pizza shops. From beautiful online menus to streamlined kitchen operations.
-    </p>
+  <p class="font-label text-primary uppercase tracking-[0.2em] text-xs mb-8 font-bold relative z-10">
+    Built for pizza shops
+  </p>
+  <h1 class="text-6xl md:text-8xl lg:text-[9rem] font-headline font-black text-on-surface leading-[0.92] mb-10 -tracking-[0.04em] max-w-5xl relative z-10">
+    More orders. <br />Less <span class="text-primary italic">chaos.</span>
+  </h1>
+  <p class="text-xl text-on-surface-variant font-body max-w-2xl mb-12 leading-relaxed relative z-10">
+    Online ordering, a live kitchen queue, and a simple menu editor — all in one place, without paying per-order fees.
+  </p>
+  <div class="flex flex-col sm:flex-row gap-4 mb-8 relative z-10">
     <a
       href="/register"
       class="bg-primary-container text-white px-10 py-5 rounded-md font-body font-bold text-lg hover:shadow-xl transition-all inline-flex items-center gap-3"
     >
-      Get Started <span class="material-symbols-outlined">arrow_forward</span>
+      Start free trial <span class="material-symbols-outlined">arrow_forward</span>
     </a>
-    <p class="mt-6 font-label text-xs tracking-widest uppercase text-on-surface-variant opacity-50">
-      No commission on orders · No hidden fees
-    </p>
+    <a
+      href="#instruments"
+      class="px-10 py-5 rounded-md font-body font-bold text-lg text-on-surface-variant hover:text-on-surface transition-colors inline-flex items-center gap-3"
+    >
+      See how it works
+    </a>
   </div>
-  <div class="md:col-span-6 relative">
-    <div class="relative w-full aspect-[4/5] bg-surface-container-high overflow-hidden rounded-lg shadow-2xl">
-      <img
-        src="https://images.unsplash.com/photo-1541745537411-b8046dc6d66c?q=80&w=1440&auto=format&fit=crop"
-        alt="Pizza making"
-        class="w-full h-full object-cover"
-      />
-    </div>
-    <div class="absolute -top-4 -right-4 bg-surface/90 backdrop-blur-xl px-5 py-4 rounded-xl shadow-soft hidden md:flex items-center gap-3 border border-outline-variant/10">
-      <span class="relative flex h-2.5 w-2.5">
-        <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-secondary opacity-60"></span>
-        <span class="relative inline-flex h-2.5 w-2.5 rounded-full bg-secondary"></span>
-      </span>
-      <p class="font-label text-xs uppercase tracking-widest font-bold text-on-surface">Real-Time Orders</p>
-    </div>
-    <div class="absolute -bottom-12 -left-12 w-64 h-64 bg-secondary-container p-6 rounded-lg shadow-xl hidden md:block">
-      <div class="flex flex-col h-full justify-between">
-        <span class="material-symbols-outlined text-on-secondary-container text-4xl">
-          local_fire_department
-        </span>
-        <div>
-          <p class="font-headline text-3xl font-black text-on-secondary-container">900°F</p>
-          <p class="font-label text-xs uppercase tracking-widest text-on-secondary-container opacity-70 font-bold">
-            Optimal Heat Profile
-          </p>
-        </div>
-      </div>
-    </div>
+  <p class="font-label text-xs tracking-widest uppercase text-on-surface-variant opacity-50 mb-16 relative z-10">
+    No commission on orders · No hidden fees
+  </p>
+  <div class="flex flex-wrap items-center gap-4 pt-10 border-t border-on-surface/5 relative z-10">
+    <span class="font-label text-xs uppercase tracking-widest font-black opacity-30">Includes</span>
+    <span class="font-label text-xs px-4 py-2 bg-surface-container rounded-full font-bold text-on-surface">The Rail</span>
+    <span class="font-label text-xs px-4 py-2 bg-surface-container rounded-full font-bold text-on-surface">The Studio</span>
+    <span class="font-label text-xs px-4 py-2 bg-surface-container rounded-full font-bold text-on-surface">The Counter</span>
   </div>
 </section>
 
-<!-- The Artisan Toolkit Section -->
+<!-- Toolkit Section -->
 <section id="instruments" class="bg-surface-container-low py-32 lg:py-48 px-8">
   <div class="max-w-[1440px] mx-auto">
     <div class="mb-24">
@@ -102,7 +85,7 @@
         <div class="px-2">
           <h3 class="text-3xl font-headline font-black mb-4">The Rail</h3>
           <p class="font-body text-on-surface-variant leading-relaxed text-lg">
-            A real-time view of your kitchen line. Keep orders moving so nothing gets backed up or overcooked.
+            See every order the moment it comes in. Keep things moving so nothing gets lost or backed up.
           </p>
         </div>
       </div>
@@ -122,7 +105,7 @@
         <div class="px-2">
           <h3 class="text-3xl font-headline font-black mb-4">The Studio</h3>
           <p class="font-body text-on-surface-variant leading-relaxed text-lg">
-            Easily manage your menu items, specials, ingredients, and customization options in real-time.
+            Add items, update prices, and manage toppings any time. Changes go live on your menu right away.
           </p>
         </div>
       </div>
@@ -142,7 +125,7 @@
         <div class="px-2">
           <h3 class="text-3xl font-headline font-black mb-4">The Counter</h3>
           <p class="font-body text-on-surface-variant leading-relaxed text-lg">
-            Mobile-first online ordering. Fast, easy to use, and designed to get customers to checkout quickly.
+            Customers order from their phone in under a minute. No app downloads, no third-party fees.
           </p>
         </div>
       </div>
@@ -202,26 +185,26 @@
         Running a Great <br /><span class="text-secondary italic">Shop.</span>
       </h2>
       <p class="text-on-surface-variant font-body text-xl leading-relaxed mb-12 opacity-90">
-        We keep things simple. No confusing features — just the tools you need to run your shop, day in and day out.
+        No bloated dashboards, no confusing setup. Just the tools you need to take orders, run your kitchen, and keep your menu up to date.
       </p>
       <ul class="space-y-8 font-body text-on-surface text-lg">
         <li class="flex items-center gap-5 group">
           <span class="material-symbols-outlined text-primary text-3xl transition-transform group-hover:scale-110">
             check_circle
           </span>
-          <span class="font-bold">Mobile-Optimized Ordering Experience</span>
+          <span class="font-bold">Customers order from their phone, no app needed</span>
         </li>
         <li class="flex items-center gap-5 group">
           <span class="material-symbols-outlined text-primary text-3xl transition-transform group-hover:scale-110">
             check_circle
           </span>
-          <span class="font-bold">Live Kitchen Order Management</span>
+          <span class="font-bold">Real-time kitchen queue, no lost tickets</span>
         </li>
         <li class="flex items-center gap-5 group">
           <span class="material-symbols-outlined text-primary text-3xl transition-transform group-hover:scale-110">
             check_circle
           </span>
-          <span class="font-bold">Customer Growth & Analytics</span>
+          <span class="font-bold">Order history and insights to track what's working</span>
         </li>
       </ul>
     </div>
@@ -367,10 +350,10 @@
       </div>
     </div>
     <h2 class="text-white text-6xl md:text-8xl font-headline font-black mb-8 relative z-10 tracking-tight leading-none">
-      Start Running Your Shop Smarter.
+      Your shop, under control.
     </h2>
     <p class="text-white/60 font-body text-xl md:text-2xl max-w-2xl mx-auto mb-16 relative z-10 leading-relaxed">
-      Better tools mean fewer headaches and more time doing what you do best — making great pizza.
+      Stop juggling phone calls and third-party apps. Everything you need to take orders and run your kitchen, all in one place.
     </p>
     <div class="flex flex-col md:flex-row gap-6 justify-center relative z-10">
       <a
@@ -407,7 +390,7 @@
       <a class="hover:text-primary transition-colors" href="#">Privacy</a>
     </nav>
     <div class="text-primary text-xs font-label font-black tracking-widest opacity-80 uppercase">
-      © {DateTime.utc_now().year} Basil & Stone. The Digital Platform for Pizza Shops.
+      © {DateTime.utc_now().year} Basil & Stone. Online ordering and kitchen tools for pizza shops.
     </div>
   </div>
 </footer>
