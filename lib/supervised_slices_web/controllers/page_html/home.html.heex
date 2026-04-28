@@ -22,7 +22,10 @@
     Sign In
   </a>
 </nav>
-<section class="max-w-[1440px] mx-auto px-8 py-24 md:py-32 grid grid-cols-1 md:grid-cols-12 gap-16 items-center overflow-hidden">
+<section class="relative max-w-[1440px] mx-auto px-8 py-24 md:py-32 grid grid-cols-1 md:grid-cols-12 gap-16 items-center overflow-hidden">
+  <div class="absolute inset-0 pointer-events-none overflow-hidden" aria-hidden="true">
+    <div class="absolute -top-32 -right-32 w-[600px] h-[600px] rounded-full bg-[radial-gradient(circle,rgba(140,22,26,0.07),transparent_70%)]"></div>
+  </div>
   <div class="md:col-span-6 z-10">
     <p class="font-label text-primary uppercase tracking-[0.2em] text-xs mb-6 font-bold">
       The Digital Platform for Pizza Shops
@@ -48,8 +51,15 @@
       <img
         src="https://images.unsplash.com/photo-1541745537411-b8046dc6d66c?q=80&w=1440&auto=format&fit=crop"
         alt="Pizza making"
-        class="w-full h-full object-cover grayscale hover:grayscale-0 transition-all duration-1000"
+        class="w-full h-full object-cover"
       />
+    </div>
+    <div class="absolute -top-4 -right-4 bg-surface/90 backdrop-blur-xl px-5 py-4 rounded-xl shadow-soft hidden md:flex items-center gap-3 border border-outline-variant/10">
+      <span class="relative flex h-2.5 w-2.5">
+        <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-secondary opacity-60"></span>
+        <span class="relative inline-flex h-2.5 w-2.5 rounded-full bg-secondary"></span>
+      </span>
+      <p class="font-label text-xs uppercase tracking-widest font-bold text-on-surface">Real-Time Orders</p>
     </div>
     <div class="absolute -bottom-12 -left-12 w-64 h-64 bg-secondary-container p-6 rounded-lg shadow-xl hidden md:block">
       <div class="flex flex-col h-full justify-between">
@@ -79,7 +89,7 @@
     <div class="grid grid-cols-1 md:grid-cols-3 gap-16">
       <!-- The Rail (Kitchen Management) -->
       <div class="space-y-10 group">
-        <div class="aspect-square bg-surface-container-low rounded-2xl shadow-soft border border-outline-variant/10 overflow-hidden">
+        <div class="aspect-square bg-surface-container-low rounded-2xl shadow-soft border border-outline-variant/10 overflow-hidden max-w-sm mx-auto md:max-w-none">
           <div class="w-full h-full overflow-hidden relative">
             <div
               class="absolute top-0 left-0 pointer-events-none"
@@ -99,7 +109,7 @@
 
       <!-- The Studio (Menu Editor) -->
       <div class="space-y-10 md:translate-y-20 group">
-        <div class="aspect-square bg-surface rounded-2xl shadow-soft border border-outline-variant/10 overflow-hidden">
+        <div class="aspect-square bg-surface rounded-2xl shadow-soft border border-outline-variant/10 overflow-hidden max-w-sm mx-auto md:max-w-none">
           <div class="w-full h-full overflow-hidden relative">
             <div
               class="absolute top-0 left-0 pointer-events-none"
@@ -119,7 +129,7 @@
 
       <!-- The Counter (Online Ordering) -->
       <div class="space-y-10 group">
-        <div class="aspect-square bg-surface rounded-2xl shadow-soft border border-outline-variant/10 overflow-hidden">
+        <div class="aspect-square bg-surface rounded-2xl shadow-soft border border-outline-variant/10 overflow-hidden max-w-sm mx-auto md:max-w-none">
           <div class="w-full h-full overflow-hidden relative">
             <div
               class="absolute top-0 left-0 pointer-events-none"

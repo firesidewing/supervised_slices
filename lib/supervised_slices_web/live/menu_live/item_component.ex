@@ -354,6 +354,103 @@ defmodule SupervisedSlicesWeb.MenuLive.ItemComponent do
     """
   end
 
+  def item_editor_preview(assigns) do
+    ~H"""
+    <div class="bg-surface min-h-full text-on-surface">
+      <div class="px-8 pt-10 pb-6 flex items-center justify-between">
+        <div class="flex items-center gap-3">
+          <span class="material-symbols-outlined text-on-surface-variant opacity-40 text-lg">arrow_back</span>
+          <span class="font-label text-xs uppercase tracking-widest font-bold text-on-surface-variant opacity-50">Menu</span>
+        </div>
+        <div class="py-3 px-6 bg-gradient-to-tr from-primary to-primary-container text-white font-label font-bold tracking-widest uppercase rounded-md shadow-lg text-xs">
+          Publish Changes
+        </div>
+      </div>
+
+      <div class="px-8 pb-6">
+        <div class="aspect-[16/7] w-full rounded-2xl overflow-hidden bg-surface-container-low flex items-center justify-center relative">
+          <img
+            src="https://images.unsplash.com/photo-1565299624946-b28f40a0ae38?q=80&w=800&auto=format&fit=crop"
+            class="w-full h-full object-cover"
+            alt={@item.name}
+          />
+          <div class="absolute bottom-3 right-3 bg-surface/90 backdrop-blur-xl rounded-lg px-4 py-2 flex items-center gap-2 shadow-soft">
+            <span class="material-symbols-outlined text-sm text-on-surface-variant opacity-60">photo_camera</span>
+            <span class="font-label text-[10px] uppercase tracking-widest font-bold opacity-60">Change Photo</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="px-8 space-y-6">
+        <div>
+          <p class="font-label text-[10px] uppercase tracking-widest font-bold opacity-40 mb-2">Item Name</p>
+          <div class="bg-surface-container rounded-xl px-5 py-4 border-b-2 border-primary-container">
+            <p class="font-headline text-2xl font-bold">{@item.name}</p>
+          </div>
+        </div>
+
+        <div>
+          <p class="font-label text-[10px] uppercase tracking-widest font-bold opacity-40 mb-2">Description</p>
+          <div class="bg-surface-container-low rounded-xl px-5 py-4 border border-outline-variant/10">
+            <p class="font-body text-sm text-on-surface-variant italic leading-relaxed">{@item.description}</p>
+          </div>
+        </div>
+
+        <div>
+          <div class="flex items-baseline justify-between mb-4">
+            <p class="font-label text-[10px] uppercase tracking-widest font-bold opacity-40">Sizes</p>
+            <span class="font-label text-[10px] uppercase tracking-widest opacity-40">+ Add Size</span>
+          </div>
+          <div class="flex gap-3">
+            <div :for={size <- @item.sizes} class={[
+              "flex-1 flex flex-col items-center justify-center py-4 rounded-xl",
+              if(size.selected,
+                do: "bg-surface-container border-b-2 border-primary-container shadow-sm",
+                else: "bg-surface-container-low opacity-70"
+              )
+            ]}>
+              <span class="font-headline text-base font-bold">{size.name}</span>
+              <span class="font-label text-[9px] uppercase tracking-widest opacity-50 mt-0.5">{size.label}</span>
+              <span class={["font-bold text-sm mt-2", if(size.selected, do: "text-primary", else: "")]}>
+                {size.price_display}
+              </span>
+            </div>
+          </div>
+        </div>
+
+        <div :for={group <- @item.modifier_groups}>
+          <div class="flex items-baseline justify-between mb-4">
+            <p class="font-label text-[10px] uppercase tracking-widest font-bold opacity-40">{group.name}</p>
+            <span class="font-label text-[10px] uppercase tracking-widest opacity-40">+ Add Option</span>
+          </div>
+          <div class="space-y-2">
+            <div :for={mod <- group.modifiers} class={[
+              "flex items-center justify-between px-4 py-3 rounded-xl",
+              if(mod.selected,
+                do: "bg-surface-container border-b-2 border-primary-container",
+                else: "bg-surface-container-low opacity-70"
+              )
+            ]}>
+              <div class="flex items-center gap-3">
+                <span class={["material-symbols-outlined text-sm", if(mod.selected, do: "text-primary", else: "opacity-30")]}>
+                  {mod.icon}
+                </span>
+                <span class="font-bold text-xs">{mod.name}</span>
+              </div>
+              <div class={[
+                "w-6 h-6 rounded flex items-center justify-center",
+                if(mod.selected, do: "bg-primary text-white", else: "bg-surface-container border border-outline-variant/20 opacity-40")
+              ]}>
+                <span class="material-symbols-outlined text-xs">{if(mod.selected, do: "check", else: "add")}</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    """
+  end
+
   defp size_card(assigns) do
     ~H"""
     <button
