@@ -239,6 +239,86 @@ defmodule SupervisedSlicesWeb.AdminLive.OrdersComponent do
     """
   end
 
+  def order_preview(assigns) do
+    ~H"""
+    <div class="p-5 bg-surface-container-low min-h-full space-y-3">
+      <div class="flex items-center justify-between mb-2">
+        <h2 class="font-headline text-xl font-bold text-on-surface">Live Queue</h2>
+        <span class="text-[0.6rem] font-bold uppercase tracking-widest text-on-surface-variant/40">
+          3 active
+        </span>
+      </div>
+      <%= for order <- @orders do %>
+        <div class={[
+          "bg-surface-container-low rounded-md flex flex-col shadow-sm border-t-4 overflow-hidden",
+          status_border_class(order.status),
+          order.status == :pending && "ring-1 ring-primary ring-offset-1"
+        ]}>
+          <div class="p-5 flex justify-between items-start">
+            <div>
+              <h3 class="text-xl font-black tracking-tight font-headline text-on-surface">
+                #{order_number(order)}
+              </h3>
+              <p class="text-[0.65rem] uppercase font-bold tracking-widest text-on-surface-variant/60">
+                {time_ago(order.inserted_at)}
+              </p>
+              <div class="mt-1 font-body text-xs font-bold text-on-surface">
+                {order.customer_name}
+              </div>
+            </div>
+            <span class={[
+              "text-[0.6rem] font-black px-3 py-1.5 rounded-sm tracking-[0.2em] uppercase flex items-center gap-2",
+              status_badge_class(order.status),
+              order.status == :pending && "scale-110 shadow-md animate-pulse"
+            ]}>
+              <%= if order.status == :pending do %>
+                <span class="relative flex h-2.5 w-2.5">
+                  <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-white opacity-75">
+                  </span>
+                  <span class="relative inline-flex rounded-full h-2.5 w-2.5 bg-white"></span>
+                </span>
+              <% end %>
+              {status_label(order.status)}
+            </span>
+          </div>
+          <div class="px-5 pb-5 space-y-4 flex-grow">
+            <%= for item <- (order.order_items || []) do %>
+              <div class="space-y-2">
+                <span class="text-sm font-bold text-on-surface leading-tight">
+                  {item.quantity}x
+                  <%= if item.size_snapshot do %>
+                    {item.size_snapshot["name"]}
+                  <% end %>
+                  {item.item_name}
+                </span>
+                <%= if item.modifiers_snapshot && length(item.modifiers_snapshot) > 0 do %>
+                  <div class="flex flex-wrap gap-1">
+                    <%= for mod <- item.modifiers_snapshot do %>
+                      <span class="bg-surface-container-highest text-[0.65rem] px-2 py-0.5 rounded-sm font-bold text-on-surface-variant uppercase">
+                        {mod["name"]}
+                      </span>
+                    <% end %>
+                  </div>
+                <% end %>
+              </div>
+            <% end %>
+          </div>
+          <div class="p-4 bg-surface-container">
+            <%= if label = next_status_label(order.status) do %>
+              <div class={[
+                "w-full py-2.5 rounded-md font-bold text-xs uppercase tracking-[0.1em] text-center",
+                action_button_class(order.status)
+              ]}>
+                {label}
+              </div>
+            <% end %>
+          </div>
+        </div>
+      <% end %>
+    </div>
+    """
+  end
+
   defp urgency_level(order) do
     if order.status == :pending do
       # Reach max urgency at 10 minutes

@@ -248,6 +248,112 @@ defmodule SupervisedSlicesWeb.MenuLive.ItemComponent do
     """
   end
 
+  def item_detail_preview(assigns) do
+    ~H"""
+    <div class="bg-surface min-h-full text-on-surface">
+      <div class="px-8 pt-16 pb-6">
+        <div class="flex items-center gap-2 mb-4">
+          <span class="bg-secondary-container text-on-secondary-container text-[10px] px-2 py-0.5 rounded-full font-label tracking-widest uppercase font-bold">
+            Chef's Signature
+          </span>
+        </div>
+        <h2 class="font-headline text-5xl font-bold tracking-tight text-on-surface leading-tight">
+          {@item.name}
+        </h2>
+        <p class="mt-6 text-on-surface-variant text-base italic opacity-90 leading-relaxed">
+          {@item.description}
+        </p>
+        <div class="w-24 h-1 bg-primary/20 rounded-full mt-10" />
+      </div>
+
+      <div class="px-8 space-y-10">
+        <section>
+          <div class="flex items-baseline justify-between mb-6">
+            <h3 class="font-headline text-xl font-bold">Select Diameter</h3>
+            <span class="font-label text-xs tracking-widest uppercase opacity-60">Essential Scale</span>
+          </div>
+          <div class="flex gap-4 pb-4">
+            <%= for size <- @item.sizes do %>
+              <div class={[
+                "w-28 h-36 flex flex-col items-center justify-center rounded-xl flex-shrink-0",
+                if(size.selected,
+                  do: "bg-surface-container border-b-2 border-primary-container shadow-md",
+                  else: "bg-surface-container-low opacity-80"
+                )
+              ]}>
+                <span class="font-headline text-lg font-bold">{size.name}</span>
+                <span class="text-[10px] opacity-60 mt-1 font-label uppercase tracking-widest">
+                  {size.label}
+                </span>
+                <span class={["font-bold mt-4", if(size.selected, do: "text-primary", else: "text-on-surface")]}>
+                  {size.price_display}
+                </span>
+              </div>
+            <% end %>
+          </div>
+        </section>
+
+        <%= for group <- @item.modifier_groups do %>
+          <section class="space-y-6">
+            <div class="flex items-baseline justify-between">
+              <div class="flex items-center gap-3">
+                <h3 class="font-headline text-xl font-bold">{group.name}</h3>
+                <span :if={group.required} class="text-[10px] font-bold uppercase tracking-widest text-error opacity-80">
+                  Required
+                </span>
+              </div>
+              <span class="font-label text-xs tracking-widest uppercase opacity-60">
+                {if(group.max_selections == 1, do: "Pick one", else: "Optional Palette")}
+              </span>
+            </div>
+            <div class="grid grid-cols-1 gap-3">
+              <%= for mod <- group.modifiers do %>
+                <div class={[
+                  "flex items-center justify-between p-4 rounded-xl",
+                  if(mod.selected,
+                    do: "bg-surface-container shadow-sm border-b-2 border-primary-container",
+                    else: "bg-surface-container-low opacity-80"
+                  )
+                ]}>
+                  <div class="flex items-center gap-4">
+                    <span class={["material-symbols-outlined", if(mod.selected, do: "text-primary", else: "opacity-40")]}>
+                      {mod.icon}
+                    </span>
+                    <p class="font-bold text-sm">{mod.name}</p>
+                  </div>
+                  <div class={[
+                    "w-8 h-8 flex items-center justify-center rounded",
+                    if(mod.selected,
+                      do: "bg-primary text-white border-b-2 border-primary-container",
+                      else: "bg-surface-container-low text-on-surface opacity-40 border-b-2 border-outline-variant"
+                    )
+                  ]}>
+                    <span class="material-symbols-outlined text-sm">
+                      {if(mod.selected, do: "check", else: "add")}
+                    </span>
+                  </div>
+                </div>
+              <% end %>
+            </div>
+          </section>
+        <% end %>
+      </div>
+
+      <div class="mt-16 px-8 py-6 bg-surface/90 backdrop-blur-xl shadow-[0_-10px_40px_rgba(28,28,24,0.06)]">
+        <div class="max-w-3xl mx-auto flex items-center justify-between gap-6">
+          <div class="flex flex-col">
+            <span class="font-label text-[10px] tracking-widest uppercase opacity-60">Total Value</span>
+            <span class="font-headline text-2xl font-black text-on-surface">{@item.total_display}</span>
+          </div>
+          <div class="flex-1 py-4 bg-gradient-to-tr from-primary to-primary-container text-white font-label font-bold tracking-widest uppercase rounded-md shadow-lg text-center text-sm">
+            Add to Basket
+          </div>
+        </div>
+      </div>
+    </div>
+    """
+  end
+
   defp size_card(assigns) do
     ~H"""
     <button

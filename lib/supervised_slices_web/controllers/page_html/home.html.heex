@@ -79,33 +79,12 @@
     <div class="grid grid-cols-1 md:grid-cols-3 gap-16">
       <!-- The Rail (Kitchen Management) -->
       <div class="space-y-10 group">
-        <div class="aspect-square bg-surface rounded-2xl p-8 shadow-soft border border-outline-variant/10 overflow-hidden relative">
-          <div class="h-full w-full bg-surface-container-high rounded-xl p-6 group-hover:scale-105 transition-transform duration-700">
-            <div class="flex items-center justify-between mb-5">
-              <div class="flex items-center gap-2">
-                <div class="w-2.5 h-2.5 rounded-full bg-secondary animate-pulse"></div>
-                <span class="font-label text-[10px] uppercase tracking-widest font-bold opacity-60">Kitchen Rail</span>
-              </div>
-              <span class="font-label text-[10px] font-bold text-primary">3 Active</span>
-            </div>
-            <div class="bg-surface rounded-xl p-4 mb-3 border-l-4 border-primary">
-              <div class="flex justify-between items-start mb-2">
-                <span class="font-headline font-black text-sm">#042</span>
-                <span class="font-label text-[9px] bg-primary/10 text-primary px-2 py-0.5 rounded-full font-bold uppercase tracking-wide">New</span>
-              </div>
-              <p class="font-body text-xs font-bold mb-1">Margherita · Large</p>
-              <p class="font-body text-[10px] opacity-50">Basil, Fresh Mozzarella, San Marzano</p>
-              <p class="font-label text-[9px] mt-2 opacity-40 uppercase tracking-wider">0:02 elapsed</p>
-            </div>
-            <div class="bg-surface rounded-xl p-4 border-l-4 border-secondary/60">
-              <div class="flex justify-between items-start mb-2">
-                <span class="font-headline font-black text-sm">#041</span>
-                <span class="font-label text-[9px] bg-secondary/20 text-secondary px-2 py-0.5 rounded-full font-bold uppercase tracking-wide">Firing</span>
-              </div>
-              <p class="font-body text-xs font-bold mb-1">Pepperoni · Medium</p>
-              <p class="font-body text-[10px] opacity-50">Double Pepperoni, Provolone</p>
-              <p class="font-label text-[9px] mt-2 opacity-40 uppercase tracking-wider">8:14 elapsed</p>
-            </div>
+        <div class="aspect-square bg-surface-container-low rounded-2xl shadow-soft border border-outline-variant/10 overflow-hidden relative">
+          <div
+            class="absolute top-0 left-0 pointer-events-none transition-transform duration-700"
+            style="transform: scale(0.60); transform-origin: top left; width: 167%; height: 167%;"
+          >
+            <.order_preview orders={@preview_orders} />
           </div>
         </div>
         <div class="px-2">
@@ -115,31 +94,15 @@
           </p>
         </div>
       </div>
-      
-<!-- The Studio (Menu Editor) -->
+
+      <!-- The Studio (Menu Editor) -->
       <div class="space-y-10 md:translate-y-20 group">
-        <div class="aspect-square bg-surface rounded-2xl p-8 shadow-soft border border-outline-variant/10 overflow-hidden relative">
-          <div class="h-full w-full bg-surface-container-highest rounded-xl p-6 group-hover:scale-105 transition-transform duration-700 flex flex-col">
-            <div class="flex items-center justify-between mb-5">
-              <span class="font-label text-[10px] uppercase tracking-widest font-bold opacity-50">Menu Studio</span>
-              <span class="font-label text-[9px] font-bold text-secondary bg-secondary/10 px-2 py-0.5 rounded-full">Saved ✓</span>
-            </div>
-            <div class="flex-1">
-              <div class="flex justify-between items-start mb-2">
-                <p class="font-headline font-black text-lg">Margherita</p>
-                <p class="font-headline font-black text-primary">$14</p>
-              </div>
-              <p class="font-body text-[11px] opacity-60 mb-5 leading-relaxed">San Marzano tomato, buffalo mozzarella, fresh basil, olive oil.</p>
-              <p class="font-label text-[9px] uppercase tracking-widest font-bold opacity-40 mb-3">Toppings</p>
-              <div class="flex flex-wrap gap-2 mb-4">
-                <span class="bg-secondary text-white font-label text-[9px] px-2.5 py-1 rounded-full font-bold">Basil ✓</span>
-                <span class="bg-surface-container font-label text-[9px] px-2.5 py-1 rounded-full font-bold opacity-70">Mozzarella</span>
-                <span class="bg-surface-container font-label text-[9px] px-2.5 py-1 rounded-full font-bold opacity-70">Tomato</span>
-              </div>
-            </div>
-            <div class="bg-primary text-white rounded-lg py-2 text-center font-label text-[10px] font-black tracking-widest uppercase">
-              Edit Item
-            </div>
+        <div class="aspect-square bg-surface rounded-2xl shadow-soft border border-outline-variant/10 overflow-hidden relative">
+          <div
+            class="absolute top-0 left-0 pointer-events-none transition-transform duration-700"
+            style="transform: scale(0.50); transform-origin: top left; width: 200%; height: 200%;"
+          >
+            <.item_detail_preview item={@preview_menu_item} />
           </div>
         </div>
         <div class="px-2">
@@ -149,46 +112,15 @@
           </p>
         </div>
       </div>
-      
-<!-- The Counter (Online Ordering) -->
+
+      <!-- The Counter (Online Ordering) -->
       <div class="space-y-10 group">
-        <div class="aspect-square bg-surface rounded-2xl p-8 shadow-soft border border-outline-variant/10 overflow-hidden relative">
-          <div class="h-full w-full bg-secondary-container/20 rounded-xl p-6 group-hover:scale-105 transition-transform duration-700 flex flex-col">
-            <div class="flex justify-between items-center mb-5">
-              <span class="font-label text-[10px] uppercase tracking-widest font-bold opacity-50">Your Order</span>
-              <div class="bg-secondary text-white text-[9px] font-bold px-2.5 py-0.5 rounded-full tracking-widest">LIVE</div>
-            </div>
-            <div class="flex-1 space-y-3">
-              <div class="flex items-center justify-between bg-surface/60 rounded-xl px-4 py-3">
-                <div>
-                  <p class="font-body text-xs font-bold">Margherita · Lg</p>
-                  <p class="font-label text-[9px] opacity-50 mt-0.5">Basil, Mozzarella</p>
-                </div>
-                <div class="flex items-center gap-2">
-                  <span class="font-label text-[9px] bg-surface px-2 py-0.5 rounded font-bold">×1</span>
-                  <span class="font-body text-xs font-black">$14</span>
-                </div>
-              </div>
-              <div class="flex items-center justify-between bg-surface/60 rounded-xl px-4 py-3">
-                <div>
-                  <p class="font-body text-xs font-bold">Sparkling Water</p>
-                  <p class="font-label text-[9px] opacity-50 mt-0.5">330ml</p>
-                </div>
-                <div class="flex items-center gap-2">
-                  <span class="font-label text-[9px] bg-surface px-2 py-0.5 rounded font-bold">×2</span>
-                  <span class="font-body text-xs font-black">$6</span>
-                </div>
-              </div>
-            </div>
-            <div class="mt-4 pt-4 border-t border-secondary/20">
-              <div class="flex justify-between mb-3">
-                <span class="font-label text-[10px] uppercase tracking-widest font-bold opacity-50">Total</span>
-                <span class="font-headline font-black text-sm">$20.00</span>
-              </div>
-              <div class="bg-secondary text-white rounded-lg py-2.5 text-center font-label text-[10px] font-black tracking-widest uppercase">
-                Place Order →
-              </div>
-            </div>
+        <div class="aspect-square bg-surface rounded-2xl shadow-soft border border-outline-variant/10 overflow-hidden relative">
+          <div
+            class="absolute top-0 left-0 pointer-events-none transition-transform duration-700"
+            style="transform: scale(0.55); transform-origin: top left; width: 182%; height: 182%;"
+          >
+            <.menu_grid_preview category_name="Pizze" items={@preview_menu_items} />
           </div>
         </div>
         <div class="px-2">
@@ -206,14 +138,14 @@
 <section class="py-32 lg:py-64 overflow-hidden">
   <div class="max-w-[1440px] mx-auto px-8 grid grid-cols-1 md:grid-cols-12 gap-24 items-center">
     <div class="md:col-span-7 relative">
-      <div class="grid grid-cols-2 gap-6">
+      <div class="hidden md:grid grid-cols-2 gap-6">
         <div class="space-y-6">
           <img
             src="https://images.unsplash.com/photo-1590947132387-155cc02f3212?q=80&w=1440&auto=format&fit=crop"
             alt="Dough prep"
             class="w-full aspect-[3/4] object-cover rounded-2xl shadow-xl"
           />
-          <div class="bg-primary p-10 rounded-2xl text-white shadow-xl transform -rotate-2">
+          <div class="bg-primary p-6 xl:p-10 rounded-2xl text-white shadow-xl transform -rotate-2">
             <span class="material-symbols-outlined text-5xl mb-6">inventory</span>
             <h4 class="text-2xl font-headline font-black mb-3">Inventory Control</h4>
             <p class="font-body text-sm opacity-90 leading-relaxed">

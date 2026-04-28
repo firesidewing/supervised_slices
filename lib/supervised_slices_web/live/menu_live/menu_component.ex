@@ -43,6 +43,37 @@ defmodule SupervisedSlicesWeb.MenuLive.MenuComponent do
     """
   end
 
+  def menu_grid_preview(assigns) do
+    ~H"""
+    <div class="bg-surface min-h-full px-6 pt-16 pb-32">
+      <div class="mb-10 px-2">
+        <h2 class="font-headline text-3xl font-bold tracking-tight text-on-surface">{@category_name}</h2>
+      </div>
+      <div class="grid grid-cols-2 gap-x-4 gap-y-6">
+        <%= for item <- @items do %>
+          <div class="flex flex-col bg-surface-container-lowest rounded-xl overflow-hidden shadow-soft">
+            <div class="pt-8 px-6 pb-2">
+              <div class="w-10 h-1 bg-primary/20 rounded-full mb-4" />
+            </div>
+            <div class="px-6 pb-5 flex flex-col flex-1 justify-between">
+              <div>
+                <p class="font-headline font-bold text-base text-on-surface">{item.name}</p>
+                <p class="text-xs text-on-surface-variant mt-2 opacity-80 leading-relaxed line-clamp-2">
+                  {item.description}
+                </p>
+              </div>
+              <div class="flex justify-between items-center mt-6">
+                <span class="font-headline font-black text-on-surface">{item.price_display}</span>
+                <span class="material-symbols-outlined text-on-surface-variant opacity-30">add_circle</span>
+              </div>
+            </div>
+          </div>
+        <% end %>
+      </div>
+    </div>
+    """
+  end
+
   defp menu_item_card(assigns) do
     qty = get_item_qty(assigns.cart_items_map, assigns.item.id)
     assigns = assign(assigns, qty: qty)
