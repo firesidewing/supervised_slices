@@ -51,18 +51,28 @@ defmodule SupervisedSlicesWeb.MenuLive.MenuComponent do
       </div>
       <div class="grid grid-cols-2 gap-x-4 gap-y-6">
         <%= for item <- @items do %>
-          <div class="flex flex-col bg-surface-container-lowest rounded-xl overflow-hidden shadow-soft">
-            <div class="pt-8 px-6 pb-2">
-              <div class="w-10 h-1 bg-primary/20 rounded-full mb-4" />
-            </div>
-            <div class="px-6 pb-5 flex flex-col flex-1 justify-between">
+          <div class="group flex flex-col bg-surface-container-lowest rounded-xl overflow-hidden shadow-soft hover:translate-y-[-4px] transition-all duration-300">
+            <%= if item[:image_url] do %>
+              <div class="aspect-square overflow-hidden relative">
+                <img
+                  src={item.image_url}
+                  alt={item.name}
+                  class="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
+                />
+              </div>
+            <% else %>
+              <div class="pt-8 px-6 pb-2">
+                <div class="w-10 h-1 bg-primary/20 rounded-full mb-4" />
+              </div>
+            <% end %>
+            <div class={["px-5 pb-5 flex flex-col flex-1 justify-between", item[:image_url] && "pt-4"]}>
               <div>
                 <p class="font-headline font-bold text-base text-on-surface">{item.name}</p>
                 <p class="text-xs text-on-surface-variant mt-2 opacity-80 leading-relaxed line-clamp-2">
                   {item.description}
                 </p>
               </div>
-              <div class="flex justify-between items-center mt-6">
+              <div class="flex justify-between items-center mt-5">
                 <span class="font-headline font-black text-on-surface">{item.price_display}</span>
                 <span class="material-symbols-outlined text-on-surface-variant opacity-30">add_circle</span>
               </div>

@@ -121,6 +121,77 @@ defmodule SupervisedSlicesWeb.AdminLive.MenuEditorComponent do
     {:ok, assign(socket, Map.drop(assigns, [:ash_scope, :org]))}
   end
 
+  def menu_editor_preview(assigns) do
+    ~H"""
+    <div class="bg-surface min-h-full">
+      <div class="px-6 pt-8 pb-4 flex items-center justify-between border-b border-outline-variant/5">
+        <div class="flex items-center gap-3">
+          <h3 class="font-headline text-lg font-bold">Pizze Classiche</h3>
+          <span class="text-[10px] font-bold text-on-surface-variant/40 font-label uppercase tracking-widest">
+            {length(@items)} items
+          </span>
+        </div>
+        <button class="text-on-surface-variant/40 hover:text-primary transition-colors p-1">
+          <span class="material-symbols-outlined text-lg">add</span>
+        </button>
+      </div>
+      <div class="p-6 grid grid-cols-3 gap-4">
+        <%= for item <- @items do %>
+          <div class="bg-surface-container-low rounded-md flex flex-col shadow-sm overflow-hidden group">
+            <div class="aspect-square relative overflow-hidden bg-surface-container-high">
+              <%= if item.image_url do %>
+                <img
+                  src={item.image_url}
+                  alt={item.name}
+                  class="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
+                />
+              <% else %>
+                <div class="w-full h-full flex items-center justify-center text-on-surface-variant/20">
+                  <span class="material-symbols-outlined text-4xl">image</span>
+                </div>
+              <% end %>
+              <div class="absolute top-3 right-3">
+                <span class={[
+                  "px-2 py-1 rounded text-[10px] font-black uppercase tracking-widest shadow-lg backdrop-blur-md",
+                  if(item.available,
+                    do: "bg-secondary-container/90 text-on-secondary-container",
+                    else: "bg-surface-container-highest/90 text-on-surface-variant"
+                  )
+                ]}>
+                  {if item.available, do: "LIVE", else: "OFF"}
+                </span>
+              </div>
+            </div>
+            <div class="p-4 flex-1 flex flex-col">
+              <div class="flex justify-between items-start gap-1 mb-1">
+                <h4 class="font-bold text-on-surface text-xs leading-tight group-hover:text-primary transition-colors">
+                  {item.name}
+                </h4>
+                <span class="text-xs font-black text-primary shrink-0">{item.price_display}</span>
+              </div>
+              <p class="text-[10px] text-on-surface-variant/60 line-clamp-2 mb-3 leading-relaxed italic">
+                {item.description}
+              </p>
+              <div class="mt-auto flex items-center gap-1.5 pt-3 border-t border-on-surface/5">
+                <%= if item.sizes_count > 0 do %>
+                  <span class="bg-surface-container-highest text-[8px] font-black uppercase tracking-widest px-1.5 py-0.5 rounded text-on-surface-variant">
+                    {item.sizes_count} SIZES
+                  </span>
+                <% end %>
+                <%= if item.mods_count > 0 do %>
+                  <span class="bg-surface-container-highest text-[8px] font-black uppercase tracking-widest px-1.5 py-0.5 rounded text-on-surface-variant">
+                    {item.mods_count} MODS
+                  </span>
+                <% end %>
+              </div>
+            </div>
+          </div>
+        <% end %>
+      </div>
+    </div>
+    """
+  end
+
   # ---------------------------------------------------------------------------
   # Item events
   # ---------------------------------------------------------------------------
