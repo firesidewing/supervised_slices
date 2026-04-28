@@ -546,7 +546,12 @@ defmodule SupervisedSlicesWeb.CoreComponents do
           "absolute inset-0 bg-black/40 transition-opacity duration-300",
           if(@show, do: "opacity-100", else: "opacity-0")
         ]}
-        phx-click={close_basket_js() |> JS.push("toggle_basket")}
+        phx-click={
+          close_basket_js()
+          |> JS.remove_class("hidden", to: "#basket-review-panel")
+          |> JS.add_class("hidden", to: "#basket-confirm-panel")
+          |> JS.push("toggle_basket")
+        }
       />
       <div
         id="basket-panel"
@@ -563,20 +568,14 @@ defmodule SupervisedSlicesWeb.CoreComponents do
           <div class="flex items-center gap-3">
             <button
               :if={@checkout_step == :confirm}
-              phx-click={JS.add_class("phx-click-loading", to: "self") |> JS.push("start_checkout")}
-              phx-value-step="review"
-              class="w-11 h-11 flex items-center justify-center rounded-full bg-surface-container-low hover:bg-surface-container transition-all active:scale-90 phx-click-loading:scale-90 phx-click-loading:opacity-60 phx-click-loading:bg-surface-container-highest"
+              phx-click={
+                JS.remove_class("hidden", to: "#basket-review-panel")
+                |> JS.add_class("hidden", to: "#basket-confirm-panel")
+                |> JS.push("back_to_basket")
+              }
+              class="w-11 h-11 flex items-center justify-center rounded-full bg-surface-container-low hover:bg-surface-container transition-all active:scale-90"
             >
-              <span class="relative flex items-center justify-center w-5 h-5">
-                <span class="phx-click-loading:!hidden">
-                  <span class="material-symbols-outlined font-black">
-                    arrow_back
-                  </span>
-                </span>
-                <span class="hidden phx-click-loading:!flex absolute inset-0 items-center justify-center">
-                  <.icon name="hero-arrow-path" class="size-5 animate-spin" />
-                </span>
-              </span>
+              <span class="material-symbols-outlined font-black">arrow_back</span>
             </button>
             <div class="flex flex-col">
               <h2 class="font-headline text-2xl font-bold tracking-tight text-on-surface">
@@ -585,14 +584,23 @@ defmodule SupervisedSlicesWeb.CoreComponents do
             </div>
           </div>
           <button
-            phx-click={close_basket_js() |> JS.push("toggle_basket")}
+            phx-click={
+              close_basket_js()
+              |> JS.remove_class("hidden", to: "#basket-review-panel")
+              |> JS.add_class("hidden", to: "#basket-confirm-panel")
+              |> JS.push("toggle_basket")
+            }
             class="w-11 h-11 flex items-center justify-center rounded-full bg-surface-container-low hover:bg-surface-container transition-all active:scale-90"
           >
             <span class="material-symbols-outlined font-black">close</span>
           </button>
         </div>
 
-        <%= if @checkout_step == :review do %>
+        <%!-- Review panel: always rendered, hidden when on confirm step --%>
+        <div
+          id="basket-review-panel"
+          class={["flex flex-col flex-1 min-h-0", if(@checkout_step == :confirm, do: "hidden")]}
+        >
           <div class="overflow-y-auto flex-1 px-4 py-4 scroll-smooth no-scrollbar">
             <%= if is_nil(@cart) or Enum.empty?(@cart.cart_items) do %>
               <div class="text-center py-24 text-on-surface-variant flex flex-col items-center">
@@ -660,13 +668,13 @@ defmodule SupervisedSlicesWeb.CoreComponents do
               </div>
 
               <%= if not Enum.empty?(@upsell_suggestions) do %>
-                <div class="mt-4 bg-surface-container-low rounded-xl px-4 pt-4 pb-3">
+                <div id="upsells-section" class="mt-4 bg-surface-container-low rounded-xl px-4 pt-4 pb-3">
                   <div class="flex items-center justify-between mb-3">
                     <p class="text-[0.65rem] font-black text-on-surface-variant uppercase tracking-[0.2em]">
                       You might also like
                     </p>
                     <button
-                      phx-click="dismiss_upsells"
+                      phx-click={JS.hide(to: "#upsells-section") |> JS.push("dismiss_upsells")}
                       class="text-on-surface-variant/50 hover:text-on-surface transition-colors p-1"
                       aria-label="Dismiss suggestions"
                     >
@@ -710,9 +718,10 @@ defmodule SupervisedSlicesWeb.CoreComponents do
                             phx-click="update_quantity"
                             phx-value-item_id={item.id}
                             phx-value-delta="1"
-                            class="w-full bg-gradient-to-br from-primary to-primary-container text-on-primary text-[10px] font-black uppercase tracking-wider rounded-lg py-1.5 active:scale-95 transition-all"
+                            class="w-full bg-gradient-to-br from-primary to-primary-container text-on-primary text-[10px] font-black uppercase tracking-wider rounded-lg py-1.5 active:scale-95 transition-all phx-click-loading:opacity-60 phx-click-loading:scale-95"
                           >
-                            + Add
+                            <span class="phx-click-loading:!hidden">+ Add</span>
+                            <span class="hidden phx-click-loading:!inline">...</span>
                           </button>
                         </div>
                       </div>
@@ -755,15 +764,14 @@ defmodule SupervisedSlicesWeb.CoreComponents do
 
               <%= if @store_open do %>
                 <button
-                  phx-click="start_checkout"
-                  class="w-full bg-gradient-to-br from-primary to-primary-container text-on-primary font-bold text-lg rounded-xl px-8 py-5 shadow-soft hover:scale-[1.02] transition-all active:scale-95 phx-click-loading:opacity-80"
+                  phx-click={
+                    JS.add_class("hidden", to: "#basket-review-panel")
+                    |> JS.remove_class("hidden", to: "#basket-confirm-panel")
+                    |> JS.push("start_checkout")
+                  }
+                  class="w-full bg-gradient-to-br from-primary to-primary-container text-on-primary font-bold text-lg rounded-xl px-8 py-5 shadow-soft hover:scale-[1.02] transition-all active:scale-95"
                 >
-                  <span class="phx-click-loading:!hidden tracking-tight uppercase">
-                    Proceed to Checkout
-                  </span>
-                  <span class="hidden phx-click-loading:!flex items-center justify-center gap-3">
-                    PREPARING... <.icon name="hero-arrow-path" class="size-6 animate-spin" />
-                  </span>
+                  <span class="tracking-tight uppercase">Proceed to Checkout</span>
                 </button>
               <% else %>
                 <div class="w-full rounded-xl px-6 py-5 bg-surface-container-high text-center">
@@ -777,166 +785,174 @@ defmodule SupervisedSlicesWeb.CoreComponents do
               <% end %>
             </div>
           <% end %>
-        <% else %>
-          <.form
-            for={%{}}
-            phx-submit="place_order"
-            class="overflow-y-auto flex-1 flex flex-col no-scrollbar"
-          >
-            <div class="flex-1 px-6 py-6 space-y-6">
-              <div
-                :if={@org.delivery_enabled and @org.pickup_enabled}
-                class="bg-surface-container rounded-2xl p-1 flex gap-1 mb-2"
-              >
-                <label class="flex-1">
-                  <input
-                    type="radio"
-                    name="delivery_type"
-                    value="pickup"
-                    checked={is_nil(@cart.delivery_type) or @cart.delivery_type == :pickup}
-                    class="hidden peer"
-                    phx-click="update_delivery_type"
-                    phx-value-delivery_type="pickup"
-                  />
-                  <div class="py-2.5 text-center rounded-xl font-headline text-xs font-black uppercase tracking-widest cursor-pointer transition-all peer-checked:bg-white peer-checked:shadow-sm text-on-surface-variant peer-checked:text-primary">
-                    Pickup
-                  </div>
-                </label>
-                <label class="flex-1">
-                  <input
-                    type="radio"
-                    name="delivery_type"
-                    value="delivery"
-                    checked={@cart.delivery_type == :delivery}
-                    class="hidden peer"
-                    phx-click="update_delivery_type"
-                    phx-value-delivery_type="delivery"
-                  />
-                  <div class="py-2.5 text-center rounded-xl font-headline text-xs font-black uppercase tracking-widest cursor-pointer transition-all peer-checked:bg-white peer-checked:shadow-sm text-on-surface-variant peer-checked:text-primary">
-                    Delivery
-                  </div>
-                </label>
-              </div>
+        </div>
 
-              <div
-                :if={@cart.delivery_type == :delivery}
-                class="space-y-4 animate-in slide-in-from-top-4 duration-300"
-              >
-                <h3 class="font-headline text-[10px] font-black uppercase tracking-[0.15em] text-on-surface-variant/50 px-1">
-                  Delivery Address
-                </h3>
-                <div class="space-y-3">
+        <%!-- Confirm panel: always rendered, hidden when on review step --%>
+        <div
+          id="basket-confirm-panel"
+          class={["flex flex-col flex-1 min-h-0", if(@checkout_step == :review, do: "hidden")]}
+        >
+          <%= if @cart do %>
+            <.form
+              for={%{}}
+              phx-submit="place_order"
+              class="overflow-y-auto flex-1 flex flex-col no-scrollbar"
+            >
+              <div class="flex-1 px-6 py-6 space-y-6">
+                <div
+                  :if={@org.delivery_enabled and @org.pickup_enabled}
+                  class="bg-surface-container rounded-2xl p-1 flex gap-1 mb-2"
+                >
+                  <label class="flex-1">
+                    <input
+                      type="radio"
+                      name="delivery_type"
+                      value="pickup"
+                      checked={is_nil(@cart.delivery_type) or @cart.delivery_type == :pickup}
+                      class="hidden peer"
+                      phx-click="update_delivery_type"
+                      phx-value-delivery_type="pickup"
+                    />
+                    <div class="py-2.5 text-center rounded-xl font-headline text-xs font-black uppercase tracking-widest cursor-pointer transition-all peer-checked:bg-white peer-checked:shadow-sm text-on-surface-variant peer-checked:text-primary">
+                      Pickup
+                    </div>
+                  </label>
+                  <label class="flex-1">
+                    <input
+                      type="radio"
+                      name="delivery_type"
+                      value="delivery"
+                      checked={@cart.delivery_type == :delivery}
+                      class="hidden peer"
+                      phx-click="update_delivery_type"
+                      phx-value-delivery_type="delivery"
+                    />
+                    <div class="py-2.5 text-center rounded-xl font-headline text-xs font-black uppercase tracking-widest cursor-pointer transition-all peer-checked:bg-white peer-checked:shadow-sm text-on-surface-variant peer-checked:text-primary">
+                      Delivery
+                    </div>
+                  </label>
+                </div>
+
+                <div
+                  :if={@cart.delivery_type == :delivery}
+                  class="space-y-4 animate-in slide-in-from-top-4 duration-300"
+                >
+                  <h3 class="font-headline text-[10px] font-black uppercase tracking-[0.15em] text-on-surface-variant/50 px-1">
+                    Delivery Address
+                  </h3>
+                  <div class="space-y-3">
+                    <input
+                      type="text"
+                      name="delivery_address[street]"
+                      value={@cart.delivery_address && @cart.delivery_address.street}
+                      placeholder="Street Address"
+                      required={@cart.delivery_type == :delivery}
+                      class="w-full px-5 py-3.5 rounded-xl bg-surface-container-low border-0 text-on-surface placeholder-on-surface-variant/30 text-base font-black focus:ring-4 focus:ring-primary/10 transition-all shadow-inner"
+                    />
+                    <div class="grid grid-cols-2 gap-3">
+                      <input
+                        type="text"
+                        name="delivery_address[city]"
+                        value={@cart.delivery_address && @cart.delivery_address.city}
+                        placeholder="City"
+                        required={@cart.delivery_type == :delivery}
+                        class="w-full px-5 py-3.5 rounded-xl bg-surface-container-low border-0 text-on-surface placeholder-on-surface-variant/30 text-base font-black focus:ring-4 focus:ring-primary/10 transition-all shadow-inner"
+                      />
+                      <input
+                        type="text"
+                        name="delivery_address[zip]"
+                        value={@cart.delivery_address && @cart.delivery_address.zip}
+                        placeholder="ZIP"
+                        required={@cart.delivery_type == :delivery}
+                        class="w-full px-5 py-3.5 rounded-xl bg-surface-container-low border-0 text-on-surface placeholder-on-surface-variant/30 text-base font-black focus:ring-4 focus:ring-primary/10 transition-all shadow-inner"
+                      />
+                    </div>
+                  </div>
+                  <div class="h-px bg-on-surface/[0.05] mx-2" />
+                </div>
+
+                <div>
+                  <label class="font-headline block text-xs font-black uppercase tracking-[0.15em] text-on-surface-variant/70 mb-3 px-1">
+                    Your Name <span class="text-primary">*</span>
+                  </label>
                   <input
                     type="text"
-                    name="delivery_address[street]"
-                    value={@cart.delivery_address && @cart.delivery_address.street}
-                    placeholder="Street Address"
-                    required={@cart.delivery_type == :delivery}
-                    class="w-full px-5 py-3.5 rounded-xl bg-surface-container-low border-0 text-on-surface placeholder-on-surface-variant/30 text-base font-black focus:ring-4 focus:ring-primary/10 transition-all shadow-inner"
+                    name="customer_name"
+                    required
+                    placeholder="e.g. Alex Smith"
+                    class="w-full px-5 py-3.5 rounded-xl bg-surface-container-low border-0 text-on-surface placeholder-on-surface-variant/30 text-base font-black focus:outline-none focus:ring-4 focus:ring-primary/10 transition-all shadow-inner"
                   />
-                  <div class="grid grid-cols-2 gap-3">
-                    <input
-                      type="text"
-                      name="delivery_address[city]"
-                      value={@cart.delivery_address && @cart.delivery_address.city}
-                      placeholder="City"
-                      required={@cart.delivery_type == :delivery}
-                      class="w-full px-5 py-3.5 rounded-xl bg-surface-container-low border-0 text-on-surface placeholder-on-surface-variant/30 text-base font-black focus:ring-4 focus:ring-primary/10 transition-all shadow-inner"
-                    />
-                    <input
-                      type="text"
-                      name="delivery_address[zip]"
-                      value={@cart.delivery_address && @cart.delivery_address.zip}
-                      placeholder="ZIP"
-                      required={@cart.delivery_type == :delivery}
-                      class="w-full px-5 py-3.5 rounded-xl bg-surface-container-low border-0 text-on-surface placeholder-on-surface-variant/30 text-base font-black focus:ring-4 focus:ring-primary/10 transition-all shadow-inner"
-                    />
-                  </div>
                 </div>
-                <div class="h-px bg-on-surface/[0.05] mx-2" />
+                <div>
+                  <label class="font-headline block text-xs font-black uppercase tracking-[0.15em] text-on-surface-variant/70 mb-3 px-1">
+                    Email <span class="text-primary">*</span>
+                  </label>
+                  <input
+                    type="email"
+                    name="customer_email"
+                    required
+                    placeholder="e.g. alex@example.com"
+                    class="w-full px-5 py-3.5 rounded-xl bg-surface-container-low border-0 text-on-surface placeholder-on-surface-variant/30 text-base font-black focus:outline-none focus:ring-4 focus:ring-primary/10 transition-all shadow-inner"
+                  />
+                </div>
+                <div>
+                  <label class="font-headline block text-xs font-black uppercase tracking-[0.15em] text-on-surface-variant/70 mb-3 px-1">
+                    Notes
+                    <span class="text-on-surface-variant/40 normal-case font-medium lowercase italic">
+                      (optional)
+                    </span>
+                  </label>
+                  <textarea
+                    name="notes"
+                    rows="3"
+                    placeholder="Allergies, special requests…"
+                    class="w-full px-5 py-3.5 rounded-xl bg-surface-container-low border-0 text-on-surface placeholder-on-surface-variant/30 text-base font-black focus:outline-none focus:ring-4 focus:ring-primary/10 transition-all resize-none shadow-inner"
+                  />
+                </div>
               </div>
 
-              <div>
-                <label class="font-headline block text-xs font-black uppercase tracking-[0.15em] text-on-surface-variant/70 mb-3 px-1">
-                  Your Name <span class="text-primary">*</span>
-                </label>
-                <input
-                  type="text"
-                  name="customer_name"
-                  required
-                  placeholder="e.g. Alex Smith"
-                  class="w-full px-5 py-3.5 rounded-xl bg-surface-container-low border-0 text-on-surface placeholder-on-surface-variant/30 text-base font-black focus:outline-none focus:ring-4 focus:ring-primary/10 transition-all shadow-inner"
-                />
-              </div>
-              <div>
-                <label class="font-headline block text-xs font-black uppercase tracking-[0.15em] text-on-surface-variant/70 mb-3 px-1">
-                  Email <span class="text-primary">*</span>
-                </label>
-                <input
-                  type="email"
-                  name="customer_email"
-                  required
-                  placeholder="e.g. alex@example.com"
-                  class="w-full px-5 py-3.5 rounded-xl bg-surface-container-low border-0 text-on-surface placeholder-on-surface-variant/30 text-base font-black focus:outline-none focus:ring-4 focus:ring-primary/10 transition-all shadow-inner"
-                />
-              </div>
-              <div>
-                <label class="font-headline block text-xs font-black uppercase tracking-[0.15em] text-on-surface-variant/70 mb-3 px-1">
-                  Notes
-                  <span class="text-on-surface-variant/40 normal-case font-medium lowercase italic">
-                    (optional)
-                  </span>
-                </label>
-                <textarea
-                  name="notes"
-                  rows="3"
-                  placeholder="Allergies, special requests…"
-                  class="w-full px-5 py-3.5 rounded-xl bg-surface-container-low border-0 text-on-surface placeholder-on-surface-variant/30 text-base font-black focus:outline-none focus:ring-4 focus:ring-primary/10 transition-all resize-none shadow-inner"
-                />
-              </div>
-            </div>
-
-            <div class="bg-surface-container-low/50 backdrop-blur-md rounded-t-[2.5rem] px-6 pb-8 pt-6 shrink-0 space-y-6 shadow-[0px_-8px_32px_rgba(0,0,0,0.05)]">
-              <div class="space-y-3">
-                <div class="flex justify-between items-center text-sm font-black text-on-surface-variant uppercase tracking-widest opacity-60">
-                  <span>Subtotal</span>
-                  <span>{basket_subtotal_string(@cart)}</span>
-                </div>
-                <%= if basket_has_tax?(@tax_rate) do %>
+              <div class="bg-surface-container-low/50 backdrop-blur-md rounded-t-[2.5rem] px-6 pb-8 pt-6 shrink-0 space-y-6 shadow-[0px_-8px_32px_rgba(0,0,0,0.05)]">
+                <div class="space-y-3">
                   <div class="flex justify-between items-center text-sm font-black text-on-surface-variant uppercase tracking-widest opacity-60">
-                    <span>Tax ({basket_tax_percent_label(@tax_rate)}%)</span>
-                    <span>{basket_tax_string(@cart, @tax_rate)}</span>
+                    <span>Subtotal</span>
+                    <span>{basket_subtotal_string(@cart)}</span>
                   </div>
-                <% end %>
-                <div
-                  :if={fee = basket_delivery_fee_money(@cart, @org)}
-                  class="flex justify-between items-center text-sm font-black text-on-surface-variant uppercase tracking-widest opacity-60"
-                >
-                  <span>Delivery Fee</span>
-                  <span>{Money.to_string!(fee)}</span>
+                  <%= if basket_has_tax?(@tax_rate) do %>
+                    <div class="flex justify-between items-center text-sm font-black text-on-surface-variant uppercase tracking-widest opacity-60">
+                      <span>Tax ({basket_tax_percent_label(@tax_rate)}%)</span>
+                      <span>{basket_tax_string(@cart, @tax_rate)}</span>
+                    </div>
+                  <% end %>
+                  <div
+                    :if={fee = basket_delivery_fee_money(@cart, @org)}
+                    class="flex justify-between items-center text-sm font-black text-on-surface-variant uppercase tracking-widest opacity-60"
+                  >
+                    <span>Delivery Fee</span>
+                    <span>{Money.to_string!(fee)}</span>
+                  </div>
+                  <div class="flex justify-between items-center pt-2 border-t border-on-surface/[0.05]">
+                    <span class="font-headline text-xl font-black text-on-surface uppercase tracking-tight">
+                      Total
+                    </span>
+                    <span class="font-headline text-3xl font-black text-primary leading-none">
+                      {basket_total(@cart, @tax_rate, @org)}
+                    </span>
+                  </div>
                 </div>
-                <div class="flex justify-between items-center pt-2 border-t border-on-surface/[0.05]">
-                  <span class="font-headline text-xl font-black text-on-surface uppercase tracking-tight">
-                    Total
-                  </span>
-                  <span class="font-headline text-3xl font-black text-primary leading-none">
-                    {basket_total(@cart, @tax_rate, @org)}
-                  </span>
-                </div>
-              </div>
 
-              <button
-                type="submit"
-                class="w-full bg-gradient-to-r from-primary to-primary-container text-on-primary font-black text-lg rounded-xl px-6 py-4 shadow-[0px_16px_32px_rgba(185,0,39,0.3)] hover:scale-[1.02] hover:shadow-[0px_20px_40px_rgba(185,0,39,0.4)] transition-all active:scale-95 phx-submit-loading:opacity-80"
-              >
-                <span class="phx-submit-loading:!hidden">PLACE ORDER</span>
-                <span class="hidden phx-submit-loading:!flex items-center justify-center gap-3">
-                  PLACING ORDER... <.icon name="hero-arrow-path" class="size-6 animate-spin" />
-                </span>
-              </button>
-            </div>
-          </.form>
-        <% end %>
+                <button
+                  type="submit"
+                  class="w-full bg-gradient-to-r from-primary to-primary-container text-on-primary font-black text-lg rounded-xl px-6 py-4 shadow-[0px_16px_32px_rgba(185,0,39,0.3)] hover:scale-[1.02] hover:shadow-[0px_20px_40px_rgba(185,0,39,0.4)] transition-all active:scale-95 phx-submit-loading:opacity-80"
+                >
+                  <span class="phx-submit-loading:!hidden">PLACE ORDER</span>
+                  <span class="hidden phx-submit-loading:!flex items-center justify-center gap-3">
+                    PLACING ORDER... <.icon name="hero-arrow-path" class="size-6 animate-spin" />
+                  </span>
+                </button>
+              </div>
+            </.form>
+          <% end %>
+        </div>
       </div>
     </div>
     """
