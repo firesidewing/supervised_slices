@@ -62,10 +62,10 @@ defmodule SupervisedSlicesWeb.PageController do
         ]
       },
       preview_menu_items: [
-        %{name: "Margherita", description: "San Marzano tomato, buffalo mozzarella, fresh basil", price_display: "$14"},
-        %{name: "Pepperoni", description: "Double pepperoni, provolone, spicy honey glaze", price_display: "$16"},
-        %{name: "Truffle Bianca", description: "Truffle oil, fontina, wild mushrooms, arugula", price_display: "$19"},
-        %{name: "Diavola", description: "Spicy salami, nduja, chilli, fior di latte", price_display: "$17"}
+        %{name: "Margherita", description: "San Marzano tomato, buffalo mozzarella, fresh basil", price_display: "$14", image_url: "https://images.unsplash.com/photo-1565299624946-b28f40a0ae38?q=80&w=400&auto=format&fit=crop"},
+        %{name: "Pepperoni", description: "Double pepperoni, provolone, spicy honey glaze", price_display: "$16", image_url: "https://images.unsplash.com/photo-1628840042765-356cda07504e?q=80&w=400&auto=format&fit=crop"},
+        %{name: "Truffle Bianca", description: "Truffle oil, fontina, wild mushrooms, arugula", price_display: "$19", image_url: "https://images.unsplash.com/photo-1513104890138-7c749659a591?q=80&w=400&auto=format&fit=crop"},
+        %{name: "Diavola", description: "Spicy salami, nduja, chilli, fior di latte", price_display: "$17", image_url: "https://images.unsplash.com/photo-1534308983496-4fabb1a015ee?q=80&w=400&auto=format&fit=crop"}
       ]
     )
   end

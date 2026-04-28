@@ -52,10 +52,13 @@ defmodule SupervisedSlicesWeb.MenuLive.MenuComponent do
       <div class="grid grid-cols-2 gap-x-4 gap-y-6">
         <%= for item <- @items do %>
           <div class="flex flex-col bg-surface-container-lowest rounded-xl overflow-hidden shadow-soft">
-            <div class="pt-8 px-6 pb-2">
-              <div class="w-10 h-1 bg-primary/20 rounded-full mb-4" />
+            <div class="aspect-square w-full overflow-hidden bg-surface-container">
+              <img :if={Map.get(item, :image_url)} src={item.image_url} alt={item.name} class="w-full h-full object-cover" />
+              <div :if={!Map.get(item, :image_url)} class="w-full h-full flex items-center justify-center">
+                <span class="material-symbols-outlined text-4xl opacity-20">local_pizza</span>
+              </div>
             </div>
-            <div class="px-6 pb-5 flex flex-col flex-1 justify-between">
+            <div class="px-4 pb-4 pt-3 flex flex-col flex-1 justify-between">
               <div>
                 <p class="font-headline font-bold text-base text-on-surface">{item.name}</p>
                 <p class="text-xs text-on-surface-variant mt-2 opacity-80 leading-relaxed line-clamp-2">
