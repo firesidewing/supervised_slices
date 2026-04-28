@@ -39,6 +39,9 @@
     >
       Get Started <span class="material-symbols-outlined">arrow_forward</span>
     </a>
+    <p class="mt-6 font-label text-xs tracking-widest uppercase text-on-surface-variant opacity-50">
+      No commission on orders · No hidden fees
+    </p>
   </div>
   <div class="md:col-span-6 relative">
     <div class="relative w-full aspect-[4/5] bg-surface-container-high overflow-hidden rounded-lg shadow-2xl">
@@ -77,18 +80,31 @@
       <!-- The Rail (Kitchen Management) -->
       <div class="space-y-10 group">
         <div class="aspect-square bg-surface rounded-2xl p-8 shadow-soft border border-outline-variant/10 overflow-hidden relative">
-          <div class="h-full w-full bg-surface-container-high rounded-xl p-8 group-hover:scale-105 transition-transform duration-700">
-            <div class="flex items-center gap-4 mb-8">
-              <div class="w-4 h-4 rounded-full bg-primary animate-pulse"></div>
-              <div class="w-20 h-3 bg-on-surface/10 rounded-full"></div>
-            </div>
-            <div class="space-y-6">
-              <div class="h-6 bg-on-surface/5 rounded-lg w-3/4"></div>
-              <div class="h-32 bg-on-surface/5 rounded-xl w-full"></div>
-              <div class="grid grid-cols-2 gap-6 mt-8">
-                <div class="h-16 bg-on-surface/10 rounded-xl"></div>
-                <div class="h-16 bg-on-surface/10 rounded-xl"></div>
+          <div class="h-full w-full bg-surface-container-high rounded-xl p-6 group-hover:scale-105 transition-transform duration-700">
+            <div class="flex items-center justify-between mb-5">
+              <div class="flex items-center gap-2">
+                <div class="w-2.5 h-2.5 rounded-full bg-secondary animate-pulse"></div>
+                <span class="font-label text-[10px] uppercase tracking-widest font-bold opacity-60">Kitchen Rail</span>
               </div>
+              <span class="font-label text-[10px] font-bold text-primary">3 Active</span>
+            </div>
+            <div class="bg-surface rounded-xl p-4 mb-3 border-l-4 border-primary">
+              <div class="flex justify-between items-start mb-2">
+                <span class="font-headline font-black text-sm">#042</span>
+                <span class="font-label text-[9px] bg-primary/10 text-primary px-2 py-0.5 rounded-full font-bold uppercase tracking-wide">New</span>
+              </div>
+              <p class="font-body text-xs font-bold mb-1">Margherita · Large</p>
+              <p class="font-body text-[10px] opacity-50">Basil, Fresh Mozzarella, San Marzano</p>
+              <p class="font-label text-[9px] mt-2 opacity-40 uppercase tracking-wider">0:02 elapsed</p>
+            </div>
+            <div class="bg-surface rounded-xl p-4 border-l-4 border-secondary/60">
+              <div class="flex justify-between items-start mb-2">
+                <span class="font-headline font-black text-sm">#041</span>
+                <span class="font-label text-[9px] bg-secondary/20 text-secondary px-2 py-0.5 rounded-full font-bold uppercase tracking-wide">Firing</span>
+              </div>
+              <p class="font-body text-xs font-bold mb-1">Pepperoni · Medium</p>
+              <p class="font-body text-[10px] opacity-50">Double Pepperoni, Provolone</p>
+              <p class="font-label text-[9px] mt-2 opacity-40 uppercase tracking-wider">8:14 elapsed</p>
             </div>
           </div>
         </div>
@@ -103,15 +119,27 @@
 <!-- The Studio (Menu Editor) -->
       <div class="space-y-10 md:translate-y-20 group">
         <div class="aspect-square bg-surface rounded-2xl p-8 shadow-soft border border-outline-variant/10 overflow-hidden relative">
-          <div class="h-full w-full bg-surface-container-highest rounded-xl p-8 group-hover:scale-105 transition-transform duration-700 flex flex-col justify-end">
-            <div class="space-y-4">
-              <div class="w-full h-2 bg-primary/20 rounded-full"></div>
-              <div class="w-full h-2 bg-primary/20 rounded-full"></div>
-              <div class="w-3/4 h-2 bg-primary rounded-full"></div>
+          <div class="h-full w-full bg-surface-container-highest rounded-xl p-6 group-hover:scale-105 transition-transform duration-700 flex flex-col">
+            <div class="flex items-center justify-between mb-5">
+              <span class="font-label text-[10px] uppercase tracking-widest font-bold opacity-50">Menu Studio</span>
+              <span class="font-label text-[9px] font-bold text-secondary bg-secondary/10 px-2 py-0.5 rounded-full">Saved ✓</span>
             </div>
-            <p class="font-label text-[10px] mt-6 opacity-40 font-bold tracking-widest uppercase">
-              Menu Studio v2.0
-            </p>
+            <div class="flex-1">
+              <div class="flex justify-between items-start mb-2">
+                <p class="font-headline font-black text-lg">Margherita</p>
+                <p class="font-headline font-black text-primary">$14</p>
+              </div>
+              <p class="font-body text-[11px] opacity-60 mb-5 leading-relaxed">San Marzano tomato, buffalo mozzarella, fresh basil, olive oil.</p>
+              <p class="font-label text-[9px] uppercase tracking-widest font-bold opacity-40 mb-3">Toppings</p>
+              <div class="flex flex-wrap gap-2 mb-4">
+                <span class="bg-secondary text-white font-label text-[9px] px-2.5 py-1 rounded-full font-bold">Basil ✓</span>
+                <span class="bg-surface-container font-label text-[9px] px-2.5 py-1 rounded-full font-bold opacity-70">Mozzarella</span>
+                <span class="bg-surface-container font-label text-[9px] px-2.5 py-1 rounded-full font-bold opacity-70">Tomato</span>
+              </div>
+            </div>
+            <div class="bg-primary text-white rounded-lg py-2 text-center font-label text-[10px] font-black tracking-widest uppercase">
+              Edit Item
+            </div>
           </div>
         </div>
         <div class="px-2">
@@ -125,20 +153,41 @@
 <!-- The Counter (Online Ordering) -->
       <div class="space-y-10 group">
         <div class="aspect-square bg-surface rounded-2xl p-8 shadow-soft border border-outline-variant/10 overflow-hidden relative">
-          <div class="h-full w-full bg-secondary-container/20 rounded-xl p-8 group-hover:scale-105 transition-transform duration-700">
-            <div class="flex justify-between items-start mb-16">
-              <span class="material-symbols-outlined text-5xl text-secondary">
-                shopping_basket
-              </span>
-              <div class="bg-secondary text-white text-[10px] font-bold px-3 py-1 rounded-full tracking-widest">
-                LIVE
+          <div class="h-full w-full bg-secondary-container/20 rounded-xl p-6 group-hover:scale-105 transition-transform duration-700 flex flex-col">
+            <div class="flex justify-between items-center mb-5">
+              <span class="font-label text-[10px] uppercase tracking-widest font-bold opacity-50">Your Order</span>
+              <div class="bg-secondary text-white text-[9px] font-bold px-2.5 py-0.5 rounded-full tracking-widest">LIVE</div>
+            </div>
+            <div class="flex-1 space-y-3">
+              <div class="flex items-center justify-between bg-surface/60 rounded-xl px-4 py-3">
+                <div>
+                  <p class="font-body text-xs font-bold">Margherita · Lg</p>
+                  <p class="font-label text-[9px] opacity-50 mt-0.5">Basil, Mozzarella</p>
+                </div>
+                <div class="flex items-center gap-2">
+                  <span class="font-label text-[9px] bg-surface px-2 py-0.5 rounded font-bold">×1</span>
+                  <span class="font-body text-xs font-black">$14</span>
+                </div>
+              </div>
+              <div class="flex items-center justify-between bg-surface/60 rounded-xl px-4 py-3">
+                <div>
+                  <p class="font-body text-xs font-bold">Sparkling Water</p>
+                  <p class="font-label text-[9px] opacity-50 mt-0.5">330ml</p>
+                </div>
+                <div class="flex items-center gap-2">
+                  <span class="font-label text-[9px] bg-surface px-2 py-0.5 rounded font-bold">×2</span>
+                  <span class="font-body text-xs font-black">$6</span>
+                </div>
               </div>
             </div>
-            <div class="h-32 w-full flex items-end gap-3">
-              <div class="flex-1 bg-secondary/20 h-1/2 rounded-t-lg"></div>
-              <div class="flex-1 bg-secondary/40 h-3/4 rounded-t-lg"></div>
-              <div class="flex-1 bg-secondary h-full rounded-t-lg"></div>
-              <div class="flex-1 bg-secondary/60 h-2/3 rounded-t-lg"></div>
+            <div class="mt-4 pt-4 border-t border-secondary/20">
+              <div class="flex justify-between mb-3">
+                <span class="font-label text-[10px] uppercase tracking-widest font-bold opacity-50">Total</span>
+                <span class="font-headline font-black text-sm">$20.00</span>
+              </div>
+              <div class="bg-secondary text-white rounded-lg py-2.5 text-center font-label text-[10px] font-black tracking-widest uppercase">
+                Place Order →
+              </div>
             </div>
           </div>
         </div>
@@ -173,12 +222,23 @@
           </div>
         </div>
         <div class="space-y-6 pt-24">
-          <div class="bg-surface-container-high aspect-square rounded-2xl flex items-center justify-center p-12 shadow-inner border border-outline-variant/5">
-            <div class="text-center">
-              <p class="text-6xl font-headline font-black text-on-surface">Live</p>
-              <p class="font-label text-xs tracking-widest uppercase mt-4 font-bold opacity-60">
-                Order Flow Logic
-              </p>
+          <div class="bg-surface-container-high aspect-square rounded-2xl p-8 shadow-inner border border-outline-variant/5 flex flex-col justify-center">
+            <p class="font-label text-[10px] uppercase tracking-widest font-bold opacity-50 mb-8">Today's Kitchen</p>
+            <div class="space-y-6">
+              <div>
+                <p class="font-headline font-black text-5xl text-on-surface">34</p>
+                <p class="font-label text-[10px] uppercase tracking-widest opacity-50 mt-1">Orders Today</p>
+              </div>
+              <div class="w-full h-px bg-on-surface/5"></div>
+              <div>
+                <p class="font-headline font-black text-5xl text-secondary">12<span class="text-3xl"> min</span></p>
+                <p class="font-label text-[10px] uppercase tracking-widest opacity-50 mt-1">Avg. Prep Time</p>
+              </div>
+              <div class="w-full h-px bg-on-surface/5"></div>
+              <div>
+                <p class="font-headline font-black text-5xl text-on-surface">$1,840</p>
+                <p class="font-label text-[10px] uppercase tracking-widest opacity-50 mt-1">Revenue</p>
+              </div>
             </div>
           </div>
           <img
@@ -228,7 +288,7 @@
         Simple <span class="text-primary italic">Pricing.</span>
       </h2>
       <p class="text-on-surface-variant font-body text-xl max-w-2xl mx-auto opacity-90">
-        Choose the plan that works for your shop. All plans include a one-time concierge setup for $150.
+        No per-order commissions. No hidden fees. Cancel anytime.
       </p>
     </div>
 
@@ -242,8 +302,9 @@
           </p>
         </div>
         <div class="mb-10">
-          <span class="text-5xl font-headline font-black">$79</span>
+          <span class="text-5xl font-headline font-black">$49</span>
           <span class="text-on-surface-variant font-body">/month</span>
+          <p class="text-on-surface-variant/60 font-label text-xs uppercase tracking-widest mt-2">or $39/mo billed annually</p>
         </div>
         <ul class="space-y-6 mb-12 flex-grow">
           <li class="flex items-center gap-4 font-body text-lg">
@@ -267,7 +328,7 @@
           href="/register"
           class="w-full py-5 bg-on-surface text-white rounded-xl font-body font-black text-center hover:bg-primary transition-colors"
         >
-          Start with Base
+          Start free 14-day trial
         </a>
       </div>
       
@@ -281,8 +342,9 @@
           <p class="text-white/60 font-body">Everything you need to run and grow.</p>
         </div>
         <div class="mb-10">
-          <span class="text-5xl font-headline font-black">$149</span>
+          <span class="text-5xl font-headline font-black">$129</span>
           <span class="text-white/60 font-body">/month</span>
+          <p class="text-white/40 font-label text-xs uppercase tracking-widest mt-2">or $103/mo billed annually</p>
         </div>
         <ul class="space-y-6 mb-12 flex-grow">
           <li class="flex items-center gap-4 font-body text-lg">
@@ -299,7 +361,7 @@
           </li>
           <li class="flex items-center gap-4 font-body text-lg">
             <span class="material-symbols-outlined text-primary font-bold">check</span>
-            Stripe Order Processing (Coming Soon)
+            Dedicated Onboarding Support
           </li>
           <li class="flex items-center gap-4 font-body text-lg">
             <span class="material-symbols-outlined text-primary font-bold">check</span>
@@ -310,22 +372,34 @@
           href="/register"
           class="w-full py-5 bg-primary text-white rounded-xl font-body font-black text-center hover:bg-primary-container transition-colors shadow-lg"
         >
-          Go Pro
+          Try Pro free for 14 days
         </a>
       </div>
     </div>
-    
+
+    <div class="max-w-5xl mx-auto mb-16 flex flex-wrap justify-center gap-3">
+      <span class="bg-secondary-container text-on-secondary-container font-label text-xs px-4 py-2 rounded-full font-bold tracking-wide">
+        ✓ No commission per order
+      </span>
+      <span class="bg-secondary-container text-on-secondary-container font-label text-xs px-4 py-2 rounded-full font-bold tracking-wide">
+        vs. Slice's 5% per-order fee
+      </span>
+      <span class="bg-secondary-container text-on-secondary-container font-label text-xs px-4 py-2 rounded-full font-bold tracking-wide">
+        vs. Owner.com's $249/mo
+      </span>
+    </div>
+
 <!-- Concierge Add-on -->
     <div class="max-w-3xl mx-auto bg-surface-container-high p-8 md:p-12 rounded-[2rem] border border-outline-variant/10 flex flex-col md:flex-row items-center justify-between gap-8">
       <div>
         <h3 class="font-headline text-2xl font-black mb-2">Menu Import Concierge</h3>
         <p class="text-on-surface-variant font-body max-w-md">
-          Don't have time to build your menu? We'll import everything from your existing menu or PDFs for a one-time fee.
+          Don't have time to build your menu from scratch? We'll import everything from your existing menu or PDFs — a completely optional one-time service.
         </p>
       </div>
       <div class="text-center md:text-right min-w-[200px]">
         <span class="text-4xl font-headline font-black">$150</span>
-        <p class="text-on-surface-variant font-body text-sm mb-4">One-time Fee</p>
+        <p class="text-on-surface-variant font-body text-sm mb-4">Optional Add-On</p>
         <a
           href="/register"
           class="inline-block px-8 py-3 bg-secondary text-white rounded-xl font-body font-black text-sm hover:opacity-90 transition-opacity"
@@ -358,7 +432,7 @@
         Get Started
       </a>
       <a
-        href="#"
+        href="#instruments"
         class="border-2 border-white/20 text-white px-12 py-6 rounded-xl font-body font-black text-xl hover:bg-white/5 transition-all"
       >
         See How It Works
