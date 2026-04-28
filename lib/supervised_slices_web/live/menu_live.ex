@@ -208,6 +208,10 @@ defmodule SupervisedSlicesWeb.MenuLive do
      })}
   end
 
+  def handle_event("back_to_basket", _params, socket) do
+    {:noreply, assign(socket, :checkout_step, :review)}
+  end
+
   def handle_event("place_order", _params, %{assigns: %{store_open: false}} = socket) do
     {:noreply,
      put_flash(socket, :error, "We're currently closed. Please check back during business hours.")}

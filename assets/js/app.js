@@ -32,6 +32,7 @@ import {
     GeoFenceMap,
     KitchenAlert,
     PostHogIdentify,
+    TimeAgo,
 } from "./hooks";
 import topbar from "../vendor/topbar";
 
@@ -72,6 +73,7 @@ const liveSocket = new LiveSocket("/live", Socket, {
         GeoFenceMap,
         KitchenAlert,
         PostHogIdentify,
+        TimeAgo,
     },
     dom: {
         onDocumentPatch(start) {

@@ -486,6 +486,36 @@ export const Carousel = {
 }
 
 /**
+ * TimeAgo — live "Ordered Xm ago" label that updates client-side every 30s.
+ *
+ * Reads `data-inserted-at` (Unix timestamp in seconds) and rewrites its own
+ * text content, avoiding server-driven :tick round-trips for time display.
+ */
+export const TimeAgo = {
+  mounted() {
+    this._update()
+    this._timer = setInterval(() => this._update(), 30_000)
+  },
+
+  destroyed() {
+    clearInterval(this._timer)
+  },
+
+  _update() {
+    const insertedAt = parseInt(this.el.dataset.insertedAt, 10)
+    if (!insertedAt) return
+    const seconds = Math.floor(Date.now() / 1000) - insertedAt
+    if (seconds < 60) {
+      this.el.textContent = "Just arrived"
+    } else if (seconds < 3600) {
+      this.el.textContent = `Ordered ${Math.floor(seconds / 60)}m ago`
+    } else {
+      this.el.textContent = `Ordered ${Math.floor(seconds / 3600)}h ago`
+    }
+  }
+}
+
+/**
  * GeoFenceMap — interactive Leaflet map for setting delivery area.
  */
 export const GeoFenceMap = {
