@@ -264,7 +264,7 @@ defmodule SupervisedSlicesWeb.MenuLive.ItemComponent do
           <p class="mt-2 text-on-surface-variant text-sm italic opacity-90">{@item.description}</p>
         </div>
       </div>
-      <div :if={not Map.get(@item, :image_url)} class="px-8 pt-16 pb-6">
+      <div :if={is_nil(Map.get(@item, :image_url))} class="px-8 pt-16 pb-6">
         <div class="flex items-center gap-2 mb-4">
           <span class="bg-secondary-container text-on-secondary-container text-[10px] px-2 py-0.5 rounded-full font-label tracking-widest uppercase font-bold">
             Chef's Signature
