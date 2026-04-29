@@ -251,7 +251,20 @@ defmodule SupervisedSlicesWeb.MenuLive.ItemComponent do
   def item_detail_preview(assigns) do
     ~H"""
     <div class="bg-surface min-h-full text-on-surface">
-      <div class="px-8 pt-16 pb-6">
+      <div :if={Map.get(@item, :image_url)} class="relative w-full aspect-[4/5] overflow-hidden">
+        <img src={@item.image_url} alt={@item.name} class="w-full h-full object-cover" />
+        <div class="absolute bottom-0 left-0 w-full h-2/3 bg-gradient-to-t from-surface to-transparent pointer-events-none" />
+        <div class="absolute bottom-8 left-8 right-8">
+          <span class="bg-secondary-container text-on-secondary-container text-[10px] px-2 py-0.5 rounded-full font-label tracking-widest uppercase font-bold">
+            Chef's Signature
+          </span>
+          <h2 class="font-headline text-4xl font-bold tracking-tight text-on-surface leading-none mt-2">
+            {@item.name}
+          </h2>
+          <p class="mt-2 text-on-surface-variant text-sm italic opacity-90">{@item.description}</p>
+        </div>
+      </div>
+      <div :if={not Map.get(@item, :image_url)} class="px-8 pt-16 pb-6">
         <div class="flex items-center gap-2 mb-4">
           <span class="bg-secondary-container text-on-secondary-container text-[10px] px-2 py-0.5 rounded-full font-label tracking-widest uppercase font-bold">
             Chef's Signature
