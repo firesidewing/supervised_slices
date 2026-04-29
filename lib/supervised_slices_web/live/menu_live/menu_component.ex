@@ -84,6 +84,75 @@ defmodule SupervisedSlicesWeb.MenuLive.MenuComponent do
     """
   end
 
+  def basket_preview(assigns) do
+    ~H"""
+    <div class="bg-surface min-h-full text-on-surface">
+      <div class="px-6 pt-12 pb-6">
+        <p class="font-label text-[10px] uppercase tracking-widest opacity-40 mb-2">Review Order</p>
+        <h2 class="font-headline text-4xl font-bold tracking-tight">Your Basket</h2>
+      </div>
+
+      <div class="px-6 space-y-4">
+        <div class="bg-surface-container rounded-2xl p-5">
+          <div class="flex justify-between items-start gap-4">
+            <div class="flex-1">
+              <p class="font-headline font-bold">{@item.name}</p>
+              <div class="mt-1.5 space-y-0.5">
+                <%= for size <- Enum.filter(@item.sizes, & &1.selected) do %>
+                  <p class="text-xs text-on-surface-variant opacity-80">{size.name} · {size.label}</p>
+                <% end %>
+                <%= for group <- @item.modifier_groups do %>
+                  <%= for mod <- Enum.filter(group.modifiers, & &1.selected) do %>
+                    <p class="text-xs text-on-surface-variant opacity-80">+ {mod.name}</p>
+                  <% end %>
+                <% end %>
+              </div>
+            </div>
+            <div class="flex flex-col items-end gap-2">
+              <span class="font-headline font-black">{@item.total_display}</span>
+              <div class="flex items-center gap-2">
+                <div class="w-7 h-7 rounded-md bg-surface-container-high flex items-center justify-center">
+                  <span class="material-symbols-outlined text-sm">remove</span>
+                </div>
+                <span class="font-bold text-sm">1</span>
+                <div class="w-7 h-7 rounded-md bg-surface-container-high flex items-center justify-center">
+                  <span class="material-symbols-outlined text-sm">add</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="px-1 space-y-3 pt-1">
+          <div class="flex justify-between text-sm">
+            <span class="font-label text-[10px] uppercase tracking-widest opacity-40">Subtotal</span>
+            <span class="font-bold">{@item.total_display}</span>
+          </div>
+          <div class="w-full h-px bg-on-surface/5"></div>
+          <div class="flex justify-between">
+            <span class="font-label text-[10px] uppercase tracking-widest opacity-40">Total</span>
+            <span class="font-headline font-black text-lg">{@item.total_display}</span>
+          </div>
+        </div>
+
+        <div class="px-1 pt-2">
+          <p class="font-label text-[10px] uppercase tracking-widest opacity-40 mb-3">Order Notes</p>
+          <div class="border-b border-outline-variant pb-3">
+            <p class="text-sm opacity-30 italic font-body">e.g. extra charred crust, no basil...</p>
+          </div>
+        </div>
+      </div>
+
+      <div class="mt-12 px-6 py-6 bg-surface/90 backdrop-blur-xl shadow-[0_-10px_40px_rgba(28,28,24,0.06)]">
+        <div class="w-full py-4 bg-gradient-to-tr from-primary to-primary-container text-white font-label font-bold tracking-widest uppercase rounded-md shadow-lg text-center text-sm">
+          Place Your Order · {@item.total_display}
+        </div>
+        <p class="text-center font-label text-[10px] opacity-30 uppercase tracking-widest mt-3">No account needed</p>
+      </div>
+    </div>
+    """
+  end
+
   defp menu_item_card(assigns) do
     qty = get_item_qty(assigns.cart_items_map, assigns.item.id)
     assigns = assign(assigns, qty: qty)
