@@ -39,7 +39,7 @@ defmodule SupervisedSlicesWeb.Layouts do
       <div class="flex-1">
         <a href="/" class="flex items-center gap-3 group">
           <div class="font-headline text-2xl font-black tracking-tighter text-on-surface group-hover:text-primary transition-colors">
-            Basil & Stone
+            Chitline
           </div>
         </a>
       </div>
