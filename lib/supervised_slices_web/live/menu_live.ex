@@ -7,7 +7,7 @@ defmodule SupervisedSlicesWeb.MenuLive do
   alias SupervisedSlices.Accounts.{GuestSession, User}
   alias SupervisedSlices.Cart.{Cart, CartItem}
   alias SupervisedSlices.Menu.{Category, MenuItem, MenuItemSize}
-  alias SupervisedSlices.Orders.{Order, OrderItem, Emails}
+  alias SupervisedSlices.Orders.{Order, OrderItem}
   alias SupervisedSlices.Orgs.GeofenceChecker
   alias SupervisedSlices.OrgPresence
   alias SupervisedSlices.PubSubNotifier
@@ -285,9 +285,6 @@ defmodule SupervisedSlicesWeb.MenuLive do
       end)
 
       Cart.checkout!(cart, scope: scope)
-
-      PubSubNotifier.broadcast_new_order(order)
-      Emails.send_order_confirmation(order)
 
       distinct_id =
         case socket.assigns[:current_user] do

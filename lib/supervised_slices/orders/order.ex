@@ -3,7 +3,8 @@ defmodule SupervisedSlices.Orders.Order do
     otp_app: :supervised_slices,
     domain: SupervisedSlices.Orders,
     data_layer: AshPostgres.DataLayer,
-    authorizers: [Ash.Policy.Authorizer]
+    authorizers: [Ash.Policy.Authorizer],
+    extensions: [AshOban]
 
   postgres do
     table "orders"
@@ -201,6 +202,26 @@ defmodule SupervisedSlices.Orders.Order do
       argument :user_id, :uuid, allow_nil?: false
       filter expr(user_id == ^arg(:user_id))
       prepare build(sort: [inserted_at: :desc])
+    end
+
+    action :notify_order do
+      argument :order_id, :uuid, allow_nil?: false
+      run fn input, _context ->
+        order = Ash.get!(SupervisedSlices.Orders.Order, input.arguments.order_id)
+        SupervisedSlices.PubSubNotifier.broadcast_new_order(order)
+        SupervisedSlices.Emails.send_order_confirmation(order)
+        {:ok, order}
+      end
+    end
+  end
+
+  oban do
+    triggers do
+      trigger :place_order do
+        action :notify_order
+        worker_module_name SupervisedSlices.Orders.Order.AshOban.Worker.NotifyOrder
+        scheduler_module_name SupervisedSlices.Orders.Order.AshOban.Scheduler.NotifyOrder
+      end
     end
   end
 
