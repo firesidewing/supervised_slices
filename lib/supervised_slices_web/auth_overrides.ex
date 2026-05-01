@@ -44,8 +44,8 @@ defmodule SupervisedSlicesWeb.AuthOverrides do
   override AshAuthentication.Phoenix.Components.Banner do
     set :show_banner, true
     set :root_class, "w-full flex flex-col items-center justify-center pt-8 pb-12"
-    set :image_url, "/images/logo.svg"
-    set :dark_image_url, "/images/logo.svg"
+    set :image_url, "/images/chit.webp"
+    set :dark_image_url, "/images/chit.webp"
     set :image_class, "size-28 object-contain mb-8 dark:hidden"
     set :dark_image_class, "size-28 object-contain mb-8 hidden dark:block"
     set :text, nil
