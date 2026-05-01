@@ -58,7 +58,7 @@ defmodule SupervisedSlices.Orders.EmailsTest do
     Emails.send_order_confirmation(order)
 
     assert_receive {:email, email}
-    assert email.from == {"Supervised Slices", "noreply@supervisedslices.com"}
+    assert email.from == {"Chitline", "noreply@orders.chitline.com"}
     assert email.to == [{"", "john@example.com"}]
 
     assert email.subject ==

@@ -8,7 +8,7 @@ defmodule SupervisedSlices.Orders.Emails do
     order = Ash.load!(order, [:order_items, :organization], authorize?: false)
 
     new()
-    |> from({"Supervised Slices", "onboarding@resend.dev"})
+    |> from({"Chitline", "noreply@orders.chitline.com"})
     |> to(to_string(order.customer_email))
     |> subject("Order Confirmation ##{order_number(order)} - #{order.organization.name}")
     |> html_body(order_confirmation_html(order))

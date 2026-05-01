@@ -71,7 +71,7 @@ defmodule SupervisedSlices.PubSubNotifier do
     if subscriptions != [] do
       payload =
         Jason.encode!(%{
-          title: "Supervised Slices",
+          title: "Chitline",
           body: message,
           url: "/orders/#{order.id}"
         })
