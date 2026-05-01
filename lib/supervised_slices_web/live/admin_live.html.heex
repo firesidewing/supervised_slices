@@ -123,7 +123,7 @@
       <.link
         :if={@org.subscription_status == :trialing}
         navigate={~p"/billing/setup/#{@org.slug}"}
-        class="hidden sm:flex items-center gap-2 bg-amber-500 hover:bg-amber-600 text-white px-4 py-2 rounded-md font-bold text-xs uppercase tracking-widest transition-colors"
+        class="flex items-center gap-2 bg-amber-500 hover:bg-amber-600 text-white px-4 py-2 rounded-md font-bold text-xs uppercase tracking-widest transition-colors"
       >
         <span class="material-symbols-outlined !text-[14px]">star</span>
         <%= if @trial_days_remaining != nil do %>
@@ -202,6 +202,14 @@
         <span class="text-[10px] font-bold uppercase tracking-wider font-body">Settings</span>
       </.link>
     <% end %>
+    <.link
+      :if={@org.subscription_status == :trialing}
+      navigate={~p"/billing/setup/#{@org.slug}"}
+      class="flex flex-col items-center justify-center gap-0.5 flex-1 py-2 transition-colors text-amber-500"
+    >
+      <.icon name="hero-star" class="size-6" />
+      <span class="text-[10px] font-bold uppercase tracking-wider font-body">Subscribe</span>
+    </.link>
   </div>
 </nav>
 

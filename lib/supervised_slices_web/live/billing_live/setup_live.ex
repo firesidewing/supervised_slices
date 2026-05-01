@@ -77,14 +77,14 @@ defmodule SupervisedSlicesWeb.BillingLive.Setup do
                 phx-value-plan="basic"
                 disabled={
                   @loading or
-                    (@org.subscription_status in [:active, :trialing] and @org.plan == :basic)
+                    (@org.subscription_status == :active and @org.plan == :basic)
                 }
                 class="btn btn-outline btn-primary w-full h-12 rounded-xl text-xs font-black uppercase tracking-widest disabled:opacity-60"
               >
                 <%= if @loading == "basic" do %>
                   <span class="loading loading-spinner loading-xs"></span>
                 <% else %>
-                  <%= if @org.subscription_status in [:active, :trialing] and @org.plan == :basic do %>
+                  <%= if @org.subscription_status == :active and @org.plan == :basic do %>
                     Current Plan
                   <% else %>
                     Select Base
