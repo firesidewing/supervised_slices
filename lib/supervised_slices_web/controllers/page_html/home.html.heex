@@ -1,5 +1,12 @@
 <!-- Hero Section -->
-<nav class="absolute top-0 right-0 p-8 z-50 flex gap-6 font-label text-xs tracking-widest uppercase font-black text-on-surface">
+<nav class="absolute top-0 left-0 right-0 p-8 z-50 flex justify-between items-center font-label text-xs tracking-widest uppercase font-black text-on-surface">
+  <a href="/" class="flex-shrink-0">
+    <picture>
+      <source srcset="/images/chit.webp" type="image/webp" />
+      <img src="/images/chit.png" alt="Chitline" class="h-9 w-auto" />
+    </picture>
+  </a>
+  <div class="flex gap-6">
   <a
     :if={assigns[:kitchen_org]}
     href={~p"/kitchen/#{@kitchen_org.slug}"}
@@ -21,6 +28,7 @@
   >
     Sign In
   </a>
+  </div>
 </nav>
 <section class="relative max-w-[1440px] mx-auto px-8 pt-40 pb-24 overflow-hidden">
   <div class="absolute inset-0 pointer-events-none" aria-hidden="true">
@@ -59,6 +67,18 @@
     <span class="font-label text-xs px-4 py-2 bg-surface-container rounded-full font-bold text-on-surface">The Counter</span>
   </div>
 </section>
+
+<!-- Banner Image -->
+<div class="max-w-[1440px] mx-auto px-8 -mt-8 mb-0 relative z-10">
+  <picture>
+    <source srcset="/images/chit-banner.webp" type="image/webp" />
+    <img
+      src="/images/chit-banner.png"
+      alt="Chitline — Online ordering and kitchen tools for pizza shops"
+      class="w-full rounded-2xl shadow-2xl"
+    />
+  </picture>
+</div>
 
 <!-- Pain Section -->
 <section class="py-24 lg:py-40 px-8 bg-surface-container-low">
@@ -481,9 +501,12 @@
 <!-- Footer -->
 <footer class="bg-surface-container-low w-full py-24 px-8 border-t border-outline-variant/10">
   <div class="max-w-[1440px] mx-auto flex flex-col md:flex-row justify-between items-center gap-12">
-    <div class="font-headline text-3xl font-black tracking-tighter text-on-surface">
-      Chitline
-    </div>
+    <a href="/">
+      <picture>
+        <source srcset="/images/chit.webp" type="image/webp" />
+        <img src="/images/chit.png" alt="Chitline" class="h-10 w-auto" />
+      </picture>
+    </a>
     <nav class="flex flex-wrap justify-center gap-12 font-label text-sm tracking-widest uppercase font-black opacity-60">
       <a class="hover:text-primary transition-colors" href="#">Sustainability</a>
       <a class="hover:text-primary transition-colors" href="#">Sourcing</a>
