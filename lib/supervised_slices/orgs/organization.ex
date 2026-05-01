@@ -48,12 +48,16 @@ defmodule SupervisedSlices.Orgs.Organization do
               changeset
 
             name ->
-              slug =
+              base_slug =
                 name
                 |> String.downcase()
                 |> String.replace(~r/[^a-z0-9]/, "-")
                 |> String.replace(~r/-+/, "-")
                 |> String.trim("-")
+
+              id = Ash.Changeset.get_attribute(changeset, :id)
+              suffix = id |> String.replace("-", "") |> String.slice(0, 6)
+              slug = "#{base_slug}-#{suffix}"
 
               Ash.Changeset.force_change_attribute(changeset, :slug, slug)
           end
