@@ -668,7 +668,10 @@ defmodule SupervisedSlicesWeb.CoreComponents do
               </div>
 
               <%= if not Enum.empty?(@upsell_suggestions) do %>
-                <div id="upsells-section" class="mt-4 bg-surface-container-low rounded-xl px-4 pt-4 pb-3">
+                <div
+                  id="upsells-section"
+                  class="mt-4 bg-surface-container-low rounded-xl px-4 pt-4 pb-3"
+                >
                   <div class="flex items-center justify-between mb-3">
                     <p class="text-[0.65rem] font-black text-on-surface-variant uppercase tracking-[0.2em]">
                       You might also like

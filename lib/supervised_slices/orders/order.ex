@@ -16,6 +16,16 @@ defmodule SupervisedSlices.Orders.Order do
     end
   end
 
+  oban do
+    triggers do
+      trigger :place_order do
+        action :notify_order
+        worker_module_name SupervisedSlices.Orders.Order.AshOban.Worker.NotifyOrder
+        scheduler_module_name SupervisedSlices.Orders.Order.AshOban.Scheduler.NotifyOrder
+      end
+    end
+  end
+
   code_interface do
     define :get, action: :read, get_by: :id
     define :place_order, action: :place_order
@@ -206,21 +216,12 @@ defmodule SupervisedSlices.Orders.Order do
 
     action :notify_order do
       argument :order_id, :uuid, allow_nil?: false
+
       run fn input, _context ->
         order = Ash.get!(SupervisedSlices.Orders.Order, input.arguments.order_id)
         SupervisedSlices.PubSubNotifier.broadcast_new_order(order)
         SupervisedSlices.Emails.send_order_confirmation(order)
         {:ok, order}
-      end
-    end
-  end
-
-  oban do
-    triggers do
-      trigger :place_order do
-        action :notify_order
-        worker_module_name SupervisedSlices.Orders.Order.AshOban.Worker.NotifyOrder
-        scheduler_module_name SupervisedSlices.Orders.Order.AshOban.Scheduler.NotifyOrder
       end
     end
   end

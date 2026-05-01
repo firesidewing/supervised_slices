@@ -14,16 +14,16 @@ defmodule SupervisedSlices.Menu.MenuItem do
     end
   end
 
+  resource do
+    base_filter expr(is_nil(deleted_at))
+  end
+
   code_interface do
     define :get, action: :read, get_by: :id
     define :create, action: :create
     define :update, action: :update
     define :destroy, action: :destroy
     define :upsellable, action: :upsellable
-  end
-
-  resource do
-    base_filter expr(is_nil(deleted_at))
   end
 
   actions do

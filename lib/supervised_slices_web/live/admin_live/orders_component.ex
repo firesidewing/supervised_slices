@@ -104,7 +104,8 @@ defmodule SupervisedSlicesWeb.AdminLive.OrdersComponent do
                   phx-hook="TimeAgo"
                   id={"time-ago-#{dom_id}"}
                   data-inserted-at={DateTime.to_unix(order.inserted_at)}
-                ></p>
+                >
+                </p>
                 <div class="mt-1 font-body text-xs font-bold text-on-surface truncate max-w-[120px]">
                   {order.customer_name}
                 </div>
@@ -169,7 +170,8 @@ defmodule SupervisedSlicesWeb.AdminLive.OrdersComponent do
               <%= if next_status_label(order.status) do %>
                 <button
                   phx-click={
-                    JS.add_class("opacity-50 scale-[0.99] pointer-events-none transition-all duration-150",
+                    JS.add_class(
+                      "opacity-50 scale-[0.99] pointer-events-none transition-all duration-150",
                       to: "##{dom_id}"
                     )
                     |> JS.push("advance_order", target: @myself)

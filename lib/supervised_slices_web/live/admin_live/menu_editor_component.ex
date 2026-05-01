@@ -68,7 +68,11 @@ defmodule SupervisedSlicesWeb.AdminLive.MenuEditorComponent do
         socket
       end
 
-    {:ok, assign(socket, Map.drop(assigns, [:reload_modifier_groups, :reload_categories, :current_upload]))}
+    {:ok,
+     assign(
+       socket,
+       Map.drop(assigns, [:reload_modifier_groups, :reload_categories, :current_upload])
+     )}
   end
 
   def update(%{current_upload: upload} = assigns, socket) do
@@ -83,12 +87,20 @@ defmodule SupervisedSlicesWeb.AdminLive.MenuEditorComponent do
 
   def update(%{reload_modifier_groups: true} = assigns, socket) do
     scope = socket.assigns.ash_scope
-    {:ok, socket |> assign(:modifier_groups, load_modifier_groups(scope)) |> assign(Map.drop(assigns, [:reload_modifier_groups]))}
+
+    {:ok,
+     socket
+     |> assign(:modifier_groups, load_modifier_groups(scope))
+     |> assign(Map.drop(assigns, [:reload_modifier_groups]))}
   end
 
   def update(%{reload_categories: true} = assigns, socket) do
     scope = socket.assigns.ash_scope
-    {:ok, socket |> assign(:categories, load_categories(scope)) |> assign(Map.drop(assigns, [:reload_categories]))}
+
+    {:ok,
+     socket
+     |> assign(:categories, load_categories(scope))
+     |> assign(Map.drop(assigns, [:reload_categories]))}
   end
 
   def update(%{ash_scope: scope, org: org} = assigns, socket) do
@@ -616,7 +628,9 @@ defmodule SupervisedSlicesWeb.AdminLive.MenuEditorComponent do
 
   def handle_event("remove_pending_modifier", %{"index" => idx_str}, socket) do
     idx = String.to_integer(idx_str)
-    {:noreply, assign(socket, :pending_modifiers, List.delete_at(socket.assigns.pending_modifiers, idx))}
+
+    {:noreply,
+     assign(socket, :pending_modifiers, List.delete_at(socket.assigns.pending_modifiers, idx))}
   end
 
   def handle_event("create_modifier", %{"modifier" => params}, socket) do
@@ -908,7 +922,10 @@ defmodule SupervisedSlicesWeb.AdminLive.MenuEditorComponent do
           </div>
 
           <div
-            :if={@org.menu_upload_purchased and not @has_completed_upload and not @org.menu_upload_banner_dismissed}
+            :if={
+              @org.menu_upload_purchased and not @has_completed_upload and
+                not @org.menu_upload_banner_dismissed
+            }
             class="bg-surface-container-low p-6 rounded-xl border-2 border-dashed border-primary/30 mb-8"
           >
             <div class="flex flex-col sm:flex-row sm:items-center gap-4 mb-4">
@@ -1288,7 +1305,9 @@ defmodule SupervisedSlicesWeb.AdminLive.MenuEditorComponent do
                   class="tooltip tooltip-bottom"
                   data-tip="A shared library of choices (e.g. Sauce, Toppings). Create a group here, then link it to individual items from within each item's drawer."
                 >
-                  <span class="material-symbols-outlined text-[14px] text-on-surface-variant/40 align-middle ml-1">info</span>
+                  <span class="material-symbols-outlined text-[14px] text-on-surface-variant/40 align-middle ml-1">
+                    info
+                  </span>
                 </span>
               </p>
               <button
@@ -1481,14 +1500,31 @@ defmodule SupervisedSlicesWeb.AdminLive.MenuEditorComponent do
 
         <div class="flex-1 overflow-y-auto px-8 py-6 space-y-8">
           <%= if @item == :new do %>
-            <form id="item-form" phx-submit="create_item" phx-change="validate_item" phx-target={@myself} class="space-y-6">
+            <form
+              id="item-form"
+              phx-submit="create_item"
+              phx-change="validate_item"
+              phx-target={@myself}
+              class="space-y-6"
+            >
               <input type="hidden" name="item[category_id]" value={@category_id} />
-              <.drawer_core_fields item={nil} uploads={@uploads} myself={@myself} pending_sizes={@pending_sizes} />
+              <.drawer_core_fields
+                item={nil}
+                uploads={@uploads}
+                myself={@myself}
+                pending_sizes={@pending_sizes}
+              />
             </form>
           <% end %>
 
           <%= if is_struct(@item) do %>
-            <form id="item-form" phx-submit="save_item" phx-change="validate_item" phx-target={@myself} class="space-y-6">
+            <form
+              id="item-form"
+              phx-submit="save_item"
+              phx-change="validate_item"
+              phx-target={@myself}
+              class="space-y-6"
+            >
               <input type="hidden" name="item[id]" value={@item.id} />
               <.drawer_core_fields item={@item} uploads={@uploads} myself={@myself} />
             </form>
@@ -1504,7 +1540,9 @@ defmodule SupervisedSlicesWeb.AdminLive.MenuEditorComponent do
                     class="tooltip tooltip-right"
                     data-tip="Offer this item at different price points, e.g. Small / Medium / Large. When sizes are set, customers must pick one — the size price replaces the item's base price."
                   >
-                    <span class="material-symbols-outlined text-[14px] text-on-surface-variant/50 align-middle normal-case">info</span>
+                    <span class="material-symbols-outlined text-[14px] text-on-surface-variant/50 align-middle normal-case">
+                      info
+                    </span>
                   </span>
                 </span>
                 <span class="material-symbols-outlined text-sm text-on-surface-variant transition-transform group-open/sizes:rotate-180">
@@ -1574,7 +1612,9 @@ defmodule SupervisedSlicesWeb.AdminLive.MenuEditorComponent do
                     class="tooltip tooltip-right"
                     data-tip="Attach reusable choice groups to this item, e.g. Sauce, Toppings, Crust. Create and manage groups in the right-hand panel."
                   >
-                    <span class="material-symbols-outlined text-[14px] text-on-surface-variant/50 align-middle normal-case">info</span>
+                    <span class="material-symbols-outlined text-[14px] text-on-surface-variant/50 align-middle normal-case">
+                      info
+                    </span>
                   </span>
                 </span>
                 <span class="material-symbols-outlined text-sm text-on-surface-variant transition-transform group-open/mods:rotate-180">
@@ -1626,7 +1666,9 @@ defmodule SupervisedSlicesWeb.AdminLive.MenuEditorComponent do
                             class="tooltip tooltip-top"
                             data-tip="Override a modifier option's price for a specific size. Leave a cell blank to use the modifier's default price delta."
                           >
-                            <span class="material-symbols-outlined text-[12px] text-on-surface-variant/40 align-middle normal-case">info</span>
+                            <span class="material-symbols-outlined text-[12px] text-on-surface-variant/40 align-middle normal-case">
+                              info
+                            </span>
                           </span>
                         </p>
                         <div class="overflow-x-auto">
@@ -1905,7 +1947,11 @@ defmodule SupervisedSlicesWeb.AdminLive.MenuEditorComponent do
         </label>
         <div :if={@item && @item.images != []} class="flex flex-wrap gap-2">
           <div :for={img <- Enum.sort_by(@item.images, & &1.position)} class="relative group">
-            <img src={tigris_image_url(img.url)} alt="item image" class="h-16 w-16 rounded-lg object-cover" />
+            <img
+              src={tigris_image_url(img.url)}
+              alt="item image"
+              class="h-16 w-16 rounded-lg object-cover"
+            />
             <button
               type="button"
               phx-click="delete_image"
@@ -1934,7 +1980,9 @@ defmodule SupervisedSlicesWeb.AdminLive.MenuEditorComponent do
               phx-value-ref={entry.ref}
               phx-target={@myself}
               class="text-error hover:opacity-70"
-            >×</button>
+            >
+              ×
+            </button>
           </span>
         </div>
         <p class="text-[10px] text-on-surface-variant">Up to 5 images, max 8MB each.</p>
@@ -1969,7 +2017,11 @@ defmodule SupervisedSlicesWeb.AdminLive.MenuEditorComponent do
           <p :if={Enum.empty?(@pending_sizes)} class="text-xs text-on-surface-variant italic">
             Add sizes to let customers choose (e.g. Small, Medium, Large). Price will be set per size.
           </p>
-          <form phx-submit="add_pending_size" phx-target={@myself} class="flex flex-wrap items-center gap-2">
+          <form
+            phx-submit="add_pending_size"
+            phx-target={@myself}
+            class="flex flex-wrap items-center gap-2"
+          >
             <input
               type="text"
               name="size[name]"
@@ -2047,7 +2099,12 @@ defmodule SupervisedSlicesWeb.AdminLive.MenuEditorComponent do
 
         <div class="flex-1 overflow-y-auto px-8 py-6 space-y-8">
           <%= if @group == :new do %>
-            <form id="group-form" phx-submit="create_modifier_group" phx-target={@myself} class="space-y-5">
+            <form
+              id="group-form"
+              phx-submit="create_modifier_group"
+              phx-target={@myself}
+              class="space-y-5"
+            >
               <div>
                 <label class="block text-xs font-bold text-on-surface-variant uppercase tracking-wider mb-1">
                   Name
@@ -2134,7 +2191,9 @@ defmodule SupervisedSlicesWeb.AdminLive.MenuEditorComponent do
               >
                 <span class="flex-1 text-sm text-on-surface">{mod.name}</span>
                 <span class="text-xs text-on-surface-variant whitespace-nowrap">
-                  {if mod.price_delta == "" or is_nil(mod.price_delta), do: "Free", else: "+$#{mod.price_delta}"}
+                  {if mod.price_delta == "" or is_nil(mod.price_delta),
+                    do: "Free",
+                    else: "+$#{mod.price_delta}"}
                 </span>
                 <button
                   phx-click="remove_pending_modifier"
@@ -2220,12 +2279,16 @@ defmodule SupervisedSlicesWeb.AdminLive.MenuEditorComponent do
                     </span>
                     <span class="text-[10px] text-on-surface-variant/60 font-medium normal-case tracking-normal">
                       {cond do
-                        @group.min_selections > 0 and @group.max_selections && @group.max_selections < 99 ->
+                        (@group.min_selections > 0 and @group.max_selections) &&
+                            @group.max_selections < 99 ->
                           "min #{@group.min_selections} · max #{@group.max_selections}"
+
                         @group.min_selections > 0 ->
                           "min #{@group.min_selections} · unlimited max"
+
                         @group.max_selections && @group.max_selections < 99 ->
                           "max #{@group.max_selections}"
+
                         true ->
                           "unlimited"
                       end}
@@ -2257,7 +2320,11 @@ defmodule SupervisedSlicesWeb.AdminLive.MenuEditorComponent do
                       <input
                         type="number"
                         name="group[max_selections]"
-                        value={if @group.max_selections && @group.max_selections < 99, do: @group.max_selections, else: ""}
+                        value={
+                          if @group.max_selections && @group.max_selections < 99,
+                            do: @group.max_selections,
+                            else: ""
+                        }
                         placeholder=""
                         min="1"
                         class="w-28 bg-surface-container-low border-0 rounded-lg px-4 py-2.5 text-sm focus:ring-2 focus:ring-primary outline-none"
@@ -2316,7 +2383,10 @@ defmodule SupervisedSlicesWeb.AdminLive.MenuEditorComponent do
                 </button>
               </div>
 
-              <p :if={Enum.empty?(@group.modifiers || []) and not @adding_modifier} class="text-sm text-on-surface-variant italic">
+              <p
+                :if={Enum.empty?(@group.modifiers || []) and not @adding_modifier}
+                class="text-sm text-on-surface-variant italic"
+              >
                 No options yet. Add options for customers to choose from.
               </p>
 
@@ -2350,7 +2420,11 @@ defmodule SupervisedSlicesWeb.AdminLive.MenuEditorComponent do
                           <input
                             type="text"
                             name="modifier[price_delta]"
-                            value={if modifier.price_delta, do: money_amount(modifier.price_delta), else: ""}
+                            value={
+                              if modifier.price_delta,
+                                do: money_amount(modifier.price_delta),
+                                else: ""
+                            }
                             placeholder="0.00"
                             inputmode="decimal"
                             class="w-full bg-surface-container-highest border-0 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-primary outline-none"
@@ -2402,27 +2476,39 @@ defmodule SupervisedSlicesWeb.AdminLive.MenuEditorComponent do
                         phx-value-id={modifier.id}
                         phx-target={@myself}
                         type="button"
-                        title={if modifier.available, do: "Available — click to 86", else: "Unavailable — click to restore"}
+                        title={
+                          if modifier.available,
+                            do: "Available — click to 86",
+                            else: "Unavailable — click to restore"
+                        }
                         class="shrink-0"
                       >
-                        <span class={[
-                          "material-symbols-outlined transition-colors",
-                          if(modifier.available,
-                            do: "text-primary",
-                            else: "text-on-surface-variant/40"
-                          )
-                        ]} style="font-size: 18px;">
+                        <span
+                          class={[
+                            "material-symbols-outlined transition-colors",
+                            if(modifier.available,
+                              do: "text-primary",
+                              else: "text-on-surface-variant/40"
+                            )
+                          ]}
+                          style="font-size: 18px;"
+                        >
                           {if modifier.available, do: "toggle_on", else: "toggle_off"}
                         </span>
                       </button>
                       <span class={[
                         "flex-1 text-sm",
-                        if(modifier.available, do: "text-on-surface", else: "text-on-surface-variant line-through")
+                        if(modifier.available,
+                          do: "text-on-surface",
+                          else: "text-on-surface-variant line-through"
+                        )
                       ]}>
                         {modifier.name}
                       </span>
                       <span class="text-xs text-on-surface-variant whitespace-nowrap">
-                        {if modifier.price_delta, do: "+#{format_money(modifier.price_delta)}", else: "Free"}
+                        {if modifier.price_delta,
+                          do: "+#{format_money(modifier.price_delta)}",
+                          else: "Free"}
                       </span>
                       <div class="flex items-center gap-0.5 transition-opacity md:opacity-0 md:group-hover/mod:opacity-100">
                         <button
@@ -2443,7 +2529,9 @@ defmodule SupervisedSlicesWeb.AdminLive.MenuEditorComponent do
                           class="text-on-surface-variant hover:text-error transition-colors p-1"
                           title="Delete option"
                         >
-                          <span class="material-symbols-outlined" style="font-size: 16px;">delete</span>
+                          <span class="material-symbols-outlined" style="font-size: 16px;">
+                            delete
+                          </span>
                         </button>
                       </div>
                     </div>

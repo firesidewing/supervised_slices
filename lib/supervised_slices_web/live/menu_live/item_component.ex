@@ -283,7 +283,9 @@ defmodule SupervisedSlicesWeb.MenuLive.ItemComponent do
         <section>
           <div class="flex items-baseline justify-between mb-6">
             <h3 class="font-headline text-xl font-bold">Select Diameter</h3>
-            <span class="font-label text-xs tracking-widest uppercase opacity-60">Essential Scale</span>
+            <span class="font-label text-xs tracking-widest uppercase opacity-60">
+              Essential Scale
+            </span>
           </div>
           <div class="flex gap-4 pb-4">
             <%= for size <- @item.sizes do %>
@@ -298,7 +300,10 @@ defmodule SupervisedSlicesWeb.MenuLive.ItemComponent do
                 <span class="text-[10px] opacity-60 mt-1 font-label uppercase tracking-widest">
                   {size.label}
                 </span>
-                <span class={["font-bold mt-4", if(size.selected, do: "text-primary", else: "text-on-surface")]}>
+                <span class={[
+                  "font-bold mt-4",
+                  if(size.selected, do: "text-primary", else: "text-on-surface")
+                ]}>
                   {size.price_display}
                 </span>
               </div>
@@ -311,7 +316,10 @@ defmodule SupervisedSlicesWeb.MenuLive.ItemComponent do
             <div class="flex items-baseline justify-between">
               <div class="flex items-center gap-3">
                 <h3 class="font-headline text-xl font-bold">{group.name}</h3>
-                <span :if={group.required} class="text-[10px] font-bold uppercase tracking-widest text-error opacity-80">
+                <span
+                  :if={group.required}
+                  class="text-[10px] font-bold uppercase tracking-widest text-error opacity-80"
+                >
                   Required
                 </span>
               </div>
@@ -329,7 +337,10 @@ defmodule SupervisedSlicesWeb.MenuLive.ItemComponent do
                   )
                 ]}>
                   <div class="flex items-center gap-4">
-                    <span class={["material-symbols-outlined", if(mod.selected, do: "text-primary", else: "opacity-40")]}>
+                    <span class={[
+                      "material-symbols-outlined",
+                      if(mod.selected, do: "text-primary", else: "opacity-40")
+                    ]}>
                       {mod.icon}
                     </span>
                     <p class="font-bold text-sm">{mod.name}</p>
@@ -338,7 +349,8 @@ defmodule SupervisedSlicesWeb.MenuLive.ItemComponent do
                     "w-8 h-8 flex items-center justify-center rounded",
                     if(mod.selected,
                       do: "bg-primary text-white border-b-2 border-primary-container",
-                      else: "bg-surface-container-low text-on-surface opacity-40 border-b-2 border-outline-variant"
+                      else:
+                        "bg-surface-container-low text-on-surface opacity-40 border-b-2 border-outline-variant"
                     )
                   ]}>
                     <span class="material-symbols-outlined text-sm">
@@ -355,8 +367,12 @@ defmodule SupervisedSlicesWeb.MenuLive.ItemComponent do
       <div class="mt-16 px-8 py-6 bg-surface/90 backdrop-blur-xl shadow-[0_-10px_40px_rgba(28,28,24,0.06)]">
         <div class="max-w-3xl mx-auto flex items-center justify-between gap-6">
           <div class="flex flex-col">
-            <span class="font-label text-[10px] tracking-widest uppercase opacity-60">Total Value</span>
-            <span class="font-headline text-2xl font-black text-on-surface">{@item.total_display}</span>
+            <span class="font-label text-[10px] tracking-widest uppercase opacity-60">
+              Total Value
+            </span>
+            <span class="font-headline text-2xl font-black text-on-surface">
+              {@item.total_display}
+            </span>
           </div>
           <div class="flex-1 py-4 bg-gradient-to-tr from-primary to-primary-container text-white font-label font-bold tracking-widest uppercase rounded-md shadow-lg text-center text-sm">
             Add to Basket
@@ -372,8 +388,12 @@ defmodule SupervisedSlicesWeb.MenuLive.ItemComponent do
     <div class="bg-surface min-h-full text-on-surface">
       <div class="px-8 pt-10 pb-6 flex items-center justify-between">
         <div class="flex items-center gap-3">
-          <span class="material-symbols-outlined text-on-surface-variant opacity-40 text-lg">arrow_back</span>
-          <span class="font-label text-xs uppercase tracking-widest font-bold text-on-surface-variant opacity-50">Menu</span>
+          <span class="material-symbols-outlined text-on-surface-variant opacity-40 text-lg">
+            arrow_back
+          </span>
+          <span class="font-label text-xs uppercase tracking-widest font-bold text-on-surface-variant opacity-50">
+            Menu
+          </span>
         </div>
         <div class="py-3 px-6 bg-gradient-to-tr from-primary to-primary-container text-white font-label font-bold tracking-widest uppercase rounded-md shadow-lg text-xs">
           Publish Changes
@@ -388,42 +408,59 @@ defmodule SupervisedSlicesWeb.MenuLive.ItemComponent do
             alt={@item.name}
           />
           <div class="absolute bottom-3 right-3 bg-surface/90 backdrop-blur-xl rounded-lg px-4 py-2 flex items-center gap-2 shadow-soft">
-            <span class="material-symbols-outlined text-sm text-on-surface-variant opacity-60">photo_camera</span>
-            <span class="font-label text-[10px] uppercase tracking-widest font-bold opacity-60">Change Photo</span>
+            <span class="material-symbols-outlined text-sm text-on-surface-variant opacity-60">
+              photo_camera
+            </span>
+            <span class="font-label text-[10px] uppercase tracking-widest font-bold opacity-60">
+              Change Photo
+            </span>
           </div>
         </div>
       </div>
 
       <div class="px-8 space-y-6">
         <div>
-          <p class="font-label text-[10px] uppercase tracking-widest font-bold opacity-40 mb-2">Item Name</p>
+          <p class="font-label text-[10px] uppercase tracking-widest font-bold opacity-40 mb-2">
+            Item Name
+          </p>
           <div class="bg-surface-container rounded-xl px-5 py-4 border-b-2 border-primary-container">
             <p class="font-headline text-2xl font-bold">{@item.name}</p>
           </div>
         </div>
 
         <div>
-          <p class="font-label text-[10px] uppercase tracking-widest font-bold opacity-40 mb-2">Description</p>
+          <p class="font-label text-[10px] uppercase tracking-widest font-bold opacity-40 mb-2">
+            Description
+          </p>
           <div class="bg-surface-container-low rounded-xl px-5 py-4 border border-outline-variant/10">
-            <p class="font-body text-sm text-on-surface-variant italic leading-relaxed">{@item.description}</p>
+            <p class="font-body text-sm text-on-surface-variant italic leading-relaxed">
+              {@item.description}
+            </p>
           </div>
         </div>
 
         <div>
           <div class="flex items-baseline justify-between mb-4">
             <p class="font-label text-[10px] uppercase tracking-widest font-bold opacity-40">Sizes</p>
-            <span class="font-label text-[10px] uppercase tracking-widest opacity-40">+ Add Size</span>
+            <span class="font-label text-[10px] uppercase tracking-widest opacity-40">
+              + Add Size
+            </span>
           </div>
           <div class="flex gap-3">
-            <div :for={size <- @item.sizes} class={[
-              "flex-1 flex flex-col items-center justify-center py-4 rounded-xl",
-              if(size.selected,
-                do: "bg-surface-container border-b-2 border-primary-container shadow-sm",
-                else: "bg-surface-container-low opacity-70"
-              )
-            ]}>
+            <div
+              :for={size <- @item.sizes}
+              class={[
+                "flex-1 flex flex-col items-center justify-center py-4 rounded-xl",
+                if(size.selected,
+                  do: "bg-surface-container border-b-2 border-primary-container shadow-sm",
+                  else: "bg-surface-container-low opacity-70"
+                )
+              ]}
+            >
               <span class="font-headline text-base font-bold">{size.name}</span>
-              <span class="font-label text-[9px] uppercase tracking-widest opacity-50 mt-0.5">{size.label}</span>
+              <span class="font-label text-[9px] uppercase tracking-widest opacity-50 mt-0.5">
+                {size.label}
+              </span>
               <span class={["font-bold text-sm mt-2", if(size.selected, do: "text-primary", else: "")]}>
                 {size.price_display}
               </span>
@@ -433,28 +470,43 @@ defmodule SupervisedSlicesWeb.MenuLive.ItemComponent do
 
         <div :for={group <- @item.modifier_groups}>
           <div class="flex items-baseline justify-between mb-4">
-            <p class="font-label text-[10px] uppercase tracking-widest font-bold opacity-40">{group.name}</p>
-            <span class="font-label text-[10px] uppercase tracking-widest opacity-40">+ Add Option</span>
+            <p class="font-label text-[10px] uppercase tracking-widest font-bold opacity-40">
+              {group.name}
+            </p>
+            <span class="font-label text-[10px] uppercase tracking-widest opacity-40">
+              + Add Option
+            </span>
           </div>
           <div class="space-y-2">
-            <div :for={mod <- group.modifiers} class={[
-              "flex items-center justify-between px-4 py-3 rounded-xl",
-              if(mod.selected,
-                do: "bg-surface-container border-b-2 border-primary-container",
-                else: "bg-surface-container-low opacity-70"
-              )
-            ]}>
+            <div
+              :for={mod <- group.modifiers}
+              class={[
+                "flex items-center justify-between px-4 py-3 rounded-xl",
+                if(mod.selected,
+                  do: "bg-surface-container border-b-2 border-primary-container",
+                  else: "bg-surface-container-low opacity-70"
+                )
+              ]}
+            >
               <div class="flex items-center gap-3">
-                <span class={["material-symbols-outlined text-sm", if(mod.selected, do: "text-primary", else: "opacity-30")]}>
+                <span class={[
+                  "material-symbols-outlined text-sm",
+                  if(mod.selected, do: "text-primary", else: "opacity-30")
+                ]}>
                   {mod.icon}
                 </span>
                 <span class="font-bold text-xs">{mod.name}</span>
               </div>
               <div class={[
                 "w-6 h-6 rounded flex items-center justify-center",
-                if(mod.selected, do: "bg-primary text-white", else: "bg-surface-container border border-outline-variant/20 opacity-40")
+                if(mod.selected,
+                  do: "bg-primary text-white",
+                  else: "bg-surface-container border border-outline-variant/20 opacity-40"
+                )
               ]}>
-                <span class="material-symbols-outlined text-xs">{if(mod.selected, do: "check", else: "add")}</span>
+                <span class="material-symbols-outlined text-xs">
+                  {if(mod.selected, do: "check", else: "add")}
+                </span>
               </div>
             </div>
           </div>
@@ -554,7 +606,10 @@ defmodule SupervisedSlicesWeb.MenuLive.ItemComponent do
             if(@selected, do: "bg-primary border-primary", else: "")
           ]}
         >
-          <div :if={@selected} class="w-1.5 h-1.5 rounded-full bg-white animate-in zoom-in duration-100" />
+          <div
+            :if={@selected}
+            class="w-1.5 h-1.5 rounded-full bg-white animate-in zoom-in duration-100"
+          />
         </div>
 
         <div

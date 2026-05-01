@@ -12,10 +12,11 @@ defmodule SupervisedSlicesWeb.BillingLive.Setup do
         <div class="auth-card rounded-3xl p-8 sm:p-10">
           <%!-- Logo / Banner --%>
           <div class="flex flex-col items-center mb-12">
-            <picture>
-              <source srcset="/images/chit.webp" type="image/webp" />
-              <img src="/images/chit.png" alt="Chitline" class="size-20 rounded-2xl shadow-lg -rotate-3 mb-6 mix-blend-multiply" />
-            </picture>
+            <img
+              src="/images/chit-2.png"
+              alt="Chitline"
+              class="size-20 rounded-2xl shadow-lg -rotate-3 mb-6"
+            />
             <h1 class="font-headline font-black text-3xl tracking-tighter uppercase italic text-on-surface text-center">
               Activate Your Kitchen
             </h1>

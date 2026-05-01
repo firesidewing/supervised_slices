@@ -54,7 +54,10 @@ defmodule SupervisedSlicesWeb.AdminLive.ModifierGroupRowComponent do
         <span class="text-[10px] text-on-surface-variant shrink-0">
           {length(@group.modifiers || [])} options
         </span>
-        <span class="material-symbols-outlined text-on-surface-variant/50 group-hover/row:text-primary transition-colors shrink-0" style="font-size: 16px;">
+        <span
+          class="material-symbols-outlined text-on-surface-variant/50 group-hover/row:text-primary transition-colors shrink-0"
+          style="font-size: 16px;"
+        >
           chevron_right
         </span>
       </button>

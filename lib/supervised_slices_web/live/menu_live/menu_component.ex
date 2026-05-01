@@ -47,7 +47,9 @@ defmodule SupervisedSlicesWeb.MenuLive.MenuComponent do
     ~H"""
     <div class="bg-surface min-h-full px-6 pt-16 pb-32">
       <div class="mb-10 px-2">
-        <h2 class="font-headline text-3xl font-bold tracking-tight text-on-surface">{@category_name}</h2>
+        <h2 class="font-headline text-3xl font-bold tracking-tight text-on-surface">
+          {@category_name}
+        </h2>
       </div>
       <div class="grid grid-cols-2 gap-x-4 gap-y-6">
         <%= for item <- @items do %>
@@ -74,7 +76,9 @@ defmodule SupervisedSlicesWeb.MenuLive.MenuComponent do
               </div>
               <div class="flex justify-between items-center mt-5">
                 <span class="font-headline font-black text-on-surface">{item.price_display}</span>
-                <span class="material-symbols-outlined text-on-surface-variant opacity-30">add_circle</span>
+                <span class="material-symbols-outlined text-on-surface-variant opacity-30">
+                  add_circle
+                </span>
               </div>
             </div>
           </div>
@@ -147,7 +151,9 @@ defmodule SupervisedSlicesWeb.MenuLive.MenuComponent do
         <div class="w-full py-4 bg-gradient-to-tr from-primary to-primary-container text-white font-label font-bold tracking-widest uppercase rounded-md shadow-lg text-center text-sm">
           Place Your Order · {@item.total_display}
         </div>
-        <p class="text-center font-label text-[10px] opacity-30 uppercase tracking-widest mt-3">No account needed</p>
+        <p class="text-center font-label text-[10px] opacity-30 uppercase tracking-widest mt-3">
+          No account needed
+        </p>
       </div>
     </div>
     """
