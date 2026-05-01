@@ -14,7 +14,7 @@ defmodule SupervisedSlicesWeb.BillingLive.Setup do
           <div class="flex flex-col items-center mb-12">
             <picture>
               <source srcset="/images/chit.webp" type="image/webp" />
-              <img src="/images/chit.png" alt="Chitline" class="size-20 rounded-2xl shadow-lg -rotate-3 mb-6" />
+              <img src="/images/chit.png" alt="Chitline" class="size-20 rounded-2xl shadow-lg -rotate-3 mb-6 mix-blend-multiply" />
             </picture>
             <h1 class="font-headline font-black text-3xl tracking-tighter uppercase italic text-on-surface text-center">
               Activate Your Kitchen

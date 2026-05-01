@@ -11,7 +11,7 @@ defmodule SupervisedSlicesWeb.Components.Logo do
     <div class={["flex items-center gap-2", @class]}>
       <picture>
         <source srcset="/images/chit.webp" type="image/webp" />
-        <img src="/images/chit.png" alt="Chitline" class="h-10 w-auto" />
+        <img src="/images/chit.png" alt="Chitline" class="h-10 w-auto mix-blend-multiply" />
       </picture>
     </div>
     """
