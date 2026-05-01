@@ -8,7 +8,7 @@ defmodule SupervisedSlicesWeb.AdminLive do
   alias Phoenix.LiveView.AsyncResult
   alias SupervisedSlices.Cart.Cart
   alias SupervisedSlices.Orders.Order
-  alias SupervisedSlices.{OrgPresence, PubSubNotifier}
+  alias SupervisedSlices.{OrgPresence, PubSubNotifier, Analytics}
   alias SupervisedSlices.Orgs.Organization
 
   alias SupervisedSlicesWeb.AdminLive.OrdersComponent
@@ -39,6 +39,20 @@ defmodule SupervisedSlicesWeb.AdminLive do
         :timer.send_interval(10000, self(), :tick)
       end
 
+      trial_days_remaining =
+        if org.subscription_status == :trialing && org.trial_ends_at do
+          max(0, DateTime.diff(org.trial_ends_at, DateTime.utc_now(), :day))
+        else
+          nil
+        end
+
+      if trial_days_remaining != nil && trial_days_remaining <= 3 do
+        Analytics.capture("trial_ending_soon_shown", org.id, %{
+          days_remaining: trial_days_remaining,
+          "$groups": %{organization: org.id}
+        })
+      end
+
       {:ok,
        socket
        |> assign(:current_membership, membership)
@@ -46,6 +60,7 @@ defmodule SupervisedSlicesWeb.AdminLive do
        |> assign(:ticket_count, 0)
        |> assign(:show_phone_order, false)
        |> assign(:page_title, "Kitchen Command")
+       |> assign(:trial_days_remaining, trial_days_remaining)
        |> assign_async(:orders_initial, fn ->
          {:ok, %{orders_initial: load_active_orders(scope)}}
        end)

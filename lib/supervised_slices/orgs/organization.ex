@@ -23,6 +23,17 @@ defmodule SupervisedSlices.Orgs.Organization do
 
         scheduler_module_name SupervisedSlices.Orgs.Organization.AshOban.Scheduler.CleanupStaleCarts
       end
+
+      trigger :expire_trial do
+        scheduler_cron "0 * * * *"
+        scheduler_queue :trial_expiry
+        queue :trial_expiry
+        action :expire_trial
+        where expr(subscription_status == :trialing and trial_ends_at < now())
+        worker_module_name SupervisedSlices.Orgs.Organization.AshOban.Worker.ExpireTrial
+
+        scheduler_module_name SupervisedSlices.Orgs.Organization.AshOban.Scheduler.ExpireTrial
+      end
     end
   end
 
@@ -62,6 +73,15 @@ defmodule SupervisedSlices.Orgs.Organization do
               Ash.Changeset.force_change_attribute(changeset, :slug, slug)
           end
         end
+        |> Ash.Changeset.force_change_attribute(:subscription_status, :trialing)
+        |> Ash.Changeset.force_change_attribute(:trial_ends_at, DateTime.add(DateTime.utc_now(), 14, :day))
+        |> Ash.Changeset.after_action(fn _cs, org ->
+          SupervisedSlices.Analytics.capture("trial_started", org.id, %{
+            "$groups": %{organization: org.id}
+          })
+
+          {:ok, org}
+        end)
       end
     end
 
@@ -125,6 +145,22 @@ defmodule SupervisedSlices.Orgs.Organization do
           SupervisedSlices.Cart.Cart
           |> Ash.Query.filter(status == :active and updated_at < ago(24, :hour))
           |> Ash.bulk_update!(:abandon, %{}, authorize?: false, tenant: org.id)
+
+          {:ok, org}
+        end)
+      end
+    end
+
+    update :expire_trial do
+      accept []
+      require_atomic? false
+      change set_attribute(:subscription_status, :none)
+
+      change fn changeset, _ ->
+        Ash.Changeset.after_action(changeset, fn _cs, org ->
+          SupervisedSlices.Analytics.capture("trial_expired", org.id, %{
+            "$groups": %{organization: org.id}
+          })
 
           {:ok, org}
         end)
@@ -285,6 +321,11 @@ defmodule SupervisedSlices.Orgs.Organization do
     attribute :menu_upload_banner_dismissed, :boolean do
       default false
       allow_nil? false
+      public? true
+    end
+
+    attribute :trial_ends_at, :utc_datetime_usec do
+      allow_nil? true
       public? true
     end
 

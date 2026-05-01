@@ -3,7 +3,7 @@ defmodule SupervisedSlicesWeb.BillingLive.Setup do
 
   on_mount {SupervisedSlicesWeb.LiveUserAuth, :live_user_required}
 
-  alias SupervisedSlices.Billing
+  alias SupervisedSlices.{Billing, Analytics}
 
   def render(assigns) do
     ~H"""
@@ -18,12 +18,29 @@ defmodule SupervisedSlicesWeb.BillingLive.Setup do
               class="size-20 rounded-2xl shadow-lg -rotate-3 mb-6"
             />
             <h1 class="font-headline font-black text-3xl tracking-tighter uppercase italic text-on-surface text-center">
-              Activate Your Kitchen
+              <%= if @trial_expired do %>
+                Your Trial Has Ended
+              <% else %>
+                Activate Your Kitchen
+              <% end %>
             </h1>
             <p class="text-on-surface-variant/60 text-sm mt-2 text-center font-medium">
-              Choose the plan that works for you.
+              <%= if @trial_expired do %>
+                Subscribe to pick up right where you left off.
+              <% else %>
+                Choose the plan that works for you.
+              <% end %>
             </p>
           </div>
+
+          <%= if @trial_expired do %>
+            <div class="bg-amber-50 border border-amber-200 rounded-2xl px-6 py-4 mb-8 flex items-start gap-3">
+              <span class="material-symbols-outlined text-amber-500 mt-0.5 shrink-0">schedule</span>
+              <p class="text-sm text-amber-800 font-medium">
+                Your 14-day free trial has expired. Select a plan below to restore access — no data has been lost.
+              </p>
+            </div>
+          <% end %>
 
           <%!-- Org details --%>
           <div class="bg-surface-container-low rounded-2xl px-6 py-4 mb-12">
@@ -168,14 +185,23 @@ defmodule SupervisedSlicesWeb.BillingLive.Setup do
     if is_nil(org) do
       {:ok, redirect(socket, to: ~p"/")}
     else
-      if org.subscription_status in [:active, :trialing] and org.plan == :pro do
+      if org.subscription_status == :active and org.plan == :pro do
         {:ok, redirect(socket, to: ~p"/kitchen/#{org.slug}")}
       else
+        trial_expired = org.subscription_status == :none && org.trial_ends_at != nil
+
+        if trial_expired do
+          Analytics.capture("trial_expired_page_viewed", org.id, %{
+            "$groups": %{organization: org.id}
+          })
+        end
+
         {:ok,
          socket
          |> assign(:org, org)
          |> assign(:user, user)
-         |> assign(:loading, false)}
+         |> assign(:loading, false)
+         |> assign(:trial_expired, trial_expired)}
       end
     end
   end

@@ -4,6 +4,21 @@
   data-tour-autostart={if !@current_membership.tour_completed, do: "true", else: "false"}
   class="fixed top-0 w-full z-50 bg-background/80 backdrop-blur-md shadow-[0_40px_40px_-10px_rgba(28,28,24,0.06)]"
 >
+  <%= if @trial_days_remaining != nil && @trial_days_remaining <= 3 do %>
+    <div class="w-full bg-amber-500 text-white text-center text-xs font-black uppercase tracking-widest py-2 px-4">
+      <.link navigate={~p"/billing/setup/#{@org.slug}"} class="hover:underline">
+        <%= cond do %>
+          <% @trial_days_remaining == 0 -> %>
+            Your trial ends today — subscribe to keep access
+          <% @trial_days_remaining == 1 -> %>
+            Your trial ends tomorrow — subscribe to keep access
+          <% true -> %>
+            Your trial ends in {@trial_days_remaining} days — subscribe to keep access
+        <% end %>
+        <span class="ml-2 opacity-75">→</span>
+      </.link>
+    </div>
+  <% end %>
   <nav data-tour="nav" class="flex justify-between items-center px-8 py-4 max-w-[1440px] mx-auto">
     <div class="text-2xl font-headline font-black tracking-tighter text-on-surface flex items-center gap-3 min-w-0">
       <%= if @org.logo_url do %>
@@ -105,6 +120,18 @@
       >
         <span class="material-symbols-outlined !text-[16px]">help_outline</span> Tour
       </button>
+      <.link
+        :if={@org.subscription_status == :trialing}
+        navigate={~p"/billing/setup/#{@org.slug}"}
+        class="hidden sm:flex items-center gap-2 bg-amber-500 hover:bg-amber-600 text-white px-4 py-2 rounded-md font-bold text-xs uppercase tracking-widest transition-colors"
+      >
+        <span class="material-symbols-outlined !text-[14px]">star</span>
+        <%= if @trial_days_remaining != nil do %>
+          {@trial_days_remaining}d left — Subscribe
+        <% else %>
+          Subscribe
+        <% end %>
+      </.link>
       <.link
         href={~p"/menu/#{@org.slug}"}
         target="_blank"
