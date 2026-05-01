@@ -17,7 +17,7 @@ config :ash_oban, pro?: false
 config :supervised_slices, Oban,
   engine: Oban.Engines.Basic,
   notifier: Oban.Notifiers.Postgres,
-  queues: [default: 10, cart_cleanup: 5, menu_uploads: 5, order_place_order: 5],
+  queues: [default: 10, cart_cleanup: 5, menu_uploads: 5, order_place_order: 5, trial_expiry: 5],
   repo: SupervisedSlices.Repo,
   plugins: [{Oban.Plugins.Cron, []}]
 
