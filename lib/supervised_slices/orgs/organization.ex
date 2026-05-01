@@ -66,7 +66,9 @@ defmodule SupervisedSlices.Orgs.Organization do
                 |> String.replace(~r/-+/, "-")
                 |> String.trim("-")
 
-              id = Ash.Changeset.get_attribute(changeset, :id)
+              id = Ash.Changeset.get_attribute(changeset, :id) || Ash.UUID.generate()
+              changeset = Ash.Changeset.force_change_attribute(changeset, :id, id)
+
               suffix = id |> String.replace("-", "") |> String.slice(0, 6)
               slug = "#{base_slug}-#{suffix}"
 
