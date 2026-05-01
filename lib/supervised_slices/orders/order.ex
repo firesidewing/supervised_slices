@@ -21,7 +21,7 @@ defmodule SupervisedSlices.Orders.Order do
       trigger :place_order do
         action :notify_order
         worker_module_name SupervisedSlices.Orders.Order.AshOban.Worker.NotifyOrder
-        scheduler_module_name SupervisedSlices.Orders.Order.AshOban.Scheduler.NotifyOrder
+        scheduler_cron false
         use_tenant_from_record? true
       end
     end
@@ -78,6 +78,8 @@ defmodule SupervisedSlices.Orders.Order do
             changeset
         end
       end
+
+      change run_oban_trigger(:place_order)
 
       change fn changeset, _context ->
         delivery_type = Ash.Changeset.get_attribute(changeset, :delivery_type)
@@ -216,19 +218,24 @@ defmodule SupervisedSlices.Orders.Order do
     end
 
     action :notify_order do
-      argument :order_id, :uuid, allow_nil?: false
+      argument :primary_key, :map
 
       run fn input, context ->
-        order = Ash.get!(SupervisedSlices.Orders.Order, input.arguments.order_id, tenant: context.tenant, authorize?: false)
+        order_id = input.arguments.primary_key["id"]
+        order = Ash.get!(SupervisedSlices.Orders.Order, order_id, tenant: context.tenant, authorize?: false)
         SupervisedSlices.PubSubNotifier.broadcast_new_order(order)
-        SupervisedSlices.Emails.send_order_confirmation(order)
-        {:ok, order}
+        SupervisedSlices.Orders.Emails.send_order_confirmation(order)
+        :ok
       end
     end
   end
 
   policies do
     policy action(:place_order) do
+      authorize_if always()
+    end
+
+    policy action(:notify_order) do
       authorize_if always()
     end
 

@@ -18,7 +18,7 @@ defmodule SupervisedSlices.Menu.MenuUpload do
         queue :menu_uploads
         where expr(status == :pending)
         worker_module_name SupervisedSlices.Menu.MenuUpload.AshOban.Worker.Process
-        scheduler_module_name SupervisedSlices.Menu.MenuUpload.AshOban.Scheduler.Process
+        scheduler_cron false
       end
     end
   end
@@ -39,6 +39,7 @@ defmodule SupervisedSlices.Menu.MenuUpload do
       validate {SupervisedSlices.Menu.MenuUpload.Validations.SingleUse, []}
 
       change set_attribute(:status, :pending)
+      change run_oban_trigger(:process)
 
       change fn changeset, _ ->
         Ash.Changeset.after_action(changeset, fn _changeset, upload ->
