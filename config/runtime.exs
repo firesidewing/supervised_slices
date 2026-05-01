@@ -151,7 +151,7 @@ if config_env() == :prod do
 
   if resend_api_key = System.get_env("RESEND_API_KEY") do
     config :supervised_slices, SupervisedSlices.Mailer,
-      adapter: Swoosh.Adapters.Logger,
+      adapter: Swoosh.Adapters.Resend,
       api_key: resend_api_key
   end
 end
