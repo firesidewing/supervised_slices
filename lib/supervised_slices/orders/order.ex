@@ -22,6 +22,7 @@ defmodule SupervisedSlices.Orders.Order do
         action :notify_order
         worker_module_name SupervisedSlices.Orders.Order.AshOban.Worker.NotifyOrder
         scheduler_module_name SupervisedSlices.Orders.Order.AshOban.Scheduler.NotifyOrder
+        use_tenant_from_record? true
       end
     end
   end
@@ -217,8 +218,8 @@ defmodule SupervisedSlices.Orders.Order do
     action :notify_order do
       argument :order_id, :uuid, allow_nil?: false
 
-      run fn input, _context ->
-        order = Ash.get!(SupervisedSlices.Orders.Order, input.arguments.order_id)
+      run fn input, context ->
+        order = Ash.get!(SupervisedSlices.Orders.Order, input.arguments.order_id, tenant: context.tenant, authorize?: false)
         SupervisedSlices.PubSubNotifier.broadcast_new_order(order)
         SupervisedSlices.Emails.send_order_confirmation(order)
         {:ok, order}
@@ -253,6 +254,7 @@ defmodule SupervisedSlices.Orders.Order do
   multitenancy do
     strategy :attribute
     attribute :organization_id
+    global? true
   end
 
   attributes do
