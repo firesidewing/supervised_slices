@@ -66,6 +66,8 @@ defmodule SupervisedSlicesWeb.Router do
     pipe_through :browser
 
     get "/", PageController, :home
+    get "/privacy", PageController, :privacy
+    get "/terms", PageController, :terms
 
     # Stripe Customer Portal redirect (requires browser session for auth)
     get "/billing/manage/:org_slug", BillingController, :portal

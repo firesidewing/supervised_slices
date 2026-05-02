@@ -207,6 +207,7 @@ defmodule SupervisedSlicesWeb.BillingLive.Setup do
   end
 
   def handle_event("subscribe", %{"plan" => plan}, socket) do
+    IO.inspect(plan, label: "SUBSCRIBE EVENT CALLED")
     socket = assign(socket, :loading, plan)
     org = socket.assigns.org
     user = socket.assigns.user
@@ -230,6 +231,7 @@ defmodule SupervisedSlicesWeb.BillingLive.Setup do
              success_url,
              cancel_url
            ) do
+      IO.inspect(session, label: "CHECKOUT SESSION")
       socket =
         push_event(socket, "ph:capture", %{
           event: "billing_plan_selected",
@@ -239,6 +241,7 @@ defmodule SupervisedSlicesWeb.BillingLive.Setup do
       {:noreply, redirect(socket, external: session.url)}
     else
       {:error, reason} ->
+        IO.inspect(reason, label: "CHECKOUT SESSION FAILED")
         {:noreply,
          socket
          |> assign(:loading, false)

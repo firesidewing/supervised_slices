@@ -10,8 +10,10 @@ defmodule SupervisedSlices.Billing do
   to the org, and returns `{:ok, updated_org}`.
   """
   def create_customer_for_org(%Organization{stripe_customer_id: nil} = org, email) do
+    IO.inspect(org.name, label: "CREATING CUSTOMER FOR ORG")
     case Stripe.Customer.create(%{email: to_string(email), name: to_string(org.name)}) do
       {:ok, customer} ->
+        IO.inspect(customer, label: "CUSTOMER CREATED")
         updated =
           org
           |> Ash.Changeset.for_update(:update_billing, %{stripe_customer_id: customer.id})
@@ -20,6 +22,7 @@ defmodule SupervisedSlices.Billing do
         {:ok, updated}
 
       {:error, reason} ->
+        IO.inspect(reason, label: "CUSTOMER CREATION FAILED")
         {:error, reason}
     end
   end

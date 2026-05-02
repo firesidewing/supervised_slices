@@ -128,6 +128,14 @@ defmodule SupervisedSlicesWeb.PageController do
     )
   end
 
+  def privacy(conn, _params) do
+    render(conn, :privacy)
+  end
+
+  def terms(conn, _params) do
+    render(conn, :terms)
+  end
+
   defp get_kitchen_org(nil), do: nil
 
   defp get_kitchen_org(user) do
