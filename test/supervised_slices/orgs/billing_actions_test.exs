@@ -49,6 +49,8 @@ defmodule SupervisedSlices.Orgs.OrganizationBillingTest do
         Organization
         |> Ash.Changeset.for_create(:create, %{name: "None"})
         |> Ash.create!(authorize?: false)
+        |> Ash.Changeset.for_update(:update_billing, %{subscription_status: :none})
+        |> Ash.update!(authorize?: false)
 
       org_canceled =
         Organization

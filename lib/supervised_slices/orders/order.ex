@@ -58,7 +58,12 @@ defmodule SupervisedSlices.Orders.Order do
 
       argument :delivery_address, :map
 
-      change set_attribute(:delivery_address, arg(:delivery_address))
+      change fn changeset, _ ->
+        case Ash.Changeset.get_argument(changeset, :delivery_address) do
+          nil -> changeset
+          address -> Ash.Changeset.force_change_attribute(changeset, :delivery_address, address)
+        end
+      end
 
       change fn changeset, context ->
         changeset =

@@ -27,14 +27,14 @@ defmodule SupervisedSlices.Orders.OrderTest do
             total_price: Money.new!(:CAD, "20.00"),
             tax_amount: Money.new!(:CAD, "1.00"),
             delivery_type: :delivery,
-            delivery_address: %{"street" => "", "city" => "Toronto", "zip" => "M5V"}
+            delivery_address: %{"street" => "", "city" => "Toronto", "zip" => "M5V", "state" => "ON"}
           },
           tenant: org.id,
           authorize?: false
         )
 
       assert {:error, %Ash.Error.Invalid{errors: [error | _]}} = result
-      assert error.field == :delivery_address
+      assert error.field == :street
     end
 
     test "requires city for delivery orders", %{org: org} do
@@ -46,14 +46,14 @@ defmodule SupervisedSlices.Orders.OrderTest do
             total_price: Money.new!(:CAD, "20.00"),
             tax_amount: Money.new!(:CAD, "1.00"),
             delivery_type: :delivery,
-            delivery_address: %{"street" => "123 Main St", "city" => "", "zip" => "M5V"}
+            delivery_address: %{"street" => "123 Main St", "city" => "", "zip" => "M5V", "state" => "ON"}
           },
           tenant: org.id,
           authorize?: false
         )
 
       assert {:error, %Ash.Error.Invalid{errors: [error | _]}} = result
-      assert error.field == :delivery_address
+      assert error.field == :city
     end
 
     test "requires zip for delivery orders", %{org: org} do
@@ -65,14 +65,14 @@ defmodule SupervisedSlices.Orders.OrderTest do
             total_price: Money.new!(:CAD, "20.00"),
             tax_amount: Money.new!(:CAD, "1.00"),
             delivery_type: :delivery,
-            delivery_address: %{"street" => "123 Main St", "city" => "Toronto", "zip" => ""}
+            delivery_address: %{"street" => "123 Main St", "city" => "Toronto", "zip" => "", "state" => "ON"}
           },
           tenant: org.id,
           authorize?: false
         )
 
       assert {:error, %Ash.Error.Invalid{errors: [error | _]}} = result
-      assert error.field == :delivery_address
+      assert error.field == :zip
     end
 
     test "accepts delivery orders with complete address", %{org: org} do
@@ -87,7 +87,8 @@ defmodule SupervisedSlices.Orders.OrderTest do
             delivery_address: %{
               "street" => "123 Main St",
               "city" => "Toronto",
-              "zip" => "M5V 1A1"
+              "zip" => "M5V 1A1",
+              "state" => "ON"
             }
           },
           tenant: org.id,

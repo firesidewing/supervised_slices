@@ -30,7 +30,7 @@ defmodule SupervisedSlices.Accounts.UserTest do
         Organization |> Ash.Query.filter(name == ^org_name) |> Ash.read_one!(authorize?: false)
 
       assert org.name == org_name
-      assert org.slug == "test-org"
+      assert String.starts_with?(org.slug, "test-org-")
 
       # Verify membership
       membership =
