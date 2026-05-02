@@ -40,6 +40,7 @@ defmodule SupervisedSlicesWeb.AdminLive.SettingsComponent do
      |> assign(:schedule, org.operating_schedule)
      |> assign(:timezone, org.timezone || "Etc/UTC")
      |> assign(:save_status, nil)
+     |> assign(:save_errors, [])
      |> assign(:branding_status, nil)
      |> allow_upload(:logo,
        accept: ~w(.jpg .jpeg .png .gif .webp .svg),
@@ -109,10 +110,26 @@ defmodule SupervisedSlicesWeb.AdminLive.SettingsComponent do
 
     schedule = parse_schedule_params(params)
 
-    with {:ok, rate} <- parse_tax_rate(raw_tax),
-         {:ok, prep_time} <- parse_prep_time(raw_prep),
-         {:ok, delivery_fee} <- parse_money(raw_delivery_fee),
-         {:ok, delivery_min} <- parse_money(raw_delivery_min) do
+    tax_result = parse_tax_rate(raw_tax)
+    prep_result = parse_prep_time(raw_prep)
+    fee_result = parse_money(raw_delivery_fee)
+    min_result = parse_money(raw_delivery_min)
+
+    errors =
+      [
+        if(tax_result == :error, do: "tax rate", else: nil),
+        if(prep_result == :error, do: "prep time", else: nil),
+        if(fee_result == :error, do: "delivery fee", else: nil),
+        if(min_result == :error, do: "min. order", else: nil)
+      ]
+      |> Enum.reject(&is_nil/1)
+
+    if errors == [] do
+      {:ok, rate} = tax_result
+      {:ok, prep_time} = prep_result
+      {:ok, delivery_fee} = fee_result
+      {:ok, delivery_min} = min_result
+
       updated_org =
         Organization.update_settings!(
           socket.assigns.org,
@@ -144,10 +161,10 @@ defmodule SupervisedSlicesWeb.AdminLive.SettingsComponent do
        |> assign(:schedule, updated_org.operating_schedule)
        |> assign(:timezone, updated_org.timezone || "Etc/UTC")
        |> assign(:org, updated_org)
-       |> assign(:save_status, :ok)}
+       |> assign(:save_status, :ok)
+       |> assign(:save_errors, [])}
     else
-      _ ->
-        {:noreply, assign(socket, :save_status, :error)}
+      {:noreply, socket |> assign(:save_status, :error) |> assign(:save_errors, errors)}
     end
   end
 
@@ -275,7 +292,10 @@ defmodule SupervisedSlicesWeb.AdminLive.SettingsComponent do
   end
 
   defp parse_money(raw) do
-    case Decimal.parse(String.trim(raw || "0")) do
+    trimmed = String.trim(raw || "")
+    trimmed = if trimmed == "", do: "0", else: trimmed
+
+    case Decimal.parse(trimmed) do
       {decimal, ""} -> {:ok, Money.new(decimal, :CAD)}
       _ -> :error
     end
@@ -373,7 +393,7 @@ defmodule SupervisedSlicesWeb.AdminLive.SettingsComponent do
           </p>
         </div>
 
-        <form phx-submit="save_settings" phx-target={@myself} class="space-y-8">
+        <form phx-change="save_settings" phx-target={@myself} class="space-y-8">
           <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
             <div>
               <label class="font-body block text-[10px] font-black uppercase tracking-[0.2em] text-on-surface-variant/40 mb-2">
@@ -385,6 +405,7 @@ defmodule SupervisedSlicesWeb.AdminLive.SettingsComponent do
                   name="prep_time"
                   value={@prep_time_input}
                   placeholder="e.g. 20"
+                  phx-debounce="blur"
                   class="w-full px-4 py-3 pr-14 rounded bg-surface-container-highest border-0 text-on-surface placeholder-on-surface-variant/30 text-sm font-bold focus:outline-none focus:ring-1 focus:ring-primary"
                 />
                 <span class="absolute right-4 top-1/2 -translate-y-1/2 text-on-surface-variant/40 font-bold text-[10px] uppercase">
@@ -403,6 +424,7 @@ defmodule SupervisedSlicesWeb.AdminLive.SettingsComponent do
                   name="tax_rate"
                   value={@tax_input}
                   placeholder="e.g. 8.75"
+                  phx-debounce="blur"
                   class="w-full px-4 py-3 pr-10 rounded bg-surface-container-highest border-0 text-on-surface placeholder-on-surface-variant/30 text-sm font-bold focus:outline-none focus:ring-1 focus:ring-primary"
                 />
                 <span class="absolute right-4 top-1/2 -translate-y-1/2 text-on-surface-variant/40 font-bold text-sm">
@@ -459,6 +481,7 @@ defmodule SupervisedSlicesWeb.AdminLive.SettingsComponent do
                     name="delivery_fee"
                     value={@delivery_fee_input}
                     placeholder="0.00"
+                    phx-debounce="blur"
                     class="w-full pl-8 pr-4 py-3 rounded bg-surface-container-highest border-0 text-on-surface placeholder-on-surface-variant/30 text-sm font-bold focus:outline-none focus:ring-1 focus:ring-primary"
                   />
                 </div>
@@ -476,6 +499,7 @@ defmodule SupervisedSlicesWeb.AdminLive.SettingsComponent do
                     name="delivery_min_order"
                     value={@delivery_min_order_input}
                     placeholder="0.00"
+                    phx-debounce="blur"
                     class="w-full pl-8 pr-4 py-3 rounded bg-surface-container-highest border-0 text-on-surface placeholder-on-surface-variant/30 text-sm font-bold focus:outline-none focus:ring-1 focus:ring-primary"
                   />
                 </div>
@@ -649,27 +673,17 @@ defmodule SupervisedSlicesWeb.AdminLive.SettingsComponent do
             </div>
           </div>
 
-          <div class="pt-10 flex flex-col gap-4">
+          <div class="pt-4 min-h-[1.5rem]">
             <%= if @save_status == :ok do %>
               <p class="text-[10px] font-black uppercase tracking-[0.2em] text-secondary text-center">
-                Settings saved successfully
+                Settings saved
               </p>
             <% end %>
             <%= if @save_status == :error do %>
               <p class="text-[10px] font-black uppercase tracking-[0.2em] text-primary text-center">
-                Invalid input values
+                Invalid: {Enum.join(@save_errors, ", ")}
               </p>
             <% end %>
-
-            <button
-              type="submit"
-              class="w-full bg-primary text-white font-black py-4 rounded-md text-xs uppercase tracking-[0.2em] transition-all active:scale-95 shadow-lg shadow-primary/10 phx-submit-loading:opacity-80 phx-submit-loading:cursor-wait"
-            >
-              <span class="phx-submit-loading:!hidden">Commit Settings</span>
-              <span class="hidden phx-submit-loading:!flex items-center justify-center gap-3">
-                Saving... <.icon name="hero-arrow-path" class="size-5 animate-spin" />
-              </span>
-            </button>
           </div>
         </form>
       </div>
