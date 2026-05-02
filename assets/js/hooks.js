@@ -210,6 +210,7 @@ export const Countdown = {
   tick() {
     const estimatedAt = parseInt(this.el.dataset.estimatedAt, 10)
     const status = this.el.dataset.status
+    const valEl = this.el.querySelector('#countdown-value')
 
     if (["ready", "completed", "cancelled"].includes(status)) {
       clearInterval(this.timer)
@@ -219,22 +220,14 @@ export const Countdown = {
 
     const now = Math.floor(Date.now() / 1000)
     const remaining = estimatedAt - now
-    const readyTime = new Date(estimatedAt * 1000)
-    const timeStr = readyTime.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })
 
-    if (remaining <= 0) {
-      this.el.innerHTML = `
-        <p class="font-body text-xs uppercase tracking-widest text-on-surface-variant mb-1">Estimated wait</p>
-        <p class="font-headline text-lg font-bold text-on-surface">Coming right up!</p>
-        <p class="font-body text-xs text-on-surface-variant">Ready by ${timeStr}</p>
-      `
-    } else {
-      const mins = Math.ceil(remaining / 60)
-      this.el.innerHTML = `
-        <p class="font-body text-xs uppercase tracking-widest text-on-surface-variant mb-1">Estimated wait</p>
-        <p class="font-headline text-lg font-bold text-on-surface">~${mins} min</p>
-        <p class="font-body text-xs text-on-surface-variant">Ready by ${timeStr}</p>
-      `
+    if (valEl) {
+      if (remaining <= 0) {
+        valEl.innerText = "Coming right up!"
+      } else {
+        const mins = Math.ceil(remaining / 60)
+        valEl.innerText = `~${mins} min`
+      }
     }
   }
 }

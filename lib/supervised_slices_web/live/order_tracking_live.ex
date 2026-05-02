@@ -29,7 +29,8 @@ defmodule SupervisedSlicesWeb.OrderTrackingLive do
       PubSubNotifier.subscribe_to_order(org.id, order.id)
     end
 
-    estimated_at = DateTime.add(order.inserted_at, org.default_prep_time * 60, :second)
+    estimated_at_utc = DateTime.add(order.inserted_at, org.default_prep_time * 60, :second)
+    estimated_at = DateTime.shift_zone!(estimated_at_utc, org.timezone || "Etc/UTC")
     vapid_public_key = Application.get_env(:supervised_slices, :vapid)[:public_key]
 
     {:ok,
@@ -162,14 +163,17 @@ defmodule SupervisedSlicesWeb.OrderTrackingLive do
               <span class="font-label text-[0.65rem] uppercase tracking-widest text-tertiary mb-1">
                 Estimated Ready
               </span>
-              <span
+              <div
                 id="order-countdown"
                 phx-hook="Countdown"
                 data-estimated-at={@estimated_unix}
                 data-status={@order.status}
-                class="font-serif text-4xl font-bold text-primary"
+                class="font-serif text-4xl font-bold text-on-surface text-center"
               >
-                {format_time(@estimated_at)}
+                <div id="countdown-value">~{minutes_remaining(@estimated_unix)} min</div>
+              </div>
+              <span class="font-label text-[0.65rem] uppercase tracking-widest text-secondary font-bold mt-1">
+                Ready by {format_time(@estimated_at)}
               </span>
               <span class="font-label text-[0.65rem] uppercase tracking-widest text-secondary font-bold mt-1">
                 {format_date(@estimated_at)}
@@ -555,6 +559,11 @@ defmodule SupervisedSlicesWeb.OrderTrackingLive do
 
   defp format_time(datetime) do
     Calendar.strftime(datetime, "%I:%M %p")
+  end
+
+  defp minutes_remaining(estimated_unix) do
+    now = System.os_time(:second)
+    max(0, ceil((estimated_unix - now) / 60))
   end
 
   defp format_date(nil), do: ""
