@@ -1164,7 +1164,7 @@ defmodule SupervisedSlicesWeb.AdminLive.MenuEditorComponent do
                   ]}
                 >
                   <div class="aspect-square relative overflow-hidden bg-surface-container-high">
-                    <%= if item.images != [] do %>
+                    <%= if not Enum.empty?(item.images || []) do %>
                       <img
                         src={List.first(item.images).url}
                         alt={item.name}
@@ -1945,7 +1945,7 @@ defmodule SupervisedSlicesWeb.AdminLive.MenuEditorComponent do
         <label class="block text-xs font-bold text-on-surface-variant uppercase tracking-wider">
           Images
         </label>
-        <div :if={@item && @item.images != []} class="flex flex-wrap gap-2">
+        <div :if={@item && not Enum.empty?(@item.images || [])} class="flex flex-wrap gap-2">
           <div :for={img <- Enum.sort_by(@item.images, & &1.position)} class="relative group">
             <img
               src={tigris_image_url(img.url)}

@@ -222,7 +222,13 @@ defmodule SupervisedSlices.Orders.Order do
 
       run fn input, context ->
         order_id = input.arguments.primary_key["id"]
-        order = Ash.get!(SupervisedSlices.Orders.Order, order_id, tenant: context.tenant, authorize?: false)
+
+        order =
+          Ash.get!(SupervisedSlices.Orders.Order, order_id,
+            tenant: context.tenant,
+            authorize?: false
+          )
+
         SupervisedSlices.PubSubNotifier.broadcast_new_order(order)
         SupervisedSlices.Orders.Emails.send_order_confirmation(order)
         :ok

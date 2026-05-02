@@ -169,13 +169,7 @@ defmodule SupervisedSlicesWeb.AdminLive.OrdersComponent do
             <div class="p-4 bg-surface-container flex flex-col gap-2">
               <%= if next_status_label(order.status) do %>
                 <button
-                  phx-click={
-                    JS.add_class(
-                      "opacity-50 scale-[0.99] pointer-events-none transition-all duration-150",
-                      to: "##{dom_id}"
-                    )
-                    |> JS.push("advance_order", target: @myself)
-                  }
+                  phx-click={JS.push("advance_order", target: @myself)}
                   phx-value-id={order.id}
                   phx-target={@myself}
                   class={[

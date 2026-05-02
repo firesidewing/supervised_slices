@@ -146,8 +146,8 @@ defmodule SupervisedSlicesWeb.MenuLive.ItemComponent do
 
         <div class={[
           "px-8 space-y-12 max-w-3xl mx-auto relative z-10",
-          @selected_item.images != [] && "-mt-4",
-          @selected_item.images == [] && "mt-8"
+          not Enum.empty?(@selected_item.images || []) && "-mt-4",
+          Enum.empty?(@selected_item.images || []) && "mt-8"
         ]}>
           <!-- Size Selector Section -->
           <section :if={not Enum.empty?(@selected_item.sizes || [])}>

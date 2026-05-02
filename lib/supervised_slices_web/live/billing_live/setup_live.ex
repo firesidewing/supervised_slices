@@ -232,6 +232,7 @@ defmodule SupervisedSlicesWeb.BillingLive.Setup do
              cancel_url
            ) do
       IO.inspect(session, label: "CHECKOUT SESSION")
+
       socket =
         push_event(socket, "ph:capture", %{
           event: "billing_plan_selected",
@@ -242,6 +243,7 @@ defmodule SupervisedSlicesWeb.BillingLive.Setup do
     else
       {:error, reason} ->
         IO.inspect(reason, label: "CHECKOUT SESSION FAILED")
+
         {:noreply,
          socket
          |> assign(:loading, false)

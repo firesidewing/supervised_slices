@@ -78,7 +78,10 @@ defmodule SupervisedSlicesWeb.MenuLive do
      socket
      |> cancel_async(:selected_item)
      |> assign(:selected_item_id, id)
-     |> assign(:selected_item_has_image, quick_item != nil && quick_item.images != [])
+     |> assign(
+       :selected_item_has_image,
+       quick_item != nil && not Enum.empty?(quick_item.images || [])
+     )
      |> assign(:quick_item, quick_item)
      |> push_event("ph:capture", %{
        event: "item_viewed",
@@ -96,7 +99,7 @@ defmodule SupervisedSlicesWeb.MenuLive do
            ]
          )
 
-       has_image = item.images != []
+       has_image = not Enum.empty?(item.images || [])
        {:ok, %{selected_item: item, selected_item_has_image: has_image}}
      end)}
   end
@@ -664,6 +667,7 @@ defmodule SupervisedSlicesWeb.MenuLive do
     |> Enum.reject(&MapSet.member?(cart_item_ids, &1.id))
     |> Enum.shuffle()
     |> Enum.take(3)
+    |> Ash.load!(:images)
   end
 
   # ---------------------------------------------------------------------------

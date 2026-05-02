@@ -169,7 +169,7 @@ defmodule SupervisedSlicesWeb.MenuLive.MenuComponent do
       phx-view-transition
       class="group flex flex-col bg-surface-container-lowest rounded-xl overflow-hidden transition-all duration-300 active:scale-[0.98] shadow-soft hover:translate-y-[-4px]"
     >
-      <div :if={@item.images != []} class="aspect-square overflow-hidden relative">
+      <div :if={not Enum.empty?(@item.images || [])} class="aspect-square overflow-hidden relative">
         <img
           src={List.first(@item.images).url}
           alt={@item.name}
@@ -198,8 +198,8 @@ defmodule SupervisedSlicesWeb.MenuLive.MenuComponent do
       <div class="p-4 flex flex-col grow">
         <h3 class={[
           "font-headline font-bold leading-tight mb-1 text-on-surface group-hover:text-primary transition-colors",
-          @item.images != [] && "text-lg",
-          @item.images == [] && "text-xl"
+          not Enum.empty?(@item.images || []) && "text-lg",
+          Enum.empty?(@item.images || []) && "text-xl"
         ]}>
           {@item.name}
         </h3>
@@ -228,7 +228,10 @@ defmodule SupervisedSlicesWeb.MenuLive.MenuComponent do
 
     ~H"""
     <div class="col-span-2 flex items-center gap-4 bg-surface-container-low p-3 rounded-xl transition-all duration-300 hover:bg-surface-container group">
-      <div :if={@item.images != []} class="w-20 h-20 rounded-lg overflow-hidden shrink-0 relative">
+      <div
+        :if={not Enum.empty?(@item.images || [])}
+        class="w-20 h-20 rounded-lg overflow-hidden shrink-0 relative"
+      >
         <img
           src={List.first(@item.images).url}
           alt={@item.name}
@@ -240,8 +243,8 @@ defmodule SupervisedSlicesWeb.MenuLive.MenuComponent do
       <div class="flex-1 min-w-0 py-1">
         <h3 class={[
           "font-headline font-bold truncate text-on-surface group-hover:text-primary transition-colors",
-          @item.images != [] && "text-base",
-          @item.images == [] && "text-lg"
+          not Enum.empty?(@item.images || []) && "text-base",
+          Enum.empty?(@item.images || []) && "text-lg"
         ]}>
           {@item.name}
         </h3>

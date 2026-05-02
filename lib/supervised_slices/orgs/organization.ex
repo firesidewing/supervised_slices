@@ -76,7 +76,10 @@ defmodule SupervisedSlices.Orgs.Organization do
           end
         end
         |> Ash.Changeset.force_change_attribute(:subscription_status, :trialing)
-        |> Ash.Changeset.force_change_attribute(:trial_ends_at, DateTime.add(DateTime.utc_now(), 14, :day))
+        |> Ash.Changeset.force_change_attribute(
+          :trial_ends_at,
+          DateTime.add(DateTime.utc_now(), 14, :day)
+        )
         |> Ash.Changeset.after_action(fn _cs, org ->
           SupervisedSlices.Analytics.capture("trial_started", org.id, %{
             "$groups": %{organization: org.id}
