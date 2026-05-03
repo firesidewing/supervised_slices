@@ -1,6 +1,21 @@
 import { driver } from "../vendor/driver"
 
 /**
+ * PersistDetails — preserves the user's open/close state for a <details> element
+ * across LiveView re-renders. Without this, server-computed `open={condition}`
+ * attributes collapse sections whenever underlying data changes mid-edit.
+ */
+export const PersistDetails = {
+  mounted() {
+    this._open = this.el.open
+    this.el.addEventListener("toggle", () => { this._open = this.el.open })
+  },
+  updated() {
+    if (this.el.open !== this._open) this.el.open = this._open
+  }
+}
+
+/**
  * TourGuide — spotlight-style onboarding tour for the admin Kitchen Command dashboard.
  *
  * Auto-starts on first visit (data-tour-autostart="true") and can be triggered

@@ -24,6 +24,7 @@ import { Socket } from "phoenix";
 import { LiveSocket } from "phoenix_live_view";
 import { hooks as colocatedHooks } from "phoenix-colocated/supervised_slices";
 import {
+    PersistDetails,
     TourGuide,
     MenuTour,
     Carousel,
@@ -65,6 +66,7 @@ const liveSocket = new LiveSocket("/live", Socket, {
     params: { _csrf_token: csrfToken },
     hooks: {
         ...colocatedHooks,
+        PersistDetails,
         TourGuide,
         MenuTour,
         Carousel,
