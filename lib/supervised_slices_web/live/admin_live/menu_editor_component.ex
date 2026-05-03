@@ -214,7 +214,12 @@ defmodule SupervisedSlicesWeb.AdminLive.MenuEditorComponent do
 
   def handle_event("add_item", %{"category_id" => id}, socket) do
     {:noreply,
-     assign(socket, open_item_id: :new, open_item_category_id: id, show_delete_confirm: false)}
+     assign(socket,
+       open_item_id: :new,
+       open_item_category_id: id,
+       show_delete_confirm: false,
+       pending_sizes: []
+     )}
   end
 
   def handle_event("cancel_edit", _params, socket) do
@@ -357,7 +362,7 @@ defmodule SupervisedSlicesWeb.AdminLive.MenuEditorComponent do
     {:noreply,
      assign(socket,
        categories: categories,
-       open_item_id: item.id,
+       open_item_id: nil,
        open_item_category_id: nil,
        show_delete_confirm: false,
        pending_sizes: []
@@ -515,7 +520,14 @@ defmodule SupervisedSlicesWeb.AdminLive.MenuEditorComponent do
   # ---------------------------------------------------------------------------
 
   def handle_event("add_modifier_group", _params, socket) do
-    {:noreply, assign(socket, open_group_id: :new, show_group_delete_confirm: false)}
+    {:noreply,
+     assign(socket,
+       open_group_id: :new,
+       show_group_delete_confirm: false,
+       pending_modifiers: [],
+       editing_modifier_id: nil,
+       adding_modifier: false
+     )}
   end
 
   def handle_event("cancel_group_edit", _params, socket) do
@@ -557,8 +569,8 @@ defmodule SupervisedSlicesWeb.AdminLive.MenuEditorComponent do
     {:noreply,
      assign(socket,
        modifier_groups: modifier_groups,
-       open_group_id: group.id,
-       adding_modifier: pending_modifiers == [],
+       open_group_id: nil,
+       adding_modifier: false,
        pending_modifiers: []
      )}
   end
@@ -583,7 +595,13 @@ defmodule SupervisedSlicesWeb.AdminLive.MenuEditorComponent do
     modifier_groups = load_modifier_groups(scope)
     categories = load_categories(scope)
 
-    {:noreply, assign(socket, modifier_groups: modifier_groups, categories: categories)}
+    {:noreply,
+     assign(socket,
+       modifier_groups: modifier_groups,
+       categories: categories,
+       open_group_id: nil,
+       adding_modifier: false
+     )}
   end
 
   def handle_event("delete_group", _params, socket) do
@@ -1529,7 +1547,12 @@ defmodule SupervisedSlicesWeb.AdminLive.MenuEditorComponent do
               <.drawer_core_fields item={@item} uploads={@uploads} myself={@myself} />
             </form>
 
-            <details class="group/sizes" open={Enum.empty?(@item.sizes || [])}>
+            <details
+              id={"details-sizes-#{@item.id}"}
+              class="group/sizes"
+              open={Enum.empty?(@item.sizes || [])}
+              phx-hook="PersistDetails"
+            >
               <summary class="list-none flex items-center justify-between cursor-pointer py-2">
                 <span class="text-xs font-black text-on-surface-variant uppercase tracking-wider flex items-center gap-1">
                   Sizes
@@ -1601,7 +1624,12 @@ defmodule SupervisedSlicesWeb.AdminLive.MenuEditorComponent do
               </div>
             </details>
 
-            <details class="group/mods" open={Enum.empty?(@item.modifier_groups || [])}>
+            <details
+              id={"details-mods-#{@item.id}"}
+              class="group/mods"
+              open={Enum.empty?(@item.modifier_groups || [])}
+              phx-hook="PersistDetails"
+            >
               <summary class="list-none flex items-center justify-between cursor-pointer py-2">
                 <span class="text-xs font-black text-on-surface-variant uppercase tracking-wider flex items-center gap-1">
                   Modifier Groups
@@ -1765,7 +1793,11 @@ defmodule SupervisedSlicesWeb.AdminLive.MenuEditorComponent do
               </div>
             </details>
 
-            <details class="group/advanced">
+            <details
+              id={"details-adv-#{@item.id}"}
+              class="group/advanced"
+              phx-hook="PersistDetails"
+            >
               <summary class="list-none flex items-center justify-between cursor-pointer py-2">
                 <span class="text-xs font-black text-on-surface-variant uppercase tracking-wider">
                   Advanced
@@ -2134,7 +2166,11 @@ defmodule SupervisedSlicesWeb.AdminLive.MenuEditorComponent do
                 </div>
               </label>
 
-              <details class="group/limits">
+              <details
+                id="details-limits-new"
+                class="group/limits"
+                phx-hook="PersistDetails"
+              >
                 <summary class="list-none flex items-center justify-between cursor-pointer py-2">
                   <span class="text-xs font-black text-on-surface-variant uppercase tracking-wider">
                     Selection Limits
@@ -2271,7 +2307,11 @@ defmodule SupervisedSlicesWeb.AdminLive.MenuEditorComponent do
                 </div>
               </label>
 
-              <details class="group/limits">
+              <details
+                id={"details-limits-#{@group.id}"}
+                class="group/limits"
+                phx-hook="PersistDetails"
+              >
                 <summary class="list-none flex items-center justify-between cursor-pointer py-2">
                   <div class="flex items-center gap-2">
                     <span class="text-xs font-black text-on-surface-variant uppercase tracking-wider">
@@ -2341,7 +2381,11 @@ defmodule SupervisedSlicesWeb.AdminLive.MenuEditorComponent do
                 </div>
               </details>
 
-              <details class="group/adv">
+              <details
+                id={"details-adv-#{@group.id}"}
+                class="group/adv"
+                phx-hook="PersistDetails"
+              >
                 <summary class="list-none flex items-center justify-between cursor-pointer py-2">
                   <span class="text-xs font-black text-on-surface-variant uppercase tracking-wider">
                     Advanced
