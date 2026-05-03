@@ -265,10 +265,10 @@ defmodule SupervisedSlicesWeb.MenuLive.MenuComponent do
           phx-value-item_id={@item.id}
           phx-value-delta="-1"
           disabled={@qty == 0}
-          class="w-7 h-7 flex items-center justify-center text-primary disabled:opacity-20 transition-all active:scale-90 hover:bg-primary/5 rounded-full"
+          class="w-7 h-7 flex items-center justify-center text-primary disabled:opacity-20 transition-all active:scale-90 hover:bg-primary/5 rounded-full phx-click-loading:opacity-50 phx-click-loading:cursor-wait"
           aria-label="Remove one"
         >
-          <span class="material-symbols-outlined text-base font-black">remove</span>
+          <span class="material-symbols-outlined text-base font-black phx-click-loading:animate-spin">remove</span>
         </button>
         <span class="font-label text-sm font-black w-4 text-center text-on-surface">
           {@qty}
@@ -278,10 +278,10 @@ defmodule SupervisedSlicesWeb.MenuLive.MenuComponent do
           phx-value-item_id={@item.id}
           phx-value-delta="1"
           disabled={not @store_open}
-          class="w-7 h-7 flex items-center justify-center text-on-primary-container bg-primary-container rounded-lg shadow-sm hover:bg-primary-container-high transition-all active:scale-90 disabled:opacity-20 disabled:grayscale"
+          class="w-7 h-7 flex items-center justify-center text-on-primary-container bg-primary-container rounded-lg shadow-sm hover:bg-primary-container-high transition-all active:scale-90 disabled:opacity-20 disabled:grayscale phx-click-loading:opacity-50 phx-click-loading:cursor-wait"
           aria-label="Add one"
         >
-          <span class="material-symbols-outlined text-base font-black">add</span>
+          <span class="material-symbols-outlined text-base font-black phx-click-loading:animate-spin">add</span>
         </button>
       </div>
     </div>
