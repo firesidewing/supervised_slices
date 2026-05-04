@@ -292,7 +292,7 @@ defmodule SupervisedSlicesWeb.MenuLive do
       distinct_id =
         case socket.assigns[:current_user] do
           %{id: uid} -> uid
-          _ -> scope.guest_session_id
+          _ -> params["customer_email"] || scope.guest_session_id
         end
 
       SupervisedSlices.Analytics.capture("order_placed", distinct_id, %{
@@ -303,6 +303,10 @@ defmodule SupervisedSlicesWeb.MenuLive do
 
       {:noreply,
        socket
+       |> push_event("ph:identify", %{
+         email: order.customer_email,
+         name: order.customer_name
+       })
        |> assign(
          cart: nil,
          cart_items_map: %{},

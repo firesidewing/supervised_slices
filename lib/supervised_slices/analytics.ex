@@ -28,4 +28,54 @@ defmodule SupervisedSlices.Analytics do
 
     :ok
   end
+
+  @doc "Telemetry handler — called automatically on any LiveView crash."
+  def handle_lv_exception(_event, _measurements, metadata, _config) do
+    %{kind: kind, reason: reason, stacktrace: stacktrace} = metadata
+
+    distinct_id =
+      case get_in(metadata, [:socket, Access.key(:assigns), :current_user]) do
+        %{id: uid} -> uid
+        _ -> "server"
+      end
+
+    extra =
+      %{}
+      |> maybe_put("liveview", metadata[:socket] && to_string(metadata[:socket].view))
+      |> maybe_put("event", metadata[:event])
+
+    capture_exception(kind, reason, stacktrace, distinct_id: distinct_id, extra: extra)
+  end
+
+  @doc "Manually capture a server-side exception. Call from rescue blocks when needed."
+  def capture_exception(kind, reason, stacktrace, opts \\ []) do
+    distinct_id = Keyword.get(opts, :distinct_id, "server")
+    extra = Keyword.get(opts, :extra, %{})
+
+    {type, message} =
+      case kind do
+        :error when is_exception(reason) ->
+          {to_string(reason.__struct__), Exception.message(reason)}
+
+        _ ->
+          {"#{kind}", inspect(reason)}
+      end
+
+    capture(
+      "$exception",
+      distinct_id,
+      Map.merge(extra, %{
+        "$exception_list" => [
+          %{
+            "type" => type,
+            "value" => message,
+            "stacktrace" => %{"frames" => Exception.format_stacktrace(stacktrace)}
+          }
+        ]
+      })
+    )
+  end
+
+  defp maybe_put(map, _key, nil), do: map
+  defp maybe_put(map, key, value), do: Map.put(map, key, value)
 end

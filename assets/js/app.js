@@ -105,6 +105,11 @@ window.addEventListener("phx:page-loading-stop", () => {
 window.addEventListener("phx:ph:capture", ({ detail }) => {
     if (window.posthog) posthog.capture(detail.event, detail.props || {});
 });
+window.addEventListener("phx:ph:identify", ({ detail }) => {
+    if (window.posthog && detail.email) {
+        posthog.identify(detail.email, { name: detail.name });
+    }
+});
 
 // Show progress bar on live navigation and form submits
 topbar.config({ barColors: { 0: "#29d" }, shadowColor: "rgba(0, 0, 0, .3)" });

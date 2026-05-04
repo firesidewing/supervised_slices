@@ -6,8 +6,24 @@ defmodule SupervisedSlicesWeb.Telemetry do
     Supervisor.start_link(__MODULE__, arg, name: __MODULE__)
   end
 
+  @liveview_exception_events [
+    [:phoenix, :live_view, :mount, :exception],
+    [:phoenix, :live_view, :handle_params, :exception],
+    [:phoenix, :live_view, :handle_event, :exception],
+    [:phoenix, :live_view, :handle_info, :exception],
+    [:phoenix, :live_component, :handle_event, :exception],
+    [:phoenix, :live_component, :update, :exception]
+  ]
+
   @impl true
   def init(_arg) do
+    :telemetry.attach_many(
+      "posthog-liveview-exceptions",
+      @liveview_exception_events,
+      &SupervisedSlices.Analytics.handle_lv_exception/4,
+      nil
+    )
+
     children = [
       # Telemetry poller will execute the given period measurements
       # every 10_000ms. Learn more here: https://hexdocs.pm/telemetry_metrics
