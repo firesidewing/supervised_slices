@@ -1,4 +1,4 @@
-import { driver } from "../vendor/driver"
+import { driver } from "../vendor/driver";
 
 /**
  * PersistDetails — preserves the user's open/close state for a <details> element
@@ -6,14 +6,16 @@ import { driver } from "../vendor/driver"
  * attributes collapse sections whenever underlying data changes mid-edit.
  */
 export const PersistDetails = {
-  mounted() {
-    this._open = this.el.open
-    this.el.addEventListener("toggle", () => { this._open = this.el.open })
-  },
-  updated() {
-    if (this.el.open !== this._open) this.el.open = this._open
-  }
-}
+    mounted() {
+        this._open = this.el.open;
+        this.el.addEventListener("toggle", () => {
+            this._open = this.el.open;
+        });
+    },
+    updated() {
+        if (this.el.open !== this._open) this.el.open = this._open;
+    },
+};
 
 /**
  * TourGuide — spotlight-style onboarding tour for the admin Kitchen Command dashboard.
@@ -23,111 +25,123 @@ export const PersistDetails = {
  * Pushes "tour_completed" to the server when the tour is dismissed or finished.
  */
 export const TourGuide = {
-  mounted() {
-    this._tour = driver({
-      showProgress: true,
-      showButtons: ["next", "previous", "close"],
-      nextBtnText: "Next →",
-      prevBtnText: "← Back",
-      doneBtnText: "Done",
-      progressText: "{{current}} of {{total}}",
-      popoverClass: "kitchen-tour-popover",
-      onDestroyed: () => {
-        this.pushEvent("tour_completed", {})
-      },
-      steps: [
-        {
-          element: "[data-tour='nav']",
-          popover: {
-            title: "Welcome to Kitchen Command",
-            description: "This is your live dashboard for managing orders, monitoring guests, and configuring your store. Let's walk through the key sections."
-          }
-        },
-        {
-          element: "[data-tour='orders-link']",
-          popover: {
-            title: "Order Atelier",
-            description: "The heart of the kitchen. New orders appear here in real time as customers check out. Advance each order through Pending → Preparing → Ready → Completed.",
-            side: "bottom",
-            align: "start"
-          }
-        },
-        {
-          element: "[data-tour='baskets-link']",
-          popover: {
-            title: "Basket Monitor",
-            description: "See what guests are adding to their carts before they check out. Useful for anticipating upcoming orders.",
-            side: "bottom",
-            align: "start"
-          }
-        },
-        {
-          element: "[data-tour='insights-link']",
-          popover: {
-            title: "Insights",
-            description: "Browse completed orders day by day and track 30-day trends — revenue, prep times, and your best-selling items.",
-            side: "bottom",
-            align: "start"
-          }
-        },
-        {
-          element: "[data-tour='menu-link']",
-          popover: {
-            title: "Menu Atelier",
-            description: "Build and edit your menu: add categories, items, photos, and prices. Use <strong>Sizes</strong> to offer the same item at different price points (e.g. Small / Medium / Large). Use <strong>Modifier Groups</strong> to add customer choices like sauce, toppings, or crust — create them once and reuse them across any number of items. Every change goes live instantly.",
-            side: "bottom",
-            align: "start"
-          }
-        },
-        {
-          element: "[data-tour='settings-link']",
-          popover: {
-            title: "System Settings",
-            description: "Configure your store hours, delivery zones, team members, branding, and integrations.",
-            side: "bottom",
-            align: "start"
-          }
-        },
-        {
-          element: "[data-tour='metrics']",
-          popover: {
-            title: "Live Metrics",
-            description: "Active ticket count and average fire time update in real time so you always know the kitchen's current load.",
-            side: "top"
-          }
-        },
-        {
-          element: "[data-tour='phone-order']",
-          popover: {
-            title: "Phone Orders",
-            description: "Taking an order over the phone? Use this to build and submit a manual order directly into the queue.",
-            side: "top"
-          }
-        },
-        {
-          element: "[data-tour='visitor-count']",
-          popover: {
-            title: "Live Visitors",
-            description: "Shows how many guests are currently browsing your menu — a helpful signal for anticipating order volume.",
-            side: "bottom",
-            align: "end"
-          }
+    mounted() {
+        this._tour = driver({
+            showProgress: true,
+            showButtons: ["next", "previous", "close"],
+            nextBtnText: "Next →",
+            prevBtnText: "← Back",
+            doneBtnText: "Done",
+            progressText: "{{current}} of {{total}}",
+            popoverClass: "kitchen-tour-popover",
+            onDestroyed: () => {
+                this.pushEvent("tour_completed", {});
+            },
+            steps: [
+                {
+                    element: "[data-tour='nav']",
+                    popover: {
+                        title: "Welcome to Kitchen Command",
+                        description:
+                            "This is your live dashboard for managing orders, monitoring guests, and configuring your store. Let's walk through the key sections.",
+                    },
+                },
+                {
+                    element: "[data-tour='orders-link']",
+                    popover: {
+                        title: "Order Atelier",
+                        description:
+                            "The heart of the kitchen. New orders appear here in real time as customers check out. Advance each order through Pending → Preparing → Ready → Completed.",
+                        side: "bottom",
+                        align: "start",
+                    },
+                },
+                {
+                    element: "[data-tour='baskets-link']",
+                    popover: {
+                        title: "Basket Monitor",
+                        description:
+                            "See what guests are adding to their carts before they check out. Useful for anticipating upcoming orders.",
+                        side: "bottom",
+                        align: "start",
+                    },
+                },
+                {
+                    element: "[data-tour='insights-link']",
+                    popover: {
+                        title: "Insights",
+                        description:
+                            "Browse completed orders day by day and track 30-day trends — revenue, prep times, and your best-selling items.",
+                        side: "bottom",
+                        align: "start",
+                    },
+                },
+                {
+                    element: "[data-tour='menu-link']",
+                    popover: {
+                        title: "Menu Atelier",
+                        description:
+                            "Build and edit your menu: add categories, items, photos, and prices. Use <strong>Sizes</strong> to offer the same item at different price points (e.g. Small / Medium / Large). Use <strong>Modifier Groups</strong> to add customer choices like sauce, toppings, or crust — create them once and reuse them across any number of items. Every change goes live instantly.",
+                        side: "bottom",
+                        align: "start",
+                    },
+                },
+                {
+                    element: "[data-tour='settings-link']",
+                    popover: {
+                        title: "System Settings",
+                        description:
+                            "Configure your store hours, delivery zones, team members, branding, and integrations.",
+                        side: "bottom",
+                        align: "start",
+                    },
+                },
+                {
+                    element: "[data-tour='metrics']",
+                    popover: {
+                        title: "Live Metrics",
+                        description:
+                            "Active ticket count and average fire time update in real time so you always know the kitchen's current load.",
+                        side: "top",
+                    },
+                },
+                {
+                    element: "[data-tour='phone-order']",
+                    popover: {
+                        title: "Phone Orders",
+                        description:
+                            "Taking an order over the phone? Use this to build and submit a manual order directly into the queue.",
+                        side: "top",
+                    },
+                },
+                {
+                    element: "[data-tour='visitor-count']",
+                    popover: {
+                        title: "Live Visitors",
+                        description:
+                            "Shows how many guests are currently browsing your menu — a helpful signal for anticipating order volume.",
+                        side: "bottom",
+                        align: "end",
+                    },
+                },
+            ],
+        });
+
+        if (this.el.dataset.tourAutostart === "true") {
+            // Small delay to let the page settle before the first highlight
+            setTimeout(() => this._tour.drive(), 400);
         }
-      ]
-    })
 
-    if (this.el.dataset.tourAutostart === "true") {
-      // Small delay to let the page settle before the first highlight
-      setTimeout(() => this._tour.drive(), 400)
-    }
+        window.addEventListener(
+            "start-tour",
+            (this._onStartTour = () => this._tour.drive()),
+        );
+    },
 
-    window.addEventListener("start-tour", this._onStartTour = () => this._tour.drive())
-  },
-
-  destroyed() {
-    window.removeEventListener("start-tour", this._onStartTour)
-  }
-}
+    destroyed() {
+        window.removeEventListener("start-tour", this._onStartTour);
+    },
+};
 
 /**
  * MenuTour — spotlight tour for the Menu Atelier page.
@@ -137,67 +151,75 @@ export const TourGuide = {
  * Can be re-triggered by dispatching a "start-menu-tour" event on window.
  */
 export const MenuTour = {
-  mounted() {
-    this._tour = driver({
-      showProgress: true,
-      showButtons: ["next", "previous", "close"],
-      nextBtnText: "Next →",
-      prevBtnText: "← Back",
-      doneBtnText: "Got it",
-      progressText: "{{current}} of {{total}}",
-      popoverClass: "kitchen-tour-popover",
-      onDestroyed: () => {
-        localStorage.setItem("menu-tour-done", "true")
-      },
-      steps: [
-        {
-          element: "[data-menu-tour='categories-panel']",
-          popover: {
-            title: "Your Menu Catalog",
-            description: "Your menu is organised into <strong>categories</strong> (e.g. Starters, Mains, Drinks). Each category contains items. Click any item card to open its editor drawer where you can set the price, add a photo, and configure sizes and choices.",
-            side: "right"
-          }
-        },
-        {
-          element: "[data-menu-tour='modifier-groups-sidebar']",
-          popover: {
-            title: "Modifier Groups Library",
-            description: "This panel is your <strong>global library</strong> of choice groups — things like \"Sauce\", \"Toppings\", or \"Crust style\". Create a group here once, then link it to as many menu items as you like from inside each item's drawer.",
-            side: "left"
-          }
-        },
-        {
-          popover: {
-            title: "How Sizes Work",
-            description: "Add <strong>Sizes</strong> to an item when you want to offer it at different price points — e.g. Small ($8), Medium ($10), Large ($12). When an item has sizes, customers must pick one before adding it to their cart. The size's price replaces the item's base price."
-          }
-        },
-        {
-          popover: {
-            title: "How Modifier Groups Work",
-            description: "A modifier group is a named list of options customers choose from. Mark a group as <strong>Required</strong> to force a selection before checkout. Set <strong>Max Selections</strong> to 1 for a \"pick one\" choice (e.g. sauce), or higher to let customers pick several options (e.g. toppings). Each option can carry its own price delta."
-          }
-        },
-        {
-          popover: {
-            title: "Linking Groups to Items",
-            description: "Open any item's drawer (click an item card), then scroll to the <strong>Modifier Groups</strong> section. From there you can attach groups from your library. One group can be linked to many items — update the group once and all linked items reflect the change instantly."
-          }
+    mounted() {
+        this._tour = driver({
+            showProgress: true,
+            showButtons: ["next", "previous", "close"],
+            nextBtnText: "Next →",
+            prevBtnText: "← Back",
+            doneBtnText: "Got it",
+            progressText: "{{current}} of {{total}}",
+            popoverClass: "kitchen-tour-popover",
+            onDestroyed: () => {
+                localStorage.setItem("menu-tour-done", "true");
+            },
+            steps: [
+                {
+                    element: "[data-menu-tour='categories-panel']",
+                    popover: {
+                        title: "Your Menu Catalog",
+                        description:
+                            "Your menu is organised into <strong>categories</strong> (e.g. Starters, Mains, Drinks). Each category contains items. Click any item card to open its editor drawer where you can set the price, add a photo, and configure sizes and choices.",
+                        side: "right",
+                    },
+                },
+                {
+                    element: "[data-menu-tour='modifier-groups-sidebar']",
+                    popover: {
+                        title: "Modifier Groups Library",
+                        description:
+                            'This panel is your <strong>global library</strong> of choice groups — things like "Sauce", "Toppings", or "Crust style". Create a group here once, then link it to as many menu items as you like from inside each item\'s drawer.',
+                        side: "left",
+                    },
+                },
+                {
+                    popover: {
+                        title: "How Sizes Work",
+                        description:
+                            "Add <strong>Sizes</strong> to an item when you want to offer it at different price points — e.g. Small ($8), Medium ($10), Large ($12). When an item has sizes, customers must pick one before adding it to their cart. The size's price replaces the item's base price.",
+                    },
+                },
+                {
+                    popover: {
+                        title: "How Modifier Groups Work",
+                        description:
+                            'A modifier group is a named list of options customers choose from. Mark a group as <strong>Required</strong> to force a selection before checkout. Set <strong>Max Selections</strong> to 1 for a "pick one" choice (e.g. sauce), or higher to let customers pick several options (e.g. toppings). Each option can carry its own price delta.',
+                    },
+                },
+                {
+                    popover: {
+                        title: "Linking Groups to Items",
+                        description:
+                            "Open any item's drawer (click an item card), then scroll to the <strong>Modifier Groups</strong> section. From there you can attach groups from your library. One group can be linked to many items — update the group once and all linked items reflect the change instantly.",
+                    },
+                },
+            ],
+        });
+
+        window.addEventListener(
+            "start-menu-tour",
+            (this._onStartMenuTour = () => this._tour.drive()),
+        );
+
+        if (!localStorage.getItem("menu-tour-done")) {
+            setTimeout(() => this._tour.drive(), 500);
         }
-      ]
-    })
+    },
 
-    window.addEventListener("start-menu-tour", this._onStartMenuTour = () => this._tour.drive())
-
-    if (!localStorage.getItem("menu-tour-done")) {
-      setTimeout(() => this._tour.drive(), 500)
-    }
-  },
-
-  destroyed() {
-    window.removeEventListener("start-menu-tour", this._onStartMenuTour)
-  }
-}
+    destroyed() {
+        window.removeEventListener("start-menu-tour", this._onStartMenuTour);
+    },
+};
 
 /**
  * Countdown — live ETA display on the order tracking page.
@@ -207,45 +229,45 @@ export const MenuTour = {
  * Stops updating once the order is ready or completed.
  */
 export const Countdown = {
-  mounted() {
-    this.tick()
-    this.timer = setInterval(() => this.tick(), 5000)
+    mounted() {
+        this.tick();
+        this.timer = setInterval(() => this.tick(), 5000);
 
-    // When LiveView pushes an `order_status_changed` event the status attribute
-    // will have been updated by the server re-render, so we just tick again.
-    this.handleEvent("order_status_changed", () => {
-      this.tick()
-    })
-  },
+        // When LiveView pushes an `order_status_changed` event the status attribute
+        // will have been updated by the server re-render, so we just tick again.
+        this.handleEvent("order_status_changed", () => {
+            this.tick();
+        });
+    },
 
-  destroyed() {
-    clearInterval(this.timer)
-  },
+    destroyed() {
+        clearInterval(this.timer);
+    },
 
-  tick() {
-    const estimatedAt = parseInt(this.el.dataset.estimatedAt, 10)
-    const status = this.el.dataset.status
-    const valEl = this.el.querySelector('#countdown-value')
+    tick() {
+        const estimatedAt = parseInt(this.el.dataset.estimatedAt, 10);
+        const status = this.el.dataset.status;
+        const valEl = this.el.querySelector("#countdown-value");
 
-    if (["ready", "completed", "cancelled"].includes(status)) {
-      clearInterval(this.timer)
-      this.el.innerHTML = ""
-      return
-    }
+        if (["ready", "completed", "cancelled"].includes(status)) {
+            clearInterval(this.timer);
+            this.el.innerHTML = "";
+            return;
+        }
 
-    const now = Math.floor(Date.now() / 1000)
-    const remaining = estimatedAt - now
+        const now = Math.floor(Date.now() / 1000);
+        const remaining = estimatedAt - now;
 
-    if (valEl) {
-      if (remaining <= 0) {
-        valEl.innerText = "Coming right up!"
-      } else {
-        const mins = Math.ceil(remaining / 60)
-        valEl.innerText = `~${mins} min`
-      }
-    }
-  }
-}
+        if (valEl) {
+            if (remaining <= 0) {
+                valEl.innerText = "Coming right up!";
+            } else {
+                const mins = Math.ceil(remaining / 60);
+                valEl.innerText = `~${mins} min`;
+            }
+        }
+    },
+};
 
 /**
  * OrderNotifications — browser Notifications API opt-in on the tracking page.
@@ -254,83 +276,95 @@ export const Countdown = {
  * `order_status_changed` events pushed from the server to fire notifications.
  */
 export const OrderNotifications = {
-  mounted() {
-    const btn = document.getElementById("notification-btn")
-    const publicKey = this.el.dataset.publicKey
+    mounted() {
+        const btn = document.getElementById("notification-btn");
+        const publicKey = this.el.dataset.publicKey;
 
-    // If notifications aren't supported, just leave it hidden
-    if (!("Notification" in window)) return
+        // If notifications aren't supported, just leave it hidden
+        if (!("Notification" in window)) return;
 
-    // Only show the prompt if we haven't granted yet (and haven't explicitly denied)
-    if (Notification.permission === "default") {
-      this.el.classList.remove("hidden")
-      this.el.classList.add("flex")
-    }
+        // Only show the prompt if we haven't granted yet (and haven't explicitly denied)
+        if (Notification.permission === "default") {
+            this.el.classList.remove("hidden");
+            this.el.classList.add("flex");
+        }
 
-    if (btn) {
-      btn.addEventListener("click", () => {
-        Notification.requestPermission().then((permission) => {
-          if (permission === "granted") {
-            this.el.classList.remove("flex")
-            this.el.classList.add("hidden")
-            this.showNotification("Notifications enabled!", "We'll let you know when your order is ready.")
-            this.subscribeToPush(publicKey)
-            if (window.posthog) posthog.capture("notification_permission_granted")
-          }
-        })
-      })
-    }
+        if (btn) {
+            btn.addEventListener("click", () => {
+                Notification.requestPermission().then((permission) => {
+                    if (permission === "granted") {
+                        this.el.classList.remove("flex");
+                        this.el.classList.add("hidden");
+                        this.showNotification(
+                            "Notifications enabled!",
+                            "We'll let you know when your order is ready.",
+                        );
+                        this.subscribeToPush(publicKey);
+                        if (window.posthog)
+                            posthog.capture("notification_permission_granted");
+                    }
+                });
+            });
+        }
 
-    this.handleEvent("order_status_changed", ({ message }) => {
-      if (Notification.permission === "granted") {
-        this.showNotification(message)
-      }
-    })
-  },
+        this.handleEvent("order_status_changed", ({ message }) => {
+            if (Notification.permission === "granted") {
+                this.showNotification(message);
+            }
+        });
+    },
 
-  subscribeToPush(publicKey) {
-    if (!("serviceWorker" in navigator)) return
+    subscribeToPush(publicKey) {
+        if (!("serviceWorker" in navigator)) return;
 
-    navigator.serviceWorker.ready.then((registration) => {
-      registration.pushManager.subscribe({
-        userVisibleOnly: true,
-        applicationServerKey: publicKey
-      }).then((subscription) => {
-        // subscription.toJSON() gives us the keys and endpoint
-        const sub = subscription.toJSON()
-        this.pushEvent("save_subscription", {
-          endpoint: sub.endpoint,
-          p256dh: sub.keys.p256dh,
-          auth: sub.keys.auth
-        })
-      }).catch((error) => {
-        console.error("Push subscription failed:", error)
-        if (window.posthog) posthog.captureException(error, { extra: { context: "push_subscription" } })
-      })
-    })
-  },
+        navigator.serviceWorker.ready.then((registration) => {
+            registration.pushManager
+                .subscribe({
+                    userVisibleOnly: true,
+                    applicationServerKey: publicKey,
+                })
+                .then((subscription) => {
+                    // subscription.toJSON() gives us the keys and endpoint
+                    const sub = subscription.toJSON();
+                    this.pushEvent("save_subscription", {
+                        endpoint: sub.endpoint,
+                        p256dh: sub.keys.p256dh,
+                        auth: sub.keys.auth,
+                    });
+                })
+                .catch((error) => {
+                    console.error("Push subscription failed:", error);
+                    if (window.posthog)
+                        posthog.captureException(error, {
+                            extra: { context: "push_subscription" },
+                        });
+                });
+        });
+    },
 
-  showNotification(title, body) {
-    const options = {
-      body,
-      icon: "/favicon.ico",
-      badge: "/favicon.ico",
-      vibrate: [200, 100, 200]
-    }
+    showNotification(title, body) {
+        const options = {
+            body,
+            icon: "/favicon.ico",
+            badge: "/favicon.ico",
+            vibrate: [200, 100, 200],
+        };
 
-    // On mobile, showNotification from the service worker is much more reliable
-    // as it can often display even when the browser is backgrounded.
-    if ("serviceWorker" in navigator) {
-      navigator.serviceWorker.ready.then((registration) => {
-        registration.showNotification(title, options)
-      }).catch(() => {
-        new Notification(title, options)
-      })
-    } else {
-      new Notification(title, options)
-    }
-  }
-}
+        // On mobile, showNotification from the service worker is much more reliable
+        // as it can often display even when the browser is backgrounded.
+        if ("serviceWorker" in navigator) {
+            navigator.serviceWorker.ready
+                .then((registration) => {
+                    registration.showNotification(title, options);
+                })
+                .catch(() => {
+                    new Notification(title, options);
+                });
+        } else {
+            new Notification(title, options);
+        }
+    },
+};
 
 /**
  * KitchenAlert — plays an audible chime and flashes the page title whenever
@@ -339,112 +373,132 @@ export const OrderNotifications = {
  * Mount this hook on any persistent element in the kitchen dashboard layout.
  */
 export const KitchenAlert = {
-  mounted() {
-    this.originalTitle = document.title
-    this.flashInterval = null
+    mounted() {
+        this.originalTitle = document.title;
+        this.flashInterval = null;
 
-    this.handleEvent("new_order_alert", () => {
-      this.playChime()
-      this.flashTitle()
-    })
-  },
+        this.handleEvent("new_order_alert", () => {
+            this.playChime();
+            this.flashTitle();
+        });
+    },
 
-  destroyed() {
-    clearInterval(this.flashInterval)
-    document.title = this.originalTitle
-  },
+    destroyed() {
+        clearInterval(this.flashInterval);
+        document.title = this.originalTitle;
+    },
 
-  playChime() {
-    try {
-      const AudioContext = window.AudioContext || window.webkitAudioContext
-      if (!AudioContext) return
-      const ctx = new AudioContext()
+    playChime() {
+        try {
+            const AudioContext =
+                window.AudioContext || window.webkitAudioContext;
+            if (!AudioContext) return;
+            const ctx = new AudioContext();
 
-      // Generate a short buffer of white noise
-      const bufferSize = ctx.sampleRate * 0.1
-      const noiseBuffer = ctx.createBuffer(1, bufferSize, ctx.sampleRate)
-      const output = noiseBuffer.getChannelData(0)
-      for (let i = 0; i < bufferSize; i++) {
-        output[i] = Math.random() * 2 - 1
-      }
+            // Generate a short buffer of white noise
+            const bufferSize = ctx.sampleRate * 0.1;
+            const noiseBuffer = ctx.createBuffer(1, bufferSize, ctx.sampleRate);
+            const output = noiseBuffer.getChannelData(0);
+            for (let i = 0; i < bufferSize; i++) {
+                output[i] = Math.random() * 2 - 1;
+            }
 
-      // Filter the noise to sound more like a mechanical printer pin strike
-      const filter = ctx.createBiquadFilter()
-      filter.type = "bandpass"
-      filter.frequency.value = 3200
-      filter.Q.value = 1.0
-      filter.connect(ctx.destination)
+            // Filter the noise to sound more like a mechanical printer pin strike
+            const filter = ctx.createBiquadFilter();
+            filter.type = "bandpass";
+            filter.frequency.value = 3200;
+            filter.Q.value = 1.0;
+            filter.connect(ctx.destination);
 
-      // Dot matrix "chit printing" sound: rhythmic bursts of noise
-      const bursts = [
-        {time: 0.00, duration: 0.03, volume: 0.15},
-        {time: 0.06, duration: 0.03, volume: 0.15},
-        {time: 0.12, duration: 0.03, volume: 0.15},
-        {time: 0.18, duration: 0.04, volume: 0.20},
-        {time: 0.28, duration: 0.03, volume: 0.15},
-        {time: 0.34, duration: 0.03, volume: 0.15},
-        {time: 0.40, duration: 0.03, volume: 0.15},
-        {time: 0.46, duration: 0.04, volume: 0.20},
-        {time: 0.60, duration: 0.05, volume: 0.25} // Final "paper cut" sound
-      ]
+            // Dot matrix "chit printing" sound: rhythmic bursts of noise
+            const bursts = [
+                { time: 0.0, duration: 0.03, volume: 0.15 },
+                { time: 0.06, duration: 0.03, volume: 0.15 },
+                { time: 0.12, duration: 0.03, volume: 0.15 },
+                { time: 0.18, duration: 0.04, volume: 0.2 },
+                { time: 0.28, duration: 0.03, volume: 0.15 },
+                { time: 0.34, duration: 0.03, volume: 0.15 },
+                { time: 0.4, duration: 0.03, volume: 0.15 },
+                { time: 0.46, duration: 0.04, volume: 0.2 },
+                { time: 0.6, duration: 0.05, volume: 0.25 }, // Final "paper cut" sound
+            ];
 
-      bursts.forEach(b => {
-        const source = ctx.createBufferSource()
-        source.buffer = noiseBuffer
-        const gain = ctx.createGain()
-        source.connect(gain)
-        gain.connect(filter)
+            bursts.forEach((b) => {
+                const source = ctx.createBufferSource();
+                source.buffer = noiseBuffer;
+                const gain = ctx.createGain();
+                source.connect(gain);
+                gain.connect(filter);
 
-        const startAt = ctx.currentTime + b.time
-        gain.gain.setValueAtTime(0, startAt)
-        gain.gain.linearRampToValueAtTime(b.volume, startAt + 0.005)
-        gain.gain.linearRampToValueAtTime(0, startAt + b.duration)
+                const startAt = ctx.currentTime + b.time;
+                gain.gain.setValueAtTime(0, startAt);
+                gain.gain.linearRampToValueAtTime(b.volume, startAt + 0.005);
+                gain.gain.linearRampToValueAtTime(0, startAt + b.duration);
 
-        source.start(startAt)
-        source.stop(startAt + b.duration)
-      })
-    } catch (_e) {
-      // AudioContext unavailable — skip sound, visual flash still works
-    }
-  },
+                source.start(startAt);
+                source.stop(startAt + b.duration);
+            });
+        } catch (_e) {
+            // AudioContext unavailable — skip sound, visual flash still works
+        }
+    },
 
-  flashTitle() {
-    clearInterval(this.flashInterval)
-    document.title = "🔔 New Order!"
+    flashTitle() {
+        clearInterval(this.flashInterval);
+        document.title = "🔔 New Order!";
 
-    let count = 0
-    this.flashInterval = setInterval(() => {
-      count++
-      document.title = count % 2 === 0 ? "🔔 New Order!" : this.originalTitle
-      if (count >= 10) {
-        clearInterval(this.flashInterval)
-        document.title = this.originalTitle
-      }
-    }, 800)
-  }
-}
+        let count = 0;
+        this.flashInterval = setInterval(() => {
+            count++;
+            document.title =
+                count % 2 === 0 ? "🔔 New Order!" : this.originalTitle;
+            if (count >= 10) {
+                clearInterval(this.flashInterval);
+                document.title = this.originalTitle;
+            }
+        }, 800);
+    },
+};
 
 /**
  * PostHogIdentify — syncs the current user/org identity to PostHog on mount
  * and after every LiveView patch (org navigations, login/logout).
  */
 export const PostHogIdentify = {
-  mounted() { this._identify() },
-  updated() { this._identify() },
-  _identify() {
-    if (!window.posthog) return
-    const { userId, userEmail, superadmin, orgId, orgName, orgPlan } = this.el.dataset
-    if (superadmin === "true") return
-    if (userId) {
-      posthog.identify(userId, { email: userEmail })
-    } else {
-      posthog.reset()
-    }
-    if (orgId) {
-      posthog.group("organization", orgId, { name: orgName, plan: orgPlan })
-    }
-  }
-}
+    mounted() {
+        this._identify();
+    },
+    updated() {
+        this._identify();
+    },
+    _identify() {
+        if (!window.posthog) return;
+        const { userId, userEmail, superadmin, orgId, orgName, orgPlan } =
+            this.el.dataset;
+
+        if (superadmin === "true") {
+            posthog.opt_out_capturing(); // persists, stops all event capture
+            return;
+        }
+
+        // Re-enable for non-superadmins in case they share a browser
+        if (posthog.has_opted_out_capturing()) {
+            posthog.opt_in_capturing();
+        }
+
+        if (userId) {
+            posthog.identify(userId, { email: userEmail });
+        } else {
+            posthog.reset();
+        }
+        if (orgId) {
+            posthog.group("organization", orgId, {
+                name: orgName,
+                plan: orgPlan,
+            });
+        }
+    },
+};
 
 /**
  * Carousel — CSS scroll-snap carousel with dot indicators.
@@ -453,45 +507,49 @@ export const PostHogIdentify = {
  * highlights the active dot as the user swipes between slides.
  */
 export const Carousel = {
-  mounted() {
-    this.slides = Array.from(this.el.children)
-    if (this.slides.length <= 1) return
+    mounted() {
+        this.slides = Array.from(this.el.children);
+        if (this.slides.length <= 1) return;
 
-    const dotsEl = document.getElementById(`carousel-dots-${this.el.id.replace("carousel-", "")}`)
-    if (!dotsEl) return
+        const dotsEl = document.getElementById(
+            `carousel-dots-${this.el.id.replace("carousel-", "")}`,
+        );
+        if (!dotsEl) return;
 
-    this.dots = this.slides.map((_, i) => {
-      const dot = document.createElement("div")
-      dot.className = i === 0
-        ? "w-2 h-2 rounded-full bg-white"
-        : "w-1.5 h-1.5 rounded-full bg-white/40"
-      dotsEl.appendChild(dot)
-      return dot
-    })
+        this.dots = this.slides.map((_, i) => {
+            const dot = document.createElement("div");
+            dot.className =
+                i === 0
+                    ? "w-2 h-2 rounded-full bg-white"
+                    : "w-1.5 h-1.5 rounded-full bg-white/40";
+            dotsEl.appendChild(dot);
+            return dot;
+        });
 
-    this._observer = new IntersectionObserver(
-      (entries) => {
-        entries.forEach((entry) => {
-          if (entry.isIntersecting) {
-            const idx = this.slides.indexOf(entry.target)
-            this.dots.forEach((dot, i) => {
-              dot.className = i === idx
-                ? "w-2 h-2 rounded-full bg-white transition-all duration-200"
-                : "w-1.5 h-1.5 rounded-full bg-white/40 transition-all duration-200"
-            })
-          }
-        })
-      },
-      { root: this.el, threshold: 0.6 }
-    )
+        this._observer = new IntersectionObserver(
+            (entries) => {
+                entries.forEach((entry) => {
+                    if (entry.isIntersecting) {
+                        const idx = this.slides.indexOf(entry.target);
+                        this.dots.forEach((dot, i) => {
+                            dot.className =
+                                i === idx
+                                    ? "w-2 h-2 rounded-full bg-white transition-all duration-200"
+                                    : "w-1.5 h-1.5 rounded-full bg-white/40 transition-all duration-200";
+                        });
+                    }
+                });
+            },
+            { root: this.el, threshold: 0.6 },
+        );
 
-    this.slides.forEach((slide) => this._observer.observe(slide))
-  },
+        this.slides.forEach((slide) => this._observer.observe(slide));
+    },
 
-  destroyed() {
-    if (this._observer) this._observer.disconnect()
-  }
-}
+    destroyed() {
+        if (this._observer) this._observer.disconnect();
+    },
+};
 
 /**
  * TimeAgo — live "Ordered Xm ago" label that updates client-side every 30s.
@@ -500,87 +558,92 @@ export const Carousel = {
  * text content, avoiding server-driven :tick round-trips for time display.
  */
 export const TimeAgo = {
-  mounted() {
-    this._update()
-    this._timer = setInterval(() => this._update(), 30_000)
-  },
+    mounted() {
+        this._update();
+        this._timer = setInterval(() => this._update(), 30_000);
+    },
 
-  destroyed() {
-    clearInterval(this._timer)
-  },
+    destroyed() {
+        clearInterval(this._timer);
+    },
 
-  _update() {
-    const insertedAt = parseInt(this.el.dataset.insertedAt, 10)
-    if (!insertedAt) return
-    const seconds = Math.floor(Date.now() / 1000) - insertedAt
-    if (seconds < 60) {
-      this.el.textContent = "Just arrived"
-    } else if (seconds < 3600) {
-      this.el.textContent = `Ordered ${Math.floor(seconds / 60)}m ago`
-    } else {
-      this.el.textContent = `Ordered ${Math.floor(seconds / 3600)}h ago`
-    }
-  }
-}
+    _update() {
+        const insertedAt = parseInt(this.el.dataset.insertedAt, 10);
+        if (!insertedAt) return;
+        const seconds = Math.floor(Date.now() / 1000) - insertedAt;
+        if (seconds < 60) {
+            this.el.textContent = "Just arrived";
+        } else if (seconds < 3600) {
+            this.el.textContent = `Ordered ${Math.floor(seconds / 60)}m ago`;
+        } else {
+            this.el.textContent = `Ordered ${Math.floor(seconds / 3600)}h ago`;
+        }
+    },
+};
 
 /**
  * GeoFenceMap — interactive Leaflet map for setting delivery area.
  */
 export const GeoFenceMap = {
-  mounted() {
-    this.initMap()
-  },
+    mounted() {
+        this.initMap();
+    },
 
-  updated() {
-    this.updateRadius()
-  },
+    updated() {
+        this.updateRadius();
+    },
 
-  initMap() {
-    const lat = parseFloat(this.el.dataset.lat) || 43.6532 // Toronto
-    const lng = parseFloat(this.el.dataset.lng) || -79.3832
-    const radiusInKm = parseFloat(this.el.dataset.radius) || 5.0
+    initMap() {
+        const lat = parseFloat(this.el.dataset.lat) || 43.6532; // Toronto
+        const lng = parseFloat(this.el.dataset.lng) || -79.3832;
+        const radiusInKm = parseFloat(this.el.dataset.radius) || 5.0;
 
-    this.map = L.map(this.el).setView([lat, lng], 13)
+        this.map = L.map(this.el).setView([lat, lng], 13);
 
-    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-      attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
-    }).addTo(this.map)
+        L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
+            attribution:
+                '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
+        }).addTo(this.map);
 
-    const icon = L.icon({
-      iconUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon.png',
-      shadowUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-shadow.png',
-      iconSize: [25, 41],
-      iconAnchor: [12, 41],
-      popupAnchor: [1, -34],
-      shadowSize: [41, 41]
-    })
+        const icon = L.icon({
+            iconUrl:
+                "https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon.png",
+            shadowUrl:
+                "https://unpkg.com/leaflet@1.9.4/dist/images/marker-shadow.png",
+            iconSize: [25, 41],
+            iconAnchor: [12, 41],
+            popupAnchor: [1, -34],
+            shadowSize: [41, 41],
+        });
 
-    this.marker = L.marker([lat, lng], { draggable: true, icon }).addTo(this.map)
+        this.marker = L.marker([lat, lng], { draggable: true, icon }).addTo(
+            this.map,
+        );
 
-    this.circle = L.circle([lat, lng], {
-      color: '#b90027',
-      fillColor: '#b90027',
-      fillOpacity: 0.1,
-      radius: radiusInKm * 1000
-    }).addTo(this.map)
+        this.circle = L.circle([lat, lng], {
+            color: "#b90027",
+            fillColor: "#b90027",
+            fillOpacity: 0.1,
+            radius: radiusInKm * 1000,
+        }).addTo(this.map);
 
-    this.marker.on('dragend', (e) => {
-      const { lat, lng } = e.target.getLatLng()
-      this.circle.setLatLng([lat, lng])
-      this.pushEventTo(this.el, 'update_geo_center', { lat, lng })
-    })
+        this.marker.on("dragend", (e) => {
+            const { lat, lng } = e.target.getLatLng();
+            this.circle.setLatLng([lat, lng]);
+            this.pushEventTo(this.el, "update_geo_center", { lat, lng });
+        });
 
-    this.handleEvent("recenter_map", ({lat, lng}) => {
-      this.marker.setLatLng([lat, lng])
-      this.circle.setLatLng([lat, lng])
-      this.map.setView([lat, lng], 13)
-    })
-  },
+        this.handleEvent("recenter_map", ({ lat, lng }) => {
+            this.marker.setLatLng([lat, lng]);
+            this.circle.setLatLng([lat, lng]);
+            this.map.setView([lat, lng], 13);
+        });
+    },
 
-  updateRadius() {
-    const radiusInKm = parseFloat(this.el.dataset.radius) || 5.0
-    if (this.circle) {
-      this.circle.setRadius(radiusInKm * 1000)
-    }
-  }
-}
+    updateRadius() {
+        const radiusInKm = parseFloat(this.el.dataset.radius) || 5.0;
+        if (this.circle) {
+            this.circle.setRadius(radiusInKm * 1000);
+        }
+    },
+};
