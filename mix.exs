@@ -91,6 +91,7 @@ defmodule SupervisedSlices.MixProject do
       {:jason, "~> 1.2"},
       {:dns_cluster, "~> 0.2.0"},
       {:ex_nudge, "~> 1.0"},
+      {:cachex, "~> 3.6"},
       {:bandit, "~> 1.5"}
     ]
   end

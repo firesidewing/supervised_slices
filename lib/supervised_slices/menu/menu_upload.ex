@@ -296,7 +296,7 @@ defmodule SupervisedSlices.Menu.MenuUpload.Validations.PurchaseRequired do
         SupervisedSlices.Orgs.Organization
         |> Ash.get!(org_id, authorize?: false)
 
-      if org.menu_upload_purchased do
+      if org.menu_upload_purchased or org.subscription_status == :trialing do
         :ok
       else
         {:error,
