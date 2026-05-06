@@ -10,6 +10,7 @@ defmodule SupervisedSlicesWeb.MenuLive do
   alias SupervisedSlices.Orders.{Order, OrderItem}
   alias SupervisedSlices.Orgs.GeofenceChecker
   alias SupervisedSlices.OrgPresence
+  alias SupervisedSlices.MenuCache
   alias SupervisedSlices.PubSubNotifier
 
   require Ash.Query
@@ -33,21 +34,23 @@ defmodule SupervisedSlicesWeb.MenuLive do
      socket
      |> assign_async(:categories, fn ->
        categories =
-         Category.active!(
-           scope: scope,
-           authorize?: false,
-           load: [
-             menu_items:
-               MenuItem
-               |> Ash.Query.filter(available == true)
-               |> Ash.Query.sort(sort_order: :asc)
-               |> Ash.Query.load(
-                 modifier_groups: [modifiers: [:size_prices]],
-                 sizes: MenuItemSize |> Ash.Query.sort(sort_order: :asc),
-                 images: []
-               )
-           ]
-         )
+         MenuCache.fetch_customer(scope.current_tenant, fn ->
+           Category.active!(
+             scope: scope,
+             authorize?: false,
+             load: [
+               menu_items:
+                 MenuItem
+                 |> Ash.Query.filter(available == true)
+                 |> Ash.Query.sort(sort_order: :asc)
+                 |> Ash.Query.load(
+                   modifier_groups: [modifiers: [:size_prices]],
+                   sizes: MenuItemSize |> Ash.Query.sort(sort_order: :asc),
+                   images: []
+                 )
+             ]
+           )
+         end)
 
        {:ok, %{categories: categories}}
      end)
@@ -128,21 +131,23 @@ defmodule SupervisedSlicesWeb.MenuLive do
     {:noreply,
      assign_async(socket, :categories, fn ->
        categories =
-         Category.active!(
-           scope: scope,
-           authorize?: false,
-           load: [
-             menu_items:
-               MenuItem
-               |> Ash.Query.filter(available == true)
-               |> Ash.Query.sort(sort_order: :asc)
-               |> Ash.Query.load(
-                 modifier_groups: [modifiers: [:size_prices]],
-                 sizes: MenuItemSize |> Ash.Query.sort(sort_order: :asc),
-                 images: []
-               )
-           ]
-         )
+         MenuCache.fetch_customer(scope.current_tenant, fn ->
+           Category.active!(
+             scope: scope,
+             authorize?: false,
+             load: [
+               menu_items:
+                 MenuItem
+                 |> Ash.Query.filter(available == true)
+                 |> Ash.Query.sort(sort_order: :asc)
+                 |> Ash.Query.load(
+                   modifier_groups: [modifiers: [:size_prices]],
+                   sizes: MenuItemSize |> Ash.Query.sort(sort_order: :asc),
+                   images: []
+                 )
+             ]
+           )
+         end)
 
        {:ok, %{categories: categories}}
      end)}
