@@ -149,22 +149,27 @@ defmodule SupervisedSlicesWeb.BillingLive.Setup do
             </div>
             <div class="text-right">
               <p class="font-headline font-black text-lg text-on-surface">$150</p>
-              <%= if @org.menu_upload_purchased do %>
-                <span class="text-[10px] font-black uppercase tracking-wider text-primary">
-                  Purchased
-                </span>
-              <% else %>
-                <button
-                  phx-click="purchase_menu_upload"
-                  disabled={@loading == "menu_upload"}
-                  class="text-[10px] font-black uppercase tracking-wider text-secondary hover:underline disabled:opacity-60"
-                >
-                  <%= if @loading == "menu_upload" do %>
-                    Processing...
-                  <% else %>
-                    Request Import
-                  <% end %>
-                </button>
+              <%= cond do %>
+                <% @org.menu_upload_purchased -> %>
+                  <span class="text-[10px] font-black uppercase tracking-wider text-primary">
+                    Purchased
+                  </span>
+                <% @org.subscription_status == :trialing -> %>
+                  <span class="text-[10px] font-black uppercase tracking-wider text-secondary">
+                    Included in trial
+                  </span>
+                <% true -> %>
+                  <button
+                    phx-click="purchase_menu_upload"
+                    disabled={@loading == "menu_upload"}
+                    class="text-[10px] font-black uppercase tracking-wider text-secondary hover:underline disabled:opacity-60"
+                  >
+                    <%= if @loading == "menu_upload" do %>
+                      Processing...
+                    <% else %>
+                      Request Import
+                    <% end %>
+                  </button>
               <% end %>
             </div>
           </div>
