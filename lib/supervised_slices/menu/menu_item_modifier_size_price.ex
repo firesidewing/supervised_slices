@@ -30,9 +30,6 @@ defmodule SupervisedSlices.Menu.MenuItemModifierSizePrice do
     end
   end
 
-  changes do
-    change SupervisedSlices.Menu.Changes.InvalidateMenuCache, on: [:create, :update, :destroy]
-  end
 
   policies do
     policy action_type(:read) do

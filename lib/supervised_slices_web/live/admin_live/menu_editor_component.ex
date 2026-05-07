@@ -1389,21 +1389,19 @@ defmodule SupervisedSlicesWeb.AdminLive.MenuEditorComponent do
   defp get_stripe_customer_id(_org), do: {:error, :no_stripe_customer}
 
   defp load_categories(scope) do
-    SupervisedSlices.MenuCache.fetch_admin(scope.current_tenant, fn ->
-      Category.active!(
-        scope: scope,
-        load: [
-          menu_items:
-            MenuItem
-            |> Ash.Query.sort(sort_order: :asc)
-            |> Ash.Query.load(
-              modifier_groups: [modifiers: [:size_prices]],
-              sizes: MenuItemSize |> Ash.Query.sort(sort_order: :asc),
-              images: []
-            )
-        ]
-      )
-    end)
+    Category.active!(
+      scope: scope,
+      load: [
+        menu_items:
+          MenuItem
+          |> Ash.Query.sort(sort_order: :asc)
+          |> Ash.Query.load(
+            modifier_groups: [modifiers: [:size_prices]],
+            sizes: MenuItemSize |> Ash.Query.sort(sort_order: :asc),
+            images: []
+          )
+      ]
+    )
   end
 
   defp load_modifier_groups(scope) do
