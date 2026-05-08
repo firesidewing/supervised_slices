@@ -25,15 +25,6 @@ defmodule SupervisedSlicesWeb.Telemetry do
       nil
     )
 
-    # Inject OTel trace_id/span_id into Logger metadata on each request so logs
-    # correlate with traces in Grafana without any per-callsite changes.
-    :telemetry.attach(
-      "otel-trace-logger",
-      [:phoenix, :endpoint, :start],
-      &__MODULE__.inject_trace_metadata/4,
-      nil
-    )
-
     children = [
       # Telemetry poller will execute the given period measurements
       # every 10_000ms. Learn more here: https://hexdocs.pm/telemetry_metrics
@@ -117,14 +108,4 @@ defmodule SupervisedSlicesWeb.Telemetry do
     ]
   end
 
-  def inject_trace_metadata(_, _, _, _) do
-    ctx = OpenTelemetry.Tracer.current_span_ctx()
-
-    if OpenTelemetry.Span.is_valid(ctx) do
-      Logger.metadata(
-        trace_id: OpenTelemetry.Span.hex_trace_id(ctx),
-        span_id: OpenTelemetry.Span.hex_span_id(ctx)
-      )
-    end
-  end
 end

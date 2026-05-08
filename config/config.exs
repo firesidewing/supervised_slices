@@ -119,24 +119,10 @@ config :tailwind,
     cd: Path.expand("..", __DIR__)
   ]
 
-# OpenTelemetry — resource attributes stamped on every span
-config :opentelemetry, :resource, service: [name: "Chitline", version: "0.1.0"]
-
-config :opentelemetry,
-  span_processor: :batch,
-  traces_exporter: :otlp
-
-# PromEx metrics (Prometheus endpoint on port 9568, separate from Phoenix)
-config :supervised_slices, SupervisedSlices.PromEx,
-  manual_metrics_start_delay: :no_delay,
-  drop_metrics_groups: [],
-  grafana: :disabled,
-  metrics_server: :disabled
-
 # Configure Elixir's Logger
 config :logger, :default_formatter,
   format: "$time $metadata[$level] $message\n",
-  metadata: [:request_id, :trace_id, :span_id]
+  metadata: [:request_id]
 
 # Use Jason for JSON parsing in Phoenix
 config :phoenix, :json_library, Jason

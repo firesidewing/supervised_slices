@@ -3,8 +3,6 @@ defmodule SupervisedSlices.Billing do
   Stripe billing helpers for org subscription management.
   """
 
-  require OpenTelemetry.Tracer
-
   alias SupervisedSlices.Orgs.Organization
 
   @doc """
@@ -14,25 +12,20 @@ defmodule SupervisedSlices.Billing do
   def create_customer_for_org(%Organization{stripe_customer_id: nil} = org, email) do
     IO.inspect(org.name, label: "CREATING CUSTOMER FOR ORG")
 
-    OpenTelemetry.Tracer.with_span "stripe.create_customer", %{
-      attributes: %{"stripe.operation" => "customer.create"}
-    } do
-      case Stripe.Customer.create(%{email: to_string(email), name: to_string(org.name)}) do
-        {:ok, customer} ->
-          IO.inspect(customer, label: "CUSTOMER CREATED")
+    case Stripe.Customer.create(%{email: to_string(email), name: to_string(org.name)}) do
+      {:ok, customer} ->
+        IO.inspect(customer, label: "CUSTOMER CREATED")
 
-          updated =
-            org
-            |> Ash.Changeset.for_update(:update_billing, %{stripe_customer_id: customer.id})
-            |> Ash.update!(authorize?: false)
+        updated =
+          org
+          |> Ash.Changeset.for_update(:update_billing, %{stripe_customer_id: customer.id})
+          |> Ash.update!(authorize?: false)
 
-          {:ok, updated}
+        {:ok, updated}
 
-        {:error, reason} ->
-          IO.inspect(reason, label: "CUSTOMER CREATION FAILED")
-          OpenTelemetry.Tracer.set_status(:error, inspect(reason))
-          {:error, reason}
-      end
+      {:error, reason} ->
+        IO.inspect(reason, label: "CUSTOMER CREATION FAILED")
+        {:error, reason}
     end
   end
 
@@ -43,25 +36,18 @@ defmodule SupervisedSlices.Billing do
   Returns `{:ok, session}` where `session.url` is the hosted checkout URL.
   """
   def create_checkout_session(customer_id, price_id, plan_name, success_url, cancel_url) do
-    OpenTelemetry.Tracer.with_span "stripe.create_checkout_session", %{
-      attributes: %{
-        "stripe.operation" => "checkout.session.create",
-        "stripe.plan" => to_string(plan_name)
-      }
-    } do
-      Stripe.Checkout.Session.create(%{
-        customer: customer_id,
-        mode: "subscription",
-        line_items: [%{price: price_id, quantity: 1}],
-        subscription_data: %{
-          metadata: %{plan: to_string(plan_name)}
-        },
-        metadata: %{plan: to_string(plan_name)},
-        success_url: success_url <> "?session_id={CHECKOUT_SESSION_ID}",
-        cancel_url: cancel_url,
-        payment_method_collection: "always"
-      })
-    end
+    Stripe.Checkout.Session.create(%{
+      customer: customer_id,
+      mode: "subscription",
+      line_items: [%{price: price_id, quantity: 1}],
+      subscription_data: %{
+        metadata: %{plan: to_string(plan_name)}
+      },
+      metadata: %{plan: to_string(plan_name)},
+      success_url: success_url <> "?session_id={CHECKOUT_SESSION_ID}",
+      cancel_url: cancel_url,
+      payment_method_collection: "always"
+    })
   end
 
   @doc """
