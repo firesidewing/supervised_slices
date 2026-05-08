@@ -110,6 +110,10 @@ defmodule SupervisedSlicesWeb.Router do
     )
   end
 
+  scope "/" do
+    get "/metrics", PromEx.Plug, prom_ex_module: SupervisedSlices.PromEx
+  end
+
   # Other scopes may use custom stacks.
   # scope "/api", SupervisedSlicesWeb do
   #   pipe_through :api

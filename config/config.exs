@@ -131,7 +131,7 @@ config :supervised_slices, SupervisedSlices.PromEx,
   manual_metrics_start_delay: :no_delay,
   drop_metrics_groups: [],
   grafana: :disabled,
-  metrics_server: [port: 9568, path: "/metrics", protocol: :http, pool_size: 5]
+  metrics_server: :disabled
 
 # Configure Elixir's Logger
 config :logger, :default_formatter,
