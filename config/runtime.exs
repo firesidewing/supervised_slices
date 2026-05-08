@@ -16,6 +16,13 @@ import Config
 #
 # Alternatively, you can use `mix phx.gen.release` to generate a `bin/server`
 # script that automatically sets the env var above.
+if otlp_endpoint = System.get_env("OTLP_ENDPOINT") do
+  config :opentelemetry_exporter,
+    otlp_endpoint: otlp_endpoint,
+    otlp_headers: [{"authorization", System.get_env("OTLP_AUTH_HEADER", "")}],
+    otlp_protocol: :http_protobuf
+end
+
 if stripe_secret_key = System.get_env("STRIPE_SECRET_KEY") do
   config :stripity_stripe, api_key: stripe_secret_key
 end

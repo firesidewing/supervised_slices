@@ -15,6 +15,11 @@ kill_signal = 'SIGTERM'
 [env]
   PHX_HOST = 'chitline.com'
   PORT = '8080'
+  OTEL_SERVICE_NAME = 'supervised-slices'
+
+[metrics]
+  port = 9568
+  path = "/metrics"
 
 [http_service]
   internal_port = 8080

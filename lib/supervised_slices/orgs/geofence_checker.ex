@@ -1,4 +1,5 @@
 defmodule SupervisedSlices.Orgs.GeofenceChecker do
+  require OpenTelemetry.Tracer
   @moduledoc """
   Checks whether a delivery address falls within an organization's configured
   geofence circle.
@@ -62,21 +63,25 @@ defmodule SupervisedSlices.Orgs.GeofenceChecker do
 
     extra_opts = Application.get_env(:supervised_slices, :req_options, [])
 
-    case Req.get(
-           url,
-           [headers: [{"User-Agent", "SupervisedSlices/1.0"}], receive_timeout: @timeout_ms] ++
-             extra_opts
-         ) do
-      {:ok, %{status: 200, body: [%{"lat" => lat, "lon" => lng} | _]}} ->
-        with {lat_f, _} <- Float.parse(lat),
-             {lng_f, _} <- Float.parse(lng) do
-          {:ok, lat_f, lng_f}
-        else
-          _ -> :error
-        end
+    OpenTelemetry.Tracer.with_span "geofence.geocode", %{
+      attributes: %{"geofence.service" => "nominatim"}
+    } do
+      case Req.get(
+             url,
+             [headers: [{"User-Agent", "SupervisedSlices/1.0"}], receive_timeout: @timeout_ms] ++
+               extra_opts
+           ) do
+        {:ok, %{status: 200, body: [%{"lat" => lat, "lon" => lng} | _]}} ->
+          with {lat_f, _} <- Float.parse(lat),
+               {lng_f, _} <- Float.parse(lng) do
+            {:ok, lat_f, lng_f}
+          else
+            _ -> :error
+          end
 
-      _ ->
-        :error
+        _ ->
+          :error
+      end
     end
   end
 
