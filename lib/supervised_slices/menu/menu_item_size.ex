@@ -28,7 +28,6 @@ defmodule SupervisedSlices.Menu.MenuItemSize do
     end
   end
 
-
   policies do
     policy action_type(:read) do
       authorize_if always()

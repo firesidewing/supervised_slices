@@ -330,52 +330,66 @@ defmodule SupervisedSlicesWeb.MenuLive do
 
     item = find_item_in_categories(socket.assigns.categories, item_id)
 
-    with :ok <- validate_modifier_selections(item, MapSet.new(modifier_ids)) do
-      cart = cart || Cart.create!(scope: scope)
+    if is_nil(item) do
+      {:noreply, put_flash(socket, :error, "Item not found.")}
+    else
+      selected_modifiers =
+        Enum.flat_map(item.modifier_groups || [], fn group ->
+          Enum.filter(group.modifiers || [], &(&1.id in modifier_ids))
+        end)
 
-      CartItem.add_to_cart!(
-        %{
-          cart_id: cart.id,
-          menu_item_id: to_string(item_id),
-          quantity: 1,
-          selected_modifier_ids: modifier_ids,
-          selected_size_id: if(size_id != "", do: to_string(size_id))
-        },
-        scope: scope
-      )
+      selected_size = Enum.find(item.sizes || [], &(&1.id == size_id))
 
-      loaded_cart =
-        Cart.get!(cart.id,
-          scope: scope,
-          load: [
-            cart_items: [
-              :selected_size,
-              menu_item: [modifier_groups: [modifiers: [:size_prices]]]
-            ]
-          ]
+      with :ok <- validate_modifier_selections(item, MapSet.new(modifier_ids)),
+           price when not is_nil(price) <-
+             calculate_price(item, selected_size, selected_modifiers) do
+        cart = cart || Cart.create!(scope: scope)
+
+        CartItem.add_to_cart!(
+          %{
+            cart_id: cart.id,
+            menu_item_id: to_string(item_id),
+            quantity: 1,
+            selected_modifier_ids: modifier_ids,
+            selected_size_id: if(size_id != "", do: to_string(size_id))
+          },
+          scope: scope
         )
 
-      PubSubNotifier.broadcast_cart_update(loaded_cart)
-      {cart_items_map, cart_count} = build_cart_state(loaded_cart)
+        loaded_cart =
+          Cart.get!(cart.id,
+            scope: scope,
+            load: [
+              cart_items: [
+                :selected_size,
+                menu_item: [modifier_groups: [modifiers: [:size_prices]]]
+              ]
+            ]
+          )
 
-      item_name =
-        loaded_cart.cart_items
-        |> Enum.find(&(to_string(&1.menu_item_id) == to_string(item_id)))
-        |> case do
-          %{menu_item: %{name: name}} -> name
-          _ -> nil
-        end
+        PubSubNotifier.broadcast_cart_update(loaded_cart)
+        {cart_items_map, cart_count} = build_cart_state(loaded_cart)
 
-      {:noreply,
-       socket
-       |> assign(cart: loaded_cart, cart_items_map: cart_items_map, cart_count: cart_count)
-       |> push_event("ph:capture", %{
-         event: "item_added_to_cart",
-         props: %{item_id: item_id, item_name: item_name, org_id: org.id}
-       })
-       |> push_patch(to: ~p"/menu/#{org.slug}")}
-    else
-      {:error, msg} -> {:noreply, put_flash(socket, :error, msg)}
+        item_name =
+          loaded_cart.cart_items
+          |> Enum.find(&(to_string(&1.menu_item_id) == to_string(item_id)))
+          |> case do
+            %{menu_item: %{name: name}} -> name
+            _ -> nil
+          end
+
+        {:noreply,
+         socket
+         |> assign(cart: loaded_cart, cart_items_map: cart_items_map, cart_count: cart_count)
+         |> push_event("ph:capture", %{
+           event: "item_added_to_cart",
+           props: %{item_id: item_id, item_name: item_name, org_id: org.id}
+         })
+         |> push_patch(to: ~p"/menu/#{org.slug}")}
+      else
+        {:error, msg} -> {:noreply, put_flash(socket, :error, msg)}
+        _ -> {:noreply, put_flash(socket, :error, "Unable to determine price for this item.")}
+      end
     end
   end
 
@@ -590,26 +604,34 @@ defmodule SupervisedSlicesWeb.MenuLive do
   end
 
   defp order_item_price(cart_item, modifiers) do
-    size_id = cart_item.selected_size && to_string(cart_item.selected_size.id)
+    calculate_price(cart_item.menu_item, cart_item.selected_size, modifiers)
+  end
+
+  defp calculate_price(menu_item, selected_size, modifiers) do
+    size_id = selected_size && to_string(selected_size.id)
 
     base =
-      case cart_item.selected_size do
+      case selected_size do
         %{price: size_price} -> size_price
-        _ -> cart_item.menu_item.price
+        _ -> menu_item.price
       end
 
-    Enum.reduce(modifiers, base, fn modifier, acc ->
-      delta = effective_price_delta(modifier, size_id)
+    if is_nil(base) do
+      nil
+    else
+      Enum.reduce(modifiers, base, fn modifier, acc ->
+        delta = effective_price_delta(modifier, size_id)
 
-      if delta do
-        case Money.add(acc, delta) do
-          {:ok, p} -> p
-          _ -> acc
+        if delta do
+          case Money.add(acc, delta) do
+            {:ok, p} -> p
+            _ -> acc
+          end
+        else
+          acc
         end
-      else
-        acc
-      end
-    end)
+      end)
+    end
   end
 
   defp effective_price_delta(modifier, nil), do: modifier.price_delta
@@ -648,9 +670,16 @@ defmodule SupervisedSlicesWeb.MenuLive do
   defp order_subtotal(cart) do
     Enum.reduce(cart.cart_items, nil, fn item, acc ->
       modifiers = order_find_modifiers(item)
-      line = Money.mult!(order_item_price(item, modifiers), item.quantity)
-      if is_nil(acc), do: line, else: elem(Money.add(acc, line), 1)
-    end)
+
+      case order_item_price(item, modifiers) do
+        nil ->
+          acc
+
+        price ->
+          line = Money.mult!(price, item.quantity)
+          if is_nil(acc), do: line, else: elem(Money.add(acc, line), 1)
+      end
+    end) || Money.new!(0, :CAD)
   end
 
   defp order_tax_amount(subtotal, tax_rate) do

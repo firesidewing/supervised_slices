@@ -27,7 +27,12 @@ defmodule SupervisedSlices.Orders.OrderTest do
             total_price: Money.new!(:CAD, "20.00"),
             tax_amount: Money.new!(:CAD, "1.00"),
             delivery_type: :delivery,
-            delivery_address: %{"street" => "", "city" => "Toronto", "zip" => "M5V", "state" => "ON"}
+            delivery_address: %{
+              "street" => "",
+              "city" => "Toronto",
+              "zip" => "M5V",
+              "state" => "ON"
+            }
           },
           tenant: org.id,
           authorize?: false
@@ -46,7 +51,12 @@ defmodule SupervisedSlices.Orders.OrderTest do
             total_price: Money.new!(:CAD, "20.00"),
             tax_amount: Money.new!(:CAD, "1.00"),
             delivery_type: :delivery,
-            delivery_address: %{"street" => "123 Main St", "city" => "", "zip" => "M5V", "state" => "ON"}
+            delivery_address: %{
+              "street" => "123 Main St",
+              "city" => "",
+              "zip" => "M5V",
+              "state" => "ON"
+            }
           },
           tenant: org.id,
           authorize?: false
@@ -65,7 +75,12 @@ defmodule SupervisedSlices.Orders.OrderTest do
             total_price: Money.new!(:CAD, "20.00"),
             tax_amount: Money.new!(:CAD, "1.00"),
             delivery_type: :delivery,
-            delivery_address: %{"street" => "123 Main St", "city" => "Toronto", "zip" => "", "state" => "ON"}
+            delivery_address: %{
+              "street" => "123 Main St",
+              "city" => "Toronto",
+              "zip" => "",
+              "state" => "ON"
+            }
           },
           tenant: org.id,
           authorize?: false

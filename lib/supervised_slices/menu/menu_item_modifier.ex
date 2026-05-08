@@ -33,7 +33,6 @@ defmodule SupervisedSlices.Menu.MenuItemModifier do
     end
   end
 
-
   policies do
     policy action_type(:read) do
       authorize_if always()

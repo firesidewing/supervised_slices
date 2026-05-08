@@ -237,7 +237,7 @@
         <div class="bg-surface-container-low px-6 py-3 rounded-md flex items-center gap-3">
           <span class="w-2 h-2 rounded-full bg-primary animate-pulse"></span>
           <span class="text-sm font-bold uppercase tracking-wider text-on-surface">
-            {@ticket_count} Active Tickets
+            {length(@orders_initial.result || [])} Active Tickets
           </span>
         </div>
         <% {fire_avg, fire_trend} = @fire_time_stats.result || {nil, :neutral} %>
@@ -274,7 +274,7 @@
       id="orders"
       orders={@orders_initial.result || []}
       orders_loading={@orders_initial.loading}
-      ticket_count={@ticket_count}
+      ticket_count={length(@orders_initial.result || [])}
       active_carts_count={length(@active_carts.result || [])}
       visitor_count={@visitor_count}
       ash_scope={@ash_scope}

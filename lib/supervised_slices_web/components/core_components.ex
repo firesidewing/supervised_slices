@@ -717,15 +717,24 @@ defmodule SupervisedSlicesWeb.CoreComponents do
                                 —
                             <% end %>
                           </p>
-                          <button
-                            phx-click="update_quantity"
-                            phx-value-item_id={item.id}
-                            phx-value-delta="1"
-                            class="w-full bg-gradient-to-br from-primary to-primary-container text-on-primary text-[10px] font-black uppercase tracking-wider rounded-lg py-1.5 active:scale-95 transition-all phx-click-loading:opacity-60 phx-click-loading:scale-95"
-                          >
-                            <span class="phx-click-loading:!hidden">+ Add</span>
-                            <span class="hidden phx-click-loading:!inline">...</span>
-                          </button>
+                          <%= if item.price do %>
+                            <button
+                              phx-click="update_quantity"
+                              phx-value-item_id={item.id}
+                              phx-value-delta="1"
+                              class="w-full bg-gradient-to-br from-primary to-primary-container text-on-primary text-[10px] font-black uppercase tracking-wider rounded-lg py-1.5 active:scale-95 transition-all phx-click-loading:opacity-60 phx-click-loading:scale-95"
+                            >
+                              <span class="phx-click-loading:!hidden">+ Add</span>
+                              <span class="hidden phx-click-loading:!inline">...</span>
+                            </button>
+                          <% else %>
+                            <.link
+                              patch={~p"/menu/#{@org.slug}/item/#{item.id}"}
+                              class="block w-full bg-gradient-to-br from-primary to-primary-container text-on-primary text-[10px] font-black uppercase tracking-wider rounded-lg py-1.5 active:scale-95 transition-all text-center"
+                            >
+                              + Add
+                            </.link>
+                          <% end %>
                         </div>
                       </div>
                     <% end %>

@@ -30,7 +30,6 @@ defmodule SupervisedSlices.Menu.MenuItemModifierSizePrice do
     end
   end
 
-
   policies do
     policy action_type(:read) do
       authorize_if always()

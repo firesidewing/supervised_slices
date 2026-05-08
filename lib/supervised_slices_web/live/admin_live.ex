@@ -57,7 +57,6 @@ defmodule SupervisedSlicesWeb.AdminLive do
        socket
        |> assign(:current_membership, membership)
        |> assign(:visitor_count, visitor_count)
-       |> assign(:ticket_count, 0)
        |> assign(:show_phone_order, false)
        |> assign(:page_title, "Kitchen Command")
        |> assign(:trial_days_remaining, trial_days_remaining)

@@ -23,7 +23,6 @@ defmodule SupervisedSlices.Menu.MenuItemImage do
     end
   end
 
-
   policies do
     policy action_type(:read) do
       authorize_if always()

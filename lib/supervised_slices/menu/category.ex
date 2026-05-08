@@ -34,7 +34,6 @@ defmodule SupervisedSlices.Menu.Category do
     end
   end
 
-
   policies do
     policy action_type(:read) do
       authorize_if always()

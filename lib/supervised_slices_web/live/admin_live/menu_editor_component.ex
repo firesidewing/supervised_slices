@@ -896,7 +896,10 @@ defmodule SupervisedSlicesWeb.AdminLive.MenuEditorComponent do
       <div class="flex flex-col lg:flex-row gap-12 items-start">
         <div class="flex-1 space-y-12 w-full" data-menu-tour="categories-panel">
           <div
-            :if={not @org.menu_upload_purchased and not @org.menu_upload_banner_dismissed and @org.subscription_status != :trialing}
+            :if={
+              not @org.menu_upload_purchased and not @org.menu_upload_banner_dismissed and
+                @org.subscription_status != :trialing
+            }
             class="bg-surface-container-low p-6 rounded-xl border-2 border-dashed border-outline-variant/50"
           >
             <div class="flex flex-col sm:flex-row sm:items-center gap-4">

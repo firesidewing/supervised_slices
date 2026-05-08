@@ -25,15 +25,45 @@ defmodule SupervisedSlicesWeb.PageController do
         },
         %{
           id: "00000000-0000-0000-0000-000000000041",
-          status: :preparing,
+          status: :confirmed,
           customer_name: "Sofia K.",
-          inserted_at: DateTime.add(now, -480, :second),
+          inserted_at: DateTime.add(now, -240, :second),
           order_items: [
             %{
               quantity: 1,
               item_name: "Pepperoni",
               size_snapshot: %{"name" => "Medium"},
               modifiers_snapshot: [%{"name" => "Double Pep"}, %{"name" => "Provolone"}]
+            }
+          ],
+          notes: nil
+        },
+        %{
+          id: "00000000-0000-0000-0000-000000000040",
+          status: :preparing,
+          customer_name: "Alex T.",
+          inserted_at: DateTime.add(now, -600, :second),
+          order_items: [
+            %{
+              quantity: 2,
+              item_name: "Diavola",
+              size_snapshot: %{"name" => "Small"},
+              modifiers_snapshot: [%{"name" => "Extra Heat"}]
+            }
+          ],
+          notes: nil
+        },
+        %{
+          id: "00000000-0000-0000-0000-000000000039",
+          status: :ready,
+          customer_name: "Jamie P.",
+          inserted_at: DateTime.add(now, -900, :second),
+          order_items: [
+            %{
+              quantity: 1,
+              item_name: "Truffle Bianca",
+              size_snapshot: %{"name" => "Large"},
+              modifiers_snapshot: []
             }
           ],
           notes: nil
