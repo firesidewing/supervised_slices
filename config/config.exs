@@ -121,7 +121,7 @@ config :tailwind,
 
 # OpenTelemetry — resource attributes stamped on every span
 config :opentelemetry, :resource,
-  service: [name: "supervised-slices", version: "0.1.0"]
+  service: [name: "Chitline", version: "0.1.0"]
 
 config :opentelemetry,
   tracer: :otel_tracer_default,
