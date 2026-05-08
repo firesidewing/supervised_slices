@@ -1,5 +1,6 @@
 defmodule SupervisedSlices.Orgs.GeofenceChecker do
   require OpenTelemetry.Tracer
+
   @moduledoc """
   Checks whether a delivery address falls within an organization's configured
   geofence circle.

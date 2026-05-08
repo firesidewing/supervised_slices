@@ -120,8 +120,7 @@ config :tailwind,
   ]
 
 # OpenTelemetry — resource attributes stamped on every span
-config :opentelemetry, :resource,
-  service: [name: "Chitline", version: "0.1.0"]
+config :opentelemetry, :resource, service: [name: "Chitline", version: "0.1.0"]
 
 config :opentelemetry,
   span_processor: :batch,

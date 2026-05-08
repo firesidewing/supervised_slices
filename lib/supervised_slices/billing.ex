@@ -44,7 +44,10 @@ defmodule SupervisedSlices.Billing do
   """
   def create_checkout_session(customer_id, price_id, plan_name, success_url, cancel_url) do
     OpenTelemetry.Tracer.with_span "stripe.create_checkout_session", %{
-      attributes: %{"stripe.operation" => "checkout.session.create", "stripe.plan" => to_string(plan_name)}
+      attributes: %{
+        "stripe.operation" => "checkout.session.create",
+        "stripe.plan" => to_string(plan_name)
+      }
     } do
       Stripe.Checkout.Session.create(%{
         customer: customer_id,

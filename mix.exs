@@ -22,7 +22,7 @@ defmodule SupervisedSlices.MixProject do
   def application do
     [
       mod: {SupervisedSlices.Application, []},
-      extra_applications: [:logger, :runtime_tools]
+      extra_applications: [:logger, :runtime_tools, :opentelemetry_exporter, :opentelemetry]
     ]
   end
 
@@ -48,7 +48,7 @@ defmodule SupervisedSlices.MixProject do
       {:opentelemetry_phoenix, "~> 2.0"},
       {:opentelemetry_ecto, "~> 1.2"},
       {:opentelemetry_oban, "~> 1.1"},
-      {:opentelemetry_req, "~> 0.2"},
+      {:opentelemetry_req, "~> 1.0"},
       # Metrics
       {:prom_ex, "~> 1.11"},
       {:stripity_stripe, "~> 3.0"},
