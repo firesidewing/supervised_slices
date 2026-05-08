@@ -124,8 +124,8 @@ config :opentelemetry, :resource,
   service: [name: "Chitline", version: "0.1.0"]
 
 config :opentelemetry,
-  tracer: :otel_tracer_default,
-  processors: [otel_batch_processor: %{exporter: {:opentelemetry_exporter, %{}}}]
+  span_processor: :batch,
+  traces_exporter: :otlp
 
 # PromEx metrics (Prometheus endpoint on port 9568, separate from Phoenix)
 config :supervised_slices, SupervisedSlices.PromEx,
