@@ -1,6 +1,7 @@
 defmodule SupervisedSlicesWeb.Telemetry do
   use Supervisor
   import Telemetry.Metrics
+  require Logger
 
   def start_link(arg) do
     Supervisor.start_link(__MODULE__, arg, name: __MODULE__)
@@ -21,6 +22,15 @@ defmodule SupervisedSlicesWeb.Telemetry do
       "posthog-liveview-exceptions",
       @liveview_exception_events,
       &SupervisedSlices.Analytics.handle_lv_exception/4,
+      nil
+    )
+
+    # Inject OTel trace_id/span_id into Logger metadata on each request so logs
+    # correlate with traces in Grafana without any per-callsite changes.
+    :telemetry.attach(
+      "otel-trace-logger",
+      [:phoenix, :endpoint, :start],
+      &__MODULE__.inject_trace_metadata/4,
       nil
     )
 
@@ -105,5 +115,16 @@ defmodule SupervisedSlicesWeb.Telemetry do
       # This function must call :telemetry.execute/3 and a metric must be added above.
       # {SupervisedSlicesWeb, :count_users, []}
     ]
+  end
+
+  def inject_trace_metadata(_, _, _, _) do
+    ctx = OpenTelemetry.Tracer.current_span_ctx()
+
+    if OpenTelemetry.Span.is_valid(ctx) do
+      Logger.metadata(
+        trace_id: OpenTelemetry.Span.hex_trace_id(ctx),
+        span_id: OpenTelemetry.Span.hex_span_id(ctx)
+      )
+    end
   end
 end

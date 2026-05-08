@@ -7,7 +7,12 @@ defmodule SupervisedSlices.Application do
 
   @impl true
   def start(_type, _args) do
+    OpentelemetryPhoenix.setup(adapter: :bandit)
+    OpentelemetryEcto.setup([:supervised_slices, :repo])
+    OpentelemetryOban.setup()
+
     children = [
+      SupervisedSlices.PromEx,
       SupervisedSlicesWeb.Telemetry,
       SupervisedSlices.Repo,
       {DNSCluster, query: Application.get_env(:supervised_slices, :dns_cluster_query) || :ignore},

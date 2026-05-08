@@ -24,6 +24,7 @@ end
 
 defmodule SupervisedSlices.Menu.Parser do
   require Logger
+  require OpenTelemetry.Tracer
 
   alias SupervisedSlices.Menu.Parser.{
     ParsedMenu,
@@ -176,29 +177,35 @@ defmodule SupervisedSlices.Menu.Parser do
       ]
     }
 
-    case Req.post("https://api.anthropic.com/v1/messages",
-           json: body,
-           headers: [
-             {"x-api-key", api_key},
-             {"anthropic-version", "2023-06-01"}
-           ],
-           receive_timeout: 300_000
-         ) do
-      {:ok, %{status: 200, body: %{"content" => [%{"text" => text} | _]}}} ->
-        save_debug_output(text)
+    OpenTelemetry.Tracer.with_span "claude.parse_menu", %{
+      attributes: %{"ai.model" => @model, "ai.operation" => "menu_parse"}
+    } do
+      case Req.post("https://api.anthropic.com/v1/messages",
+             json: body,
+             headers: [
+               {"x-api-key", api_key},
+               {"anthropic-version", "2023-06-01"}
+             ],
+             receive_timeout: 300_000
+           ) do
+        {:ok, %{status: 200, body: %{"content" => [%{"text" => text} | _]}}} ->
+          save_debug_output(text)
 
-        case clean_json_decode(text) do
-          {:ok, decoded} -> {:ok, decode_to_structs(decoded)}
-          error -> error
-        end
+          case clean_json_decode(text) do
+            {:ok, decoded} -> {:ok, decode_to_structs(decoded)}
+            error -> error
+          end
 
-      {:ok, %{status: status, body: body}} ->
-        dbg(body)
-        {:error, "Claude API error (#{status}): #{inspect(body)}"}
+        {:ok, %{status: status, body: body}} ->
+          dbg(body)
+          OpenTelemetry.Tracer.set_status(:error, "Claude API error #{status}")
+          {:error, "Claude API error (#{status}): #{inspect(body)}"}
 
-      {:error, reason} ->
-        dbg(reason)
-        {:error, "Request to Claude failed: #{inspect(reason)}"}
+        {:error, reason} ->
+          dbg(reason)
+          OpenTelemetry.Tracer.set_status(:error, inspect(reason))
+          {:error, "Request to Claude failed: #{inspect(reason)}"}
+      end
     end
   end
 
