@@ -3,25 +3,32 @@
   <a href="/" class="flex-shrink-0">
     <img src="/images/chit-banner-2.png" alt="Chitline" class="h-20 w-auto" />
   </a>
-  <div class="flex gap-6">
+  <div class="flex gap-6 items-center">
+    <a
+      :if={!assigns[:current_user]}
+      href="#pricing"
+      class="hover:text-primary focus-visible:text-primary focus-visible:outline-none transition-colors hidden sm:block py-2"
+    >
+      Pricing
+    </a>
     <a
       :if={assigns[:kitchen_org]}
       href={~p"/kitchen/#{@kitchen_org.slug}"}
-      class="hover:text-primary transition-colors"
+      class="hover:text-primary focus-visible:text-primary focus-visible:outline-none transition-colors py-2"
     >
       Kitchen
     </a>
     <a
       :if={assigns[:current_user]}
       href={~p"/sign-out"}
-      class="hover:text-primary transition-colors"
-    >
+      class="hover:text-primary focus-visible:text-primary focus-visible:outline-none transition-colors py-2"
+    > 
       Sign Out
     </a>
     <a
       :if={!assigns[:current_user]}
       href={~p"/sign-in"}
-      class="hover:text-primary transition-colors"
+      class="hover:text-primary focus-visible:text-primary focus-visible:outline-none transition-colors py-2"
     >
       Sign In
     </a>
@@ -39,12 +46,12 @@
     More orders. <br />Less <span class="text-primary italic">chaos.</span>
   </h1>
   <p class="text-xl text-on-surface-variant font-body max-w-2xl mb-12 leading-relaxed relative z-10">
-    Keep every dollar your customers spend. No commission on orders, no per-order fees — just online ordering, a live kitchen queue, and a simple menu editor, all in one place.
+    Keep every dollar your customers spend. No commission on orders, no per-order fees: just online ordering, a live kitchen queue, and a simple menu editor, all in one place.
   </p>
   <div class="flex flex-col sm:flex-row gap-4 mb-8 relative z-10">
     <a
       href="/register"
-      class="bg-primary-container text-white px-10 py-5 rounded-md font-body font-bold text-lg hover:shadow-xl transition-all inline-flex items-center gap-3"
+      class="bg-primary-container text-white px-10 py-5 rounded-md font-body font-bold text-lg hover:shadow-xl transition-shadow inline-flex items-center gap-3 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2"
     >
       Start free trial <span class="material-symbols-outlined">arrow_forward</span>
     </a>
@@ -55,8 +62,11 @@
       See how it works
     </a>
   </div>
-  <p class="font-label text-xs tracking-widest uppercase text-on-surface font-semibold mb-16 relative z-10">
+  <p class="font-label text-xs tracking-widest uppercase text-on-surface font-semibold mb-2 relative z-10">
     No commission on orders · No hidden fees · Cancel anytime
+  </p>
+  <p class="font-label text-xs text-on-surface-variant mb-16 relative z-10">
+    No credit card required to start your trial.
   </p>
   <div class="flex flex-wrap items-center gap-4 pt-10 border-t border-on-surface/5 relative z-10">
     <span class="font-label text-xs uppercase tracking-widest font-black opacity-30">
@@ -77,10 +87,7 @@
 <!-- Pain Section -->
 <section class="py-24 lg:py-40 px-8 bg-surface-container-low">
   <div class="max-w-[1440px] mx-auto">
-    <div class="mb-16 max-w-2xl">
-      <p class="font-label text-primary uppercase tracking-[0.2em] text-xs mb-6 font-bold">
-        The Reality
-      </p>
+    <div class="mb-20 max-w-2xl">
       <h2 class="text-5xl md:text-6xl font-headline font-black mb-6 tracking-tight">
         Sound familiar?
       </h2>
@@ -88,40 +95,49 @@
         Independent pizza shops are running great food on broken systems.
       </p>
     </div>
-    <div class="grid grid-cols-1 sm:grid-cols-2 gap-6 max-w-5xl">
-      <div class="bg-surface-container p-8 rounded-[1.5rem]">
-        <span class="material-symbols-outlined text-primary text-4xl mb-6 block">
-          phone_callback
-        </span>
-        <h3 class="font-headline font-black text-2xl mb-3">Phone orders eating your night</h3>
-        <p class="font-body text-on-surface-variant leading-relaxed">
-          Half your staff tied up taking calls, reading back toppings, and re-explaining the menu.
-        </p>
+    <div class="max-w-5xl">
+      <div class="bg-surface-container rounded-[1.5rem] p-10 md:p-16 mb-6">
+        <div class="flex flex-col md:flex-row md:items-end md:justify-between gap-8">
+          <div>
+            <p class="font-label text-xs uppercase tracking-widest font-bold text-primary mb-4">
+              The biggest leak
+            </p>
+            <h3 class="font-headline font-black text-3xl md:text-4xl mb-4 max-w-lg">
+              Paying Slice 5% of every order
+            </h3>
+            <p class="font-body text-on-surface-variant leading-relaxed max-w-sm">
+              Half your margin gone before you touch it. On a $15k month, that's rent.
+            </p>
+          </div>
+          <div class="shrink-0 md:text-right">
+            <p class="font-headline font-black text-[5.5rem] md:text-[7rem] leading-none text-primary tabular-nums">
+              $500
+            </p>
+            <p class="font-label text-xs uppercase tracking-widest opacity-50 font-bold mt-2">
+              off every $10k in sales
+            </p>
+          </div>
+        </div>
       </div>
-      <div class="bg-surface-container p-8 rounded-[1.5rem]">
-        <span class="material-symbols-outlined text-primary text-4xl mb-6 block">
-          receipt_long
-        </span>
-        <h3 class="font-headline font-black text-2xl mb-3">Paying Slice 5% of every order</h3>
-        <p class="font-body text-on-surface-variant leading-relaxed">
-          That's $500 off every $10,000 in sales — gone before you've paid a single bill.
-        </p>
-      </div>
-      <div class="bg-surface-container p-8 rounded-[1.5rem]">
-        <span class="material-symbols-outlined text-primary text-4xl mb-6 block">
-          visibility_off
-        </span>
-        <h3 class="font-headline font-black text-2xl mb-3">Tickets getting lost in the rush</h3>
-        <p class="font-body text-on-surface-variant leading-relaxed">
-          Paper tickets, shouted orders, missed modifiers. The kitchen falls behind and customers blame you.
-        </p>
-      </div>
-      <div class="bg-surface-container p-8 rounded-[1.5rem]">
-        <span class="material-symbols-outlined text-primary text-4xl mb-6 block">build</span>
-        <h3 class="font-headline font-black text-2xl mb-3">A different tool for everything</h3>
-        <p class="font-body text-on-surface-variant leading-relaxed">
-          Online ordering here, kitchen display there, menu edits somewhere else. Nothing talks to each other.
-        </p>
+      <div class="grid grid-cols-1 md:grid-cols-3 divide-y md:divide-y-0 md:divide-x divide-on-surface/5">
+        <div class="py-8 md:pr-10 md:py-6">
+          <h3 class="font-headline font-black text-xl mb-3">Phone orders eating your night</h3>
+          <p class="font-body text-on-surface-variant leading-relaxed text-sm">
+            Half your staff tied up taking calls, reading back toppings, re-explaining the menu.
+          </p>
+        </div>
+        <div class="py-8 md:px-10 md:py-6">
+          <h3 class="font-headline font-black text-xl mb-3">Tickets getting lost in the rush</h3>
+          <p class="font-body text-on-surface-variant leading-relaxed text-sm">
+            Paper tickets, shouted orders, missed modifiers. The kitchen falls behind and customers blame you.
+          </p>
+        </div>
+        <div class="py-8 md:pl-10 md:py-6">
+          <h3 class="font-headline font-black text-xl mb-3">A different tool for everything</h3>
+          <p class="font-body text-on-surface-variant leading-relaxed text-sm">
+            Online ordering here, kitchen display there, menu edits somewhere else. Nothing talks to each other.
+          </p>
+        </div>
       </div>
     </div>
   </div>
@@ -152,7 +168,7 @@
         <div class="px-2">
           <h3 class="text-3xl font-headline font-black mb-4">The Rail</h3>
           <p class="font-body text-on-surface-variant leading-relaxed text-lg">
-            See every order the moment it comes in. Staff know what's up next without checking a screen twice — nothing gets lost, nothing backs up.
+            See every order the moment it comes in. Staff know what's up next without checking a screen twice; nothing gets lost, nothing backs up.
           </p>
         </div>
       </div>
@@ -172,7 +188,7 @@
         <div class="px-2">
           <h3 class="text-3xl font-headline font-black mb-4">The Studio</h3>
           <p class="font-body text-on-surface-variant leading-relaxed text-lg">
-            Update prices, add items, change toppings. Your menu goes live the moment you hit save — no calling support, no waiting overnight.
+            Update prices, add items, change toppings. Your menu goes live the moment you hit save: no calling support, no waiting overnight.
           </p>
         </div>
       </div>
@@ -208,7 +224,7 @@
         <div class="space-y-6">
           <img
             src="https://images.unsplash.com/photo-1590947132387-155cc02f3212?q=80&w=1440&auto=format&fit=crop"
-            alt="Dough prep"
+            alt="Pizza dough being hand-stretched on a floured surface"
             class="w-full aspect-[3/4] object-cover rounded-2xl shadow-xl"
           />
           <div class="bg-primary p-6 xl:p-10 rounded-2xl text-white shadow-xl transform -rotate-2">
@@ -221,8 +237,11 @@
         </div>
         <div class="space-y-6 pt-24">
           <div class="bg-surface-container-high aspect-square rounded-2xl p-8 shadow-inner border border-outline-variant/5 flex flex-col justify-center">
-            <p class="font-label text-[10px] uppercase tracking-widest font-bold opacity-50 mb-8">
+            <p class="font-label text-[10px] uppercase tracking-widest font-bold opacity-50 mb-1">
               Today's Kitchen
+            </p>
+            <p class="font-body text-[10px] text-on-surface-variant opacity-40 mb-8">
+              Avg. across active shops
             </p>
             <div class="space-y-6">
               <div>
@@ -251,7 +270,7 @@
           </div>
           <img
             src="https://images.unsplash.com/photo-1680798671233-a6823e6e9a1e?q=80&w=987&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D"
-            alt="Pizza oven"
+            alt="Wood-fired pizza oven during kitchen service"
             class="w-full aspect-[3/4] object-cover rounded-2xl shadow-xl"
           />
         </div>
@@ -270,7 +289,7 @@
             check_circle
           </span>
           <span class="font-bold">
-            Customers order direct — no Slice, no Uber Eats, no commission
+            Customers order direct: no Slice, no Uber Eats, no commission
           </span>
         </li>
         <li class="flex items-center gap-5 group">
@@ -306,7 +325,7 @@
 
     <div class="grid grid-cols-1 md:grid-cols-2 gap-12 max-w-5xl mx-auto mb-24">
       <!-- Base Dough Tier -->
-      <div class="bg-surface-container-low p-12 rounded-[2rem] border border-outline-variant/10 flex flex-col hover:shadow-xl transition-all duration-500 group">
+      <div class="bg-surface-container-low p-12 rounded-[2rem] border border-outline-variant/10 flex flex-col hover:shadow-xl transition-shadow duration-500 group">
         <div class="mb-8">
           <h3 class="font-headline text-3xl font-black mb-2">Starter</h3>
           <p class="text-on-surface-variant font-body">
@@ -323,15 +342,15 @@
         <ul class="space-y-6 mb-12 flex-grow">
           <li class="flex items-center gap-4 font-body text-lg">
             <span class="material-symbols-outlined text-secondary font-bold">check</span>
-            Online Ordering ("The Counter")
+            The Counter (Online Ordering)
           </li>
           <li class="flex items-center gap-4 font-body text-lg">
             <span class="material-symbols-outlined text-secondary font-bold">check</span>
-            Menu Studio ("The Studio")
+            The Studio (Menu Editor)
           </li>
           <li class="flex items-center gap-4 font-body text-lg">
             <span class="material-symbols-outlined text-secondary font-bold">check</span>
-            Kitchen Command ("The Rail")
+            The Rail (Kitchen Queue)
           </li>
           <li class="flex items-center gap-4 font-body text-lg">
             <span class="material-symbols-outlined text-secondary font-bold">check</span>
@@ -340,14 +359,14 @@
         </ul>
         <a
           href="/register"
-          class="w-full py-5 bg-on-surface text-white rounded-xl font-body font-black text-center hover:bg-primary transition-colors"
+          class="w-full py-5 bg-on-surface text-white rounded-xl font-body font-black text-center hover:bg-primary transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2"
         >
           Start free 14-day trial
         </a>
       </div>
       
 <!-- Pro Crust Tier -->
-      <div class="bg-on-surface p-12 rounded-[2rem] text-white flex flex-col shadow-2xl transform md:-translate-y-4 hover:-translate-y-6 transition-all duration-500 relative overflow-hidden">
+      <div class="bg-on-surface p-12 rounded-[2rem] text-white flex flex-col shadow-2xl transform md:-translate-y-4 motion-safe:hover:-translate-y-6 transition-transform duration-500 relative overflow-hidden">
         <div class="absolute top-0 right-0 bg-primary text-white px-6 py-2 font-label text-xs font-black tracking-widest uppercase rounded-bl-xl">
           Recommended
         </div>
@@ -392,9 +411,9 @@
         </ul>
         <a
           href="/register"
-          class="w-full py-5 bg-primary text-white rounded-xl font-body font-black text-center hover:bg-primary-container transition-colors shadow-lg"
+          class="w-full py-5 bg-primary text-white rounded-xl font-body font-black text-center hover:bg-primary-container transition-colors shadow-lg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-offset-2 focus-visible:ring-offset-on-surface"
         >
-          Try Pro free for 14 days
+          Start free 14-day trial
         </a>
       </div>
     </div>
@@ -440,9 +459,6 @@
 <section class="py-32 lg:py-48 px-8 bg-surface-container-low">
   <div class="max-w-[1440px] mx-auto">
     <div class="mb-16 max-w-2xl">
-      <p class="font-label text-primary uppercase tracking-[0.2em] text-xs mb-6 font-bold">
-        Before You Sign Up
-      </p>
       <h2 class="text-5xl md:text-6xl font-headline font-black tracking-tight">
         Questions you probably have.
       </h2>
@@ -451,7 +467,7 @@
       <div>
         <h3 class="font-headline font-black text-xl mb-3">Do I have to switch my POS system?</h3>
         <p class="font-body text-on-surface-variant leading-relaxed">
-          No. Chitline handles online ordering, your kitchen queue, and your menu — it works alongside whatever POS you already use. You don't have to rip anything out.
+          No. Chitline handles online ordering, your kitchen queue, and your menu. It works alongside whatever POS you already use. You don't have to rip anything out.
         </p>
       </div>
       <div>
@@ -459,7 +475,7 @@
           Can I still use Uber Eats or DoorDash?
         </h3>
         <p class="font-body text-on-surface-variant leading-relaxed">
-          Yes. Chitline is your direct ordering channel — the one that costs you nothing per order. You can keep third-party apps running if you want, but most shops find they shift more orders to direct over time once customers realize it's just as easy.
+          Yes. Chitline is your direct ordering channel, the one that costs you nothing per order. You can keep third-party apps running if you want, but most shops find they shift more orders to direct over time once customers realize it's just as easy.
         </p>
       </div>
       <div>
@@ -475,19 +491,19 @@
           How do customers actually place an order?
         </h3>
         <p class="font-body text-on-surface-variant leading-relaxed">
-          You get a link you can put anywhere — your website, Instagram bio, a table tent, a sticker on the register. Customers tap it, your menu opens in their browser, they order. No app download required.
+          You get a link you can put anywhere: your website, Instagram bio, a table tent, a sticker on the register. Customers tap it, your menu opens in their browser, they order. No app download required.
         </p>
       </div>
       <div>
         <h3 class="font-headline font-black text-xl mb-3">How long does setup take?</h3>
         <p class="font-body text-on-surface-variant leading-relaxed">
-          Most shops are live in under an hour. If you already have your menu in a PDF or on another site, our Menu Import Concierge ($100, one-time) will build the whole thing for you — typically done in minutes. Otherwise, The Studio lets you add items yourself in minutes.
+          Most shops are live in under an hour. If you already have your menu in a PDF or on another site, our Menu Import Concierge ($100, one-time) will build the whole thing for you, typically done in minutes. Otherwise, The Studio lets you add items yourself in minutes.
         </p>
       </div>
       <div>
         <h3 class="font-headline font-black text-xl mb-3">What happens after the free trial?</h3>
         <p class="font-body text-on-surface-variant leading-relaxed">
-          After 14 days you choose a plan — Starter at $79/mo or Pro at $149/mo. No automatic charges during the trial. No card required to start. Cancel anytime.
+          After 14 days you choose a plan: Starter at $79/mo or Pro at $149/mo. No automatic charges during the trial. No card required to start. Cancel anytime.
         </p>
       </div>
     </div>
@@ -510,13 +526,13 @@
     <div class="flex flex-col md:flex-row gap-6 justify-center relative z-10">
       <a
         href="/register"
-        class="bg-primary text-white px-12 py-6 rounded-xl font-body font-black text-xl hover:bg-primary-container transition-all shadow-xl hover:-translate-y-1"
+        class="bg-primary text-white px-12 py-6 rounded-xl font-body font-black text-xl hover:bg-primary-container transition-colors shadow-xl motion-safe:hover:-translate-y-1 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-offset-2 focus-visible:ring-offset-on-surface"
       >
         Start your free 14-day trial
       </a>
       <a
         href="#instruments"
-        class="border-2 border-white/20 text-white px-12 py-6 rounded-xl font-body font-black text-xl hover:bg-white/5 transition-all"
+        class="border-2 border-white/20 text-white px-12 py-6 rounded-xl font-body font-black text-xl hover:bg-white/5 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-offset-2 focus-visible:ring-offset-on-surface"
       >
         See the tools
       </a>
@@ -531,14 +547,6 @@
       <img src="/images/chit-2.png" alt="Chitline" class="h-24 w-auto" />
     </a>
     <nav class="flex flex-wrap justify-center gap-12 font-label text-sm tracking-widest uppercase font-black opacity-60">
-      <a class="hover:text-primary transition-colors" href="#">Sustainability</a>
-      <a class="hover:text-primary transition-colors" href="#">Sourcing</a>
-      <a
-        class="hover:text-primary transition-colors font-black text-on-surface opacity-100"
-        href="#"
-      >
-        Blog
-      </a>
       <a class="hover:text-primary transition-colors" href={~p"/privacy"}>Privacy</a>
       <a class="hover:text-primary transition-colors" href={~p"/terms"}>Terms</a>
     </nav>
