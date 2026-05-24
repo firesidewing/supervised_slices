@@ -39,13 +39,14 @@
     <div class="absolute -top-32 -right-32 w-[700px] h-[700px] rounded-full bg-[radial-gradient(circle,rgba(140,22,26,0.06),transparent_60%)]">
     </div>
   </div>
+  <canvas id="ember-canvas" class="absolute inset-0 w-full h-full pointer-events-none" aria-hidden="true"></canvas>
   <p class="font-label text-primary uppercase tracking-[0.2em] text-xs mb-8 font-bold relative z-10">
     Built for pizza shops
   </p>
   <h1 class="text-6xl md:text-8xl lg:text-[9rem] font-headline font-black text-on-surface leading-[0.92] mb-10 -tracking-[0.04em] max-w-5xl relative z-10">
-    More orders. <br />Less <span class="text-primary italic">chaos.</span>
+    <span class="word-reveal inline-block">More orders.</span> <br /><span class="word-reveal inline-block">Less</span> <span id="chaos-word" class="text-primary italic word-reveal inline-block">chaos.</span>
   </h1>
-  <p class="text-xl text-on-surface-variant font-body max-w-2xl mb-12 leading-relaxed relative z-10">
+  <p id="hero-subhead" class="text-xl text-on-surface-variant font-body max-w-2xl mb-12 leading-relaxed relative z-10">
     Keep every dollar your customers spend. No commission on orders, no per-order fees: just online ordering, a live kitchen queue, and a simple menu editor, all in one place.
   </p>
   <div class="flex flex-col sm:flex-row gap-4 mb-8 relative z-10">
@@ -555,3 +556,164 @@
     </div>
   </div>
 </footer>
+
+<style>
+  #hero-subhead {
+    clip-path: inset(0 0% 0 0);
+    transition: clip-path 0.75s cubic-bezier(0.16, 1, 0.3, 1) 0.4s;
+  }
+  @starting-style {
+    #hero-subhead {
+      clip-path: inset(0 100% 0 0);
+    }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    #hero-subhead {
+      clip-path: inset(0 0% 0 0);
+      transition: none;
+    }
+  }
+</style>
+
+<script>
+  document.addEventListener('DOMContentLoaded', function () {
+    const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    const hasHover = window.matchMedia('(hover: hover)').matches;
+
+    if (!prefersReducedMotion && hasHover) {
+      const word = document.getElementById('chaos-word');
+      if (word) {
+        word.style.willChange = 'transform';
+        let targetX = 0, targetY = 0, currentX = 0, currentY = 0, rafId = null;
+        const lerp = (a, b, t) => a + (b - a) * t;
+        function tick() {
+          currentX = lerp(currentX, targetX, 0.07);
+          currentY = lerp(currentY, targetY, 0.07);
+          word.style.transform = `perspective(500px) rotateX(${currentY}deg) rotateY(${currentX}deg)`;
+          if (Math.abs(currentX - targetX) > 0.02 || Math.abs(currentY - targetY) > 0.02) {
+            rafId = requestAnimationFrame(tick);
+          } else {
+            word.style.transform = `perspective(500px) rotateX(${targetY}deg) rotateY(${targetX}deg)`;
+            rafId = null;
+          }
+        }
+        document.addEventListener('mousemove', function (e) {
+          const rect = word.getBoundingClientRect();
+          const cx = rect.left + rect.width / 2;
+          const cy = rect.top + rect.height / 2;
+          targetX = ((e.clientX - cx) / window.innerWidth) * 12;
+          targetY = -((e.clientY - cy) / window.innerHeight) * 8;
+          if (!rafId) rafId = requestAnimationFrame(tick);
+        }, { passive: true });
+        document.addEventListener('mouseleave', function () {
+          targetX = 0; targetY = 0;
+          if (!rafId) rafId = requestAnimationFrame(tick);
+        });
+      }
+    }
+
+    if (prefersReducedMotion) return;
+
+    document.querySelectorAll('.word-reveal').forEach(function (el, i) {
+      el.animate(
+        [
+          { transform: 'translateY(18px)', opacity: 0 },
+          { transform: 'translateY(-4px)', opacity: 1, offset: 0.60 },
+          { transform: 'translateY(1.5px)', opacity: 1, offset: 0.78 },
+          { transform: 'translateY(-0.5px)', opacity: 1, offset: 0.90 },
+          { transform: 'translateY(0px)', opacity: 1 },
+        ],
+        { duration: 720, delay: i * 130, easing: 'linear', fill: 'backwards' }
+      );
+    });
+
+    const canvas = document.getElementById('ember-canvas');
+    if (!canvas) return;
+    const ctx = canvas.getContext('2d');
+    let W = 0, H = 0;
+
+    function resize() {
+      const dpr = window.devicePixelRatio || 1;
+      W = canvas.offsetWidth;
+      H = canvas.offsetHeight;
+      canvas.width = Math.round(W * dpr);
+      canvas.height = Math.round(H * dpr);
+      ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    }
+    new ResizeObserver(resize).observe(canvas);
+    resize();
+
+    function makeParticle(bornDelay) {
+      return {
+        baseX: Math.random() * (W || 800),
+        y: (H || 600) * (0.55 + Math.random() * 0.45),
+        vy: -(0.35 + Math.random() * 0.75),
+        wobbleAmp: 3 + Math.random() * 6,
+        wobbleFreq: 0.018 + Math.random() * 0.028,
+        wobblePhase: Math.random() * Math.PI * 2,
+        size: 1.5 + Math.random() * 3.5,
+        bornDelay,
+        t: 0,
+        active: false,
+      };
+    }
+
+    const particles = Array.from({ length: 32 }, (_, i) => makeParticle(i * 75));
+    const startTime = performance.now();
+    let emberRaf = null;
+    let emberAlive = true;
+
+    function envAlpha(elapsed) {
+      if (elapsed < 800) return elapsed / 800;
+      if (elapsed < 3500) return 1;
+      if (elapsed < 5500) return 1 - (elapsed - 3500) / 2000;
+      return 0;
+    }
+
+    function drawEmbers(now) {
+      if (!emberAlive) return;
+      const elapsed = now - startTime;
+      const ga = envAlpha(elapsed);
+      if (ga <= 0) {
+        ctx.clearRect(0, 0, W, H);
+        emberAlive = false;
+        emberRaf = null;
+        return;
+      }
+      ctx.clearRect(0, 0, W, H);
+      for (const p of particles) {
+        if (elapsed < p.bornDelay) continue;
+        if (!p.active) {
+          p.active = true;
+          p.baseX = Math.random() * W;
+          p.y = H * (0.55 + Math.random() * 0.45);
+        }
+        p.t++;
+        p.y += p.vy;
+        const wx = p.baseX + Math.sin(p.t * p.wobbleFreq + p.wobblePhase) * p.wobbleAmp;
+        const alpha = ga * Math.min(p.t / 45, 1) * 0.58;
+        if (alpha < 0.008 || p.y < -p.size) continue;
+        const g = ctx.createRadialGradient(wx, p.y, 0, wx, p.y, p.size);
+        g.addColorStop(0, `rgba(212, 150, 78, ${alpha})`);
+        g.addColorStop(0.45, `rgba(178, 108, 48, ${alpha * 0.42})`);
+        g.addColorStop(1, 'rgba(140, 72, 22, 0)');
+        ctx.beginPath();
+        ctx.fillStyle = g;
+        ctx.arc(wx, p.y, p.size, 0, Math.PI * 2);
+        ctx.fill();
+      }
+      emberRaf = requestAnimationFrame(drawEmbers);
+    }
+
+    new IntersectionObserver(function (entries) {
+      if (entries[0].isIntersecting) {
+        if (emberAlive && !emberRaf) emberRaf = requestAnimationFrame(drawEmbers);
+      } else if (emberRaf) {
+        cancelAnimationFrame(emberRaf);
+        emberRaf = null;
+      }
+    }).observe(canvas);
+
+    emberRaf = requestAnimationFrame(drawEmbers);
+  });
+</script>
