@@ -134,43 +134,24 @@ defmodule SupervisedSlicesWeb.BillingLive.Setup do
             </div>
           </div>
 
-          <%!-- Add-on: Menu Import --%>
+          <%!-- Menu Import (included with plan) --%>
           <div class="bg-surface-container-high border border-outline-variant/10 rounded-2xl p-6 mb-12 flex items-center justify-between">
             <div class="flex items-center gap-4">
               <div class="p-3 bg-secondary/10 rounded-xl text-secondary">
                 <span class="material-symbols-outlined">menu_book</span>
               </div>
               <div>
-                <h4 class="font-headline font-black text-on-surface">Menu Import Concierge</h4>
+                <h4 class="font-headline font-black text-on-surface">AI Menu Importer</h4>
                 <p class="text-[11px] text-on-surface-variant/60 font-body">
-                  One-time setup fee per menu import.
+                  Upload a menu photo — included with your plan.
                 </p>
               </div>
             </div>
             <div class="text-right">
-              <p class="font-headline font-black text-lg text-on-surface">$150</p>
-              <%= cond do %>
-                <% @org.menu_upload_purchased -> %>
-                  <span class="text-[10px] font-black uppercase tracking-wider text-primary">
-                    Purchased
-                  </span>
-                <% @org.subscription_status == :trialing -> %>
-                  <span class="text-[10px] font-black uppercase tracking-wider text-secondary">
-                    Included in trial
-                  </span>
-                <% true -> %>
-                  <button
-                    phx-click="purchase_menu_upload"
-                    disabled={@loading == "menu_upload"}
-                    class="text-[10px] font-black uppercase tracking-wider text-secondary hover:underline disabled:opacity-60"
-                  >
-                    <%= if @loading == "menu_upload" do %>
-                      Processing...
-                    <% else %>
-                      Request Import
-                    <% end %>
-                  </button>
-              <% end %>
+              <p class="font-headline font-black text-lg text-on-surface">Free</p>
+              <span class="text-[10px] font-black uppercase tracking-wider text-primary">
+                Included
+              </span>
             </div>
           </div>
 
@@ -256,38 +237,4 @@ defmodule SupervisedSlicesWeb.BillingLive.Setup do
     end
   end
 
-  def handle_event("purchase_menu_upload", _params, socket) do
-    socket = assign(socket, :loading, "menu_upload")
-    org = socket.assigns.org
-    user = socket.assigns.user
-
-    price_id = Application.get_env(:supervised_slices, :stripe)[:price_id_menu_upload]
-
-    base_url = SupervisedSlicesWeb.Endpoint.url()
-    success_url = base_url <> ~p"/billing/success/#{org.slug}"
-    cancel_url = base_url <> ~p"/billing/setup/#{org.slug}"
-
-    metadata = %{
-      "menu_upload" => "true",
-      "org_id" => org.id
-    }
-
-    with {:ok, org} <- Billing.create_customer_for_org(org, user.email),
-         {:ok, session} <-
-           Billing.create_one_time_checkout_session(
-             org.stripe_customer_id,
-             price_id,
-             metadata,
-             success_url,
-             cancel_url
-           ) do
-      {:noreply, redirect(socket, external: session.url)}
-    else
-      {:error, reason} ->
-        {:noreply,
-         socket
-         |> assign(:loading, false)
-         |> put_flash(:error, "Could not start checkout: #{inspect(reason)}")}
-    end
-  end
 end

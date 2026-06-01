@@ -28,6 +28,13 @@ defmodule SupervisedSlices.Menu.MenuUpload do
     define :process, action: :process
   end
 
+  @doc """
+  Returns whether the org may use the AI menu importer (included with trial and paid plans).
+  """
+  def access_allowed?(%{menu_upload_purchased: purchased, subscription_status: status}) do
+    purchased or status in [:trialing, :active]
+  end
+
   actions do
     defaults [:read, :destroy]
 
@@ -296,12 +303,12 @@ defmodule SupervisedSlices.Menu.MenuUpload.Validations.PurchaseRequired do
         SupervisedSlices.Orgs.Organization
         |> Ash.get!(org_id, authorize?: false)
 
-      if org.menu_upload_purchased or org.subscription_status == :trialing do
+      if SupervisedSlices.Menu.MenuUpload.access_allowed?(org) do
         :ok
       else
         {:error,
          field: :organization_id,
-         message: "Menu upload has not been purchased for this organization."}
+         message: "Subscribe to use the AI menu importer."}
       end
     else
       :ok

@@ -14,7 +14,6 @@ defmodule SupervisedSlicesWeb.AdminLive.MenuEditorComponent do
     MenuUpload
   }
 
-  alias SupervisedSlices.Billing
   alias SupervisedSlices.PubSubNotifier
 
   require Ash.Query
@@ -35,7 +34,6 @@ defmodule SupervisedSlicesWeb.AdminLive.MenuEditorComponent do
      |> assign(:pending_modifiers, [])
      |> assign(:current_upload, nil)
      |> assign(:has_completed_upload, false)
-     |> assign(:purchasing_upload, false)
      |> allow_upload(:item_image,
        accept: ~w(.jpg .jpeg .png .webp .gif),
        max_entries: 5,
@@ -796,36 +794,6 @@ defmodule SupervisedSlicesWeb.AdminLive.MenuEditorComponent do
     {:noreply, assign(socket, :categories, load_categories(scope))}
   end
 
-  def handle_event("purchase_menu_upload", _params, socket) do
-    %{org: org} = socket.assigns
-    socket = assign(socket, :purchasing_upload, true)
-
-    price_id = Application.get_env(:supervised_slices, :stripe)[:price_id_menu_upload]
-    base_url = SupervisedSlicesWeb.Endpoint.url()
-    success_url = base_url <> ~p"/billing/success/#{org.slug}"
-    cancel_url = base_url <> ~p"/kitchen/#{org.slug}/menu"
-
-    metadata = %{"menu_upload" => "true", "org_id" => org.id}
-
-    with {:ok, customer_id} <- get_stripe_customer_id(org),
-         {:ok, session} <-
-           Billing.create_one_time_checkout_session(
-             customer_id,
-             price_id,
-             metadata,
-             success_url,
-             cancel_url
-           ) do
-      {:noreply, redirect(socket, external: session.url)}
-    else
-      {:error, _reason} ->
-        {:noreply,
-         socket
-         |> assign(:purchasing_upload, false)
-         |> put_flash(:error, "Could not start checkout. Please try again.")}
-    end
-  end
-
   def handle_event("validate_menu_upload", _params, socket) do
     {:noreply, socket}
   end
@@ -897,54 +865,7 @@ defmodule SupervisedSlicesWeb.AdminLive.MenuEditorComponent do
         <div class="flex-1 space-y-12 w-full" data-menu-tour="categories-panel">
           <div
             :if={
-              not @org.menu_upload_purchased and not @org.menu_upload_banner_dismissed and
-                @org.subscription_status != :trialing
-            }
-            class="bg-surface-container-low p-6 rounded-xl border-2 border-dashed border-outline-variant/50"
-          >
-            <div class="flex flex-col sm:flex-row sm:items-center gap-4">
-              <div class="flex-1">
-                <h3 class="text-lg font-black text-on-surface font-headline uppercase tracking-tight">
-                  AI Menu Importer
-                </h3>
-                <p class="text-sm text-on-surface-variant mt-1">
-                  Upload a photo of your menu and let our AI build your entire digital catalog — categories, items, sizes, and modifiers.
-                </p>
-              </div>
-              <div class="flex items-center gap-4 shrink-0">
-                <span class="text-sm font-black text-on-surface-variant">$150 one-time</span>
-                <button
-                  phx-click="purchase_menu_upload"
-                  phx-target={@myself}
-                  disabled={@purchasing_upload}
-                  class="bg-primary text-white px-6 py-2.5 rounded-md font-bold text-sm uppercase tracking-wide transition-all active:scale-95 shadow-sm inline-flex items-center gap-2 disabled:opacity-60"
-                >
-                  <span :if={not @purchasing_upload} class="material-symbols-outlined text-lg">
-                    auto_awesome
-                  </span>
-                  <span
-                    :if={@purchasing_upload}
-                    class="material-symbols-outlined text-lg animate-spin"
-                  >
-                    refresh
-                  </span>
-                  {if @purchasing_upload, do: "Processing...", else: "Purchase"}
-                </button>
-                <button
-                  phx-click="dismiss_upload_banner"
-                  phx-target={@myself}
-                  class="text-on-surface-variant hover:text-on-surface transition-colors"
-                  aria-label="Dismiss"
-                >
-                  <span class="material-symbols-outlined text-lg">close</span>
-                </button>
-              </div>
-            </div>
-          </div>
-
-          <div
-            :if={
-              (@org.menu_upload_purchased or @org.subscription_status == :trialing) and
+              SupervisedSlices.Menu.MenuUpload.access_allowed?(@org) and
                 not @has_completed_upload and not @org.menu_upload_banner_dismissed
             }
             class="bg-surface-container-low p-6 rounded-xl border-2 border-dashed border-primary/30 mb-8"
@@ -1385,11 +1306,6 @@ defmodule SupervisedSlicesWeb.AdminLive.MenuEditorComponent do
   # ---------------------------------------------------------------------------
   # Private helpers
   # ---------------------------------------------------------------------------
-
-  defp get_stripe_customer_id(%{stripe_customer_id: id}) when is_binary(id) and id != "",
-    do: {:ok, id}
-
-  defp get_stripe_customer_id(_org), do: {:error, :no_stripe_customer}
 
   defp load_categories(scope) do
     Category.active!(
