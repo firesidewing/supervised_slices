@@ -11,17 +11,10 @@ defmodule SupervisedSlices.Application do
       SupervisedSlicesWeb.Telemetry,
       SupervisedSlices.Repo,
       {DNSCluster, query: Application.get_env(:supervised_slices, :dns_cluster_query) || :ignore},
-      {Oban,
-       AshOban.config(
-         Application.fetch_env!(:supervised_slices, :ash_domains),
-         Application.fetch_env!(:supervised_slices, Oban)
-       )},
       {Phoenix.PubSub, name: SupervisedSlices.PubSub},
       SupervisedSlices.OrgPresence,
-      # Start a worker by calling: SupervisedSlices.Worker.start_link(arg)
-      # {SupervisedSlices.Worker, arg},
-      # Start to serve requests, typically the last entry
       SupervisedSlicesWeb.Endpoint,
+      SupervisedSlices.DeferredServices,
       {AshAuthentication.Supervisor, [otp_app: :supervised_slices]}
     ]
 

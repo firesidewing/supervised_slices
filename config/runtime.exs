@@ -54,6 +54,8 @@ config :supervised_slices, SupervisedSlicesWeb.Endpoint,
   http: [port: String.to_integer(System.get_env("PORT", "4000"))]
 
 if config_env() == :prod do
+  config :tzdata, :autoupdate, :disabled
+
   database_url =
     System.get_env("DATABASE_URL") ||
       raise """
@@ -66,8 +68,10 @@ if config_env() == :prod do
   config :supervised_slices, SupervisedSlices.Repo,
     ssl: true,
     url: database_url,
-    pool_size: String.to_integer(System.get_env("POOL_SIZE") || "10"),
+    pool_size: String.to_integer(System.get_env("POOL_SIZE") || "5"),
     prepare: :unnamed,
+    connect_timeout: 15_000,
+    timeout: 30_000,
     # For machines with several cores, consider starting multiple pools of `pool_size`
     # pool_count: 4,
     socket_options: maybe_ipv6
